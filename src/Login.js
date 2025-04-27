@@ -14,7 +14,7 @@ const Login = () => {
     e.preventDefault();
     
     // Credenciais simples (em produção, use autenticação segura)
-    if (username === 'admin' && password === 'astral123') {
+    if (username === 'admin' && password === '2320') {
       localStorage.setItem('adminLoggedIn', 'true');
       navigate('/restricted');
     } else {

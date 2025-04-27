@@ -195,82 +195,100 @@ const Notification = ({ message, type = 'info', onClose }) => {
 
 const Footer = ({ showAdminButton = true }) => {
   return (
-    <footer className="bg-gray-900 text-white pt-12 pb-6">
-      <div className="container mx-auto px-4">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          {/* Informações de Contato */}
-          <div>
-            <h3 className="text-xl font-bold mb-4 flex items-center">
-              <FiMapPin className="mr-2 text-astral" />
-              Endereço
-            </h3>
-            <p className="text-gray-300 mb-2">Rua Agostinho Da Silva Lote 20, Loja 2</p>
-            <p className="text-gray-300">8500-826 Portimão, PT</p>
-            <p className="text-gray-300">Urb. Horta De São Pedro</p>
-          </div>
 
-          {/* Horário de Funcionamento */}
-          <div>
-            <h3 className="text-xl font-bold mb-4 flex items-center">
-              <FiClock className="mr-2 text-astral" />
-              Horário
-            </h3>
-            <p className="text-gray-300 mb-1">Segunda a Sábado</p>
-            <p className="text-gray-300">08:00 às 20:00</p>
-            
-            <h3 className="text-xl font-bold mt-6 mb-4 flex items-center">
-              <FiPhone className="mr-2 text-astral" />
-              Contato
-            </h3>
-            <p className="text-gray-300">+351 282038830</p>
-            <p className="text-gray-300">WhatsApp: +351 933737672</p>
+        <footer className="relative bg-[#F5F0E6] text-[#5C4B3A] pt-20 pb-12">
+          {/* Container da onda com duas "montanhas" grandes */}
+          <div className="absolute top-0 left-0 right-0 h-24 overflow-hidden">
+            <svg 
+              viewBox="0 0 1200 200" 
+              preserveAspectRatio="none" 
+              className="absolute top-0 left-0 w-full h-full"
+            >
+              {/* Onda com duas montanhas pronunciadas - SEM preenchimento acima */}
+              <path 
+                d="M0,120 
+                   C300,-40 500,200 600,80 
+                   C700,-40 900,200 1200,80
+                   L1200,200 L0,200 Z" 
+                fill="none" 
+                stroke="#8B7252" 
+                strokeWidth="3"
+                strokeLinecap="round"
+              />
+            </svg>
           </div>
+    
+          {/* Conteúdo principal - COMEÇA ABAIXO DA ONDA */}
+          <div className="container mx-auto px-6 mt-16">
+            {/* ... [Todo o restante do conteúdo permanece EXATAMENTE IGUAL] ... */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
+              
+              {/* Bloco de contato */}
+              <div className="text-center md:text-left">
+                <h3 className="text-3xl font-bold mb-4">Alto Astral</h3>
+                <p className="text-[#8B7D6B] italic mb-6">Snack Bar & Restaurante</p>
+                
+                <div className="space-y-3">
+                  <p className="flex items-center justify-center md:justify-start">
+                    <FiMapPin className="mr-3 text-[#8B7252]"/>
+                    Rua Agostinho da Silva, loja 2
+                  </p>
+                  <p className="flex items-center justify-center md:justify-start">
+                    <FiPhone className="mr-3 text-[#8B7252]"/>
+                    (+351) 282 038 830
+                  </p>
+                  <p className="flex items-center justify-center md:justify-start">
+                    <FiClock className="mr-3 text-[#8B7252]"/>
+                    8:30 - 20h • Seg-Sáb
+                  </p>
+                </div>
+              </div>
+    
+              {/* Destaque de horário */}
+              <div className="flex flex-col items-center justify-center">
+                <div className="bg-[#F8F4EC] border border-[#D9C7B8] rounded-lg p-6 text-center max-w-xs">
+                  <FiClock className="mx-auto text-[#8B7252]"/>
+                  <h4 className="text-xl font-semibold mt-3 mb-2">Horário</h4>
+                  <p className="font-medium">8:30 - 20:00</p>
+                  <p className="text-sm text-[#8B7D6B] mt-2">Encomendas até 19:30</p>
+                </div>
+              </div>
+    
+              {/* Redes sociais */}
+              <div className="text-center md:text-right">
+                <h4 className="text-lg font-semibold mb-5">Siga-nos</h4>
+                <div className="flex justify-center md:justify-end space-x-4">
+                  <a href="#" className="p-3 border border-[#D9C7B8] rounded-full hover:border-[#8B7252] transition-colors">
+                    <svg className="w-5 h-5 text-[#5C4B3A]" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M22 12c0-5.523-4.477-10-10-10S2 6.477 2 12c0 4.991 3.657 9.128 8.438 9.878v-6.987h-2.54V12h2.54V9.797c0-2.506 1.492-3.89 3.777-3.89 1.094 0 2.238.195 2.238.195v2.46h-1.26c-1.243 0-1.63.771-1.63 1.562V12h2.773l-.443 2.89h-2.33v6.988C18.343 21.128 22 16.991 22 12z"/>
+                    </svg>
+                  </a>
+                  <a href="#" className="p-3 border border-[#D9C7B8] rounded-full hover:border-[#8B7252] transition-colors">
+                    <svg className="w-5 h-5 text-[#5C4B3A]" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M12.315 2c2.43 0 2.784.013 3.808.06 1.064.049 1.791.218 2.427.465a4.902 4.902 0 011.772 1.153 4.902 4.902 0 011.153 1.772c.247.636.416 1.363.465 2.427.048 1.067.06 1.407.06 4.123v.08c0 2.643-.012 2.987-.06 4.043-.049 1.064-.218 1.791-.465 2.427a4.902 4.902 0 01-1.153 1.772 4.902 4.902 0 01-1.772 1.153c-.636.247-1.363.416-2.427.465-1.067.048-1.407.06-4.123.06h-.08c-2.643 0-2.987-.012-4.043-.06-1.064-.049-1.791-.218-2.427-.465a4.902 4.902 0 01-1.772-1.153 4.902 4.902 0 01-1.153-1.772c-.247-.636-.416-1.363-.465-2.427-.047-1.024-.06-1.379-.06-3.808v-.63c0-2.43.013-2.784.06-3.808.049-1.064.218-1.791.465-2.427a4.902 4.902 0 011.153-1.772A4.902 4.902 0 015.45 2.525c.636-.247 1.363-.416 2.427-.465C8.901 2.013 9.256 2 11.685 2h.63zm-.081 1.802h-.468c-2.456 0-2.784.011-3.807.058-.975.045-1.504.207-1.857.344-.467.182-.8.398-1.15.748-.35.35-.566.683-.748 1.15-.137.353-.3.882-.344 1.857-.047 1.023-.058 1.351-.058 3.807v.468c0 2.456.011 2.784.058 3.807.045.975.207 1.504.344 1.857.182.466.399.8.748 1.15.35.35.683.566 1.15.748.353.137.882.3 1.857.344 1.054.048 1.37.058 4.041.058h.08c2.597 0 2.917-.01 3.96-.058.976-.045 1.505-.207 1.858-.344.466-.182.8-.398 1.15-.748.35-.35.566-.683.748-1.15.137-.353.3-.882.344-1.857.048-1.055.058-1.37.058-4.041v-.08c0-2.597-.01-2.917-.058-3.96-.045-.976-.207-1.505-.344-1.858a3.097 3.097 0 00-.748-1.15 3.098 3.098 0 00-1.15-.748c-.353-.137-.882-.3-1.857-.344-1.023-.047-1.351-.058-3.807-.058zM12 6.865a5.135 5.135 0 110 10.27 5.135 5.135 0 010-10.27zm0 1.802a3.333 3.333 0 100 6.666 3.333 3.333 0 000-6.666zm5.338-3.205a1.2 1.2 0 110 2.4 1.2 1.2 0 010-2.4z"/>
+                    </svg>
+                  </a>
+                </div>
+    
+                {showAdminButton && (
+                  <div className="mt-8">
+                    <Link to="/login" className="inline-flex items-center text-[#5C4B3A] hover:text-[#8B7252] transition-colors">
+                      <FiLock className="mr-2"/> Área Restrita
+                    </Link>
+                  </div>
+                )}
+              </div>
+            </div>
+    
+            {/* Rodapé inferior */}
+            <div className="border-t border-[#D9C7B8] mt-12 pt-6 text-center text-sm text-[#8B7D6B]">
+              © {new Date().getFullYear()} Alto Astral • Todos os direitos reservados
+            </div>
+          </div>
+        </footer>
+      );
+    };
 
-          {/* Links Úteis */}
-          <div>
-            <h3 className="text-xl font-bold mb-4">Alto Astral</h3>
-            <p className="text-gray-300 mb-4">
-              O melhor da gastronomia portuguesa com um toque brasileiro. Sabores que elevam seu astral!
-            </p>
-            
-            {showAdminButton && (
-              <Link to="/login">
-                <motion.button
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  className="bg-astral hover:bg-astral-dark text-white px-6 py-3 rounded-lg flex items-center transition"
-                >
-                  <FiLock className="mr-2" />
-                  Área Restrita
-                </motion.button>
-              </Link>
-            )}
-          </div>
-        </div>
-
-        <div className="border-t border-gray-800 mt-8 pt-6 flex flex-col md:flex-row justify-between items-center">
-          <div className="flex items-center mb-4 md:mb-0">
-            <img src={logoWhite} alt="Alto Astral" className="h-8 mr-2" />
-            <span className="text-gray-400">© {new Date().getFullYear()} Alto Astral. Todos os direitos reservados.</span>
-          </div>
-          
-          <div className="flex space-x-4">
-            <a href="#" className="text-gray-400 hover:text-white transition">
-              <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                <path fillRule="evenodd" d="M22 12c0-5.523-4.477-10-10-10S2 6.477 2 12c0 4.991 3.657 9.128 8.438 9.878v-6.987h-2.54V12h2.54V9.797c0-2.506 1.492-3.89 3.777-3.89 1.094 0 2.238.195 2.238.195v2.46h-1.26c-1.243 0-1.63.771-1.63 1.562V12h2.773l-.443 2.89h-2.33v6.988C18.343 21.128 22 16.991 22 12z" clipRule="evenodd" />
-              </svg>
-            </a>
-            <a href="#" className="text-gray-400 hover:text-white transition">
-              <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                <path fillRule="evenodd" d="M12.315 2c2.43 0 2.784.013 3.808.06 1.064.049 1.791.218 2.427.465a4.902 4.902 0 011.772 1.153 4.902 4.902 0 011.153 1.772c.247.636.416 1.363.465 2.427.048 1.067.06 1.407.06 4.123v.08c0 2.643-.012 2.987-.06 4.043-.049 1.064-.218 1.791-.465 2.427a4.902 4.902 0 01-1.153 1.772 4.902 4.902 0 01-1.772 1.153c-.636.247-1.363.416-2.427.465-1.067.048-1.407.06-4.123.06h-.08c-2.643 0-2.987-.012-4.043-.06-1.064-.049-1.791-.218-2.427-.465a4.902 4.902 0 01-1.772-1.153 4.902 4.902 0 01-1.153-1.772c-.247-.636-.416-1.363-.465-2.427-.047-1.024-.06-1.379-.06-3.808v-.63c0-2.43.013-2.784.06-3.808.049-1.064.218-1.791.465-2.427a4.902 4.902 0 011.153-1.772A4.902 4.902 0 015.45 2.525c.636-.247 1.363-.416 2.427-.465C8.901 2.013 9.256 2 11.685 2h.63zm-.081 1.802h-.468c-2.456 0-2.784.011-3.807.058-.975.045-1.504.207-1.857.344-.467.182-.8.398-1.15.748-.35.35-.566.683-.748 1.15-.137.353-.3.882-.344 1.857-.047 1.023-.058 1.351-.058 3.807v.468c0 2.456.011 2.784.058 3.807.045.975.207 1.504.344 1.857.182.466.399.8.748 1.15.35.35.683.566 1.15.748.353.137.882.3 1.857.344 1.054.048 1.37.058 4.041.058h.08c2.597 0 2.917-.01 3.96-.058.976-.045 1.505-.207 1.858-.344.466-.182.8-.398 1.15-.748.35-.35.566-.683.748-1.15.137-.353.3-.882.344-1.857.048-1.055.058-1.37.058-4.041v-.08c0-2.597-.01-2.917-.058-3.96-.045-.976-.207-1.505-.344-1.858a3.097 3.097 0 00-.748-1.15 3.098 3.098 0 00-1.15-.748c-.353-.137-.882-.3-1.857-.344-1.023-.047-1.351-.058-3.807-.058zM12 6.865a5.135 5.135 0 110 10.27 5.135 5.135 0 010-10.27zm0 1.802a3.333 3.333 0 100 6.666 3.333 3.333 0 000-6.666zm5.338-3.205a1.2 1.2 0 110 2.4 1.2 1.2 0 010-2.4z" clipRule="evenodd" />
-              </svg>
-            </a>
-          </div>
-        </div>
-      </div>
-    </footer>
-  );
-};
 
 const InterfaceCliente = () => {
   const [showModal, setShowModal] = useState(true);
