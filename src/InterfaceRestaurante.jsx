@@ -46,6 +46,7 @@ const MesaSystem = () => {
   const [garcons, setGarcons] = useState([]);
   const [mostrarQRCode, setMostrarQRCode] = useState(false);
   const [itensSelecionados, setItensSelecionados] = useState([]);
+  const [pedidosPendentes, setPedidosPendentes] = useState([]);
 
   // Cardápio estático (pode ser movido para o Firebase se necessário)
   const cardapio = {
@@ -91,7 +92,8 @@ const MesaSystem = () => {
             qrCode: `mesa-${i}`,
             horaAbertura: null,
             itensConsumo: {},
-            qrCodeGerado: false // Novo campo para controlar se o QR code já foi gerado
+            pedidosPendentes: {}, // Novo nó para pedidos enviados pelos clientes
+            qrCodeGerado: false
           };
         }
         
@@ -118,6 +120,7 @@ const MesaSystem = () => {
           if (mesaAtualizada) {
             setMesaSelecionada(mesaAtualizada);
             setItensConsumo(mesaAtualizada.itensConsumo ? Object.values(mesaAtualizada.itensConsumo) : []);
+            setPedidosPendentes(mesaAtualizada.pedidosPendentes ? Object.values(mesaAtualizada.pedidosPendentes) : []);
           }
         }
       }
@@ -149,7 +152,8 @@ const MesaSystem = () => {
         status: 'ocupada',
         horaAbertura: new Date().toISOString(),
         itensConsumo: {}, // Inicializa itens de consumo vazios
-        qrCodeGerado: false // Reseta o status do QR code
+        pedidosPendentes: {}, // Inicializa pedidos pendentes vazios
+        qrCodeGerado: false
       };
       
       await update(ref(database, `restaurante/mesas/${mesa.id}`), updates);
@@ -172,7 +176,8 @@ const MesaSystem = () => {
         quantidade: 1,
         hora: new Date().toLocaleTimeString(),
         categoriaCardapio: abaCardapio,
-        status: 'pendente' // Novo campo para status do item
+        status: 'pendente',
+        origem: 'garcom' // Identifica que foi adicionado pelo garçom
       };
       
       // Adiciona item à mesa no Firebase
@@ -189,6 +194,44 @@ const MesaSystem = () => {
     } catch (error) {
       console.error('Erro ao adicionar item:', error);
       toast.error('Erro ao adicionar item!');
+    }
+  };
+
+  // Processa pedidos pendentes enviados pelo cliente via QR Code
+  const processarPedidosPendentes = async () => {
+    if (!mesaSelecionada || pedidosPendentes.length === 0) return;
+    
+    try {
+      const batchUpdates = {};
+      let totalAdicionado = 0;
+      
+      // Adiciona cada item pendente ao consumo
+      pedidosPendentes.forEach(pedido => {
+        const novoItemId = `item-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+        batchUpdates[`restaurante/mesas/${mesaSelecionada.id}/itensConsumo/${novoItemId}`] = {
+          ...pedido,
+          status: 'pendente',
+          origem: 'cliente', // Identifica que foi adicionado pelo cliente
+          hora: new Date().toLocaleTimeString()
+        };
+        
+        totalAdicionado += pedido.preco * pedido.quantidade;
+      });
+      
+      // Remove os pedidos pendentes
+      batchUpdates[`restaurante/mesas/${mesaSelecionada.id}/pedidosPendentes`] = {};
+      
+      // Atualiza o consumo total
+      batchUpdates[`restaurante/mesas/${mesaSelecionada.id}/consumo`] = 
+        (mesaSelecionada.consumo || 0) + totalAdicionado;
+      
+      // Executa todas as atualizações em uma única transação
+      await update(ref(database), batchUpdates);
+      
+      toast.success(`${pedidosPendentes.length} itens adicionados da comanda digital!`);
+    } catch (error) {
+      console.error('Erro ao processar pedidos pendentes:', error);
+      toast.error('Erro ao processar pedidos do cliente!');
     }
   };
 
@@ -236,7 +279,7 @@ const MesaSystem = () => {
         quantidade: novaQuantidade
       });
       
-      // Recalcula consumo total (opcional, pode ser feito via regras do Firebase)
+      // Recalcula consumo total
       const itensAtualizados = itensConsumo.map(item => 
         item.id === itemId ? { ...item, quantidade: novaQuantidade } : item
       );
@@ -296,18 +339,18 @@ const MesaSystem = () => {
   };
 
   // Atualiza status do item (para enviar para cozinha/bar)
-const atualizarStatusItem = async (itemId, novoStatus) => {
-  try {
-    await update(ref(database, `restaurante/mesas/${mesaSelecionada.id}/itensConsumo/${itemId}`), {
-      status: novoStatus
-    });
-    
-    toast.success(`Item ${novoStatus === 'enviado' ? 'enviado para cozinha' : 'marcado como pronto'}`);
-  } catch (error) {
-    console.error('Erro ao atualizar status:', error);
-    toast.error('Erro ao atualizar status!');
-  }
-};
+  const atualizarStatusItem = async (itemId, novoStatus) => {
+    try {
+      await update(ref(database, `restaurante/mesas/${mesaSelecionada.id}/itensConsumo/${itemId}`), {
+        status: novoStatus
+      });
+      
+      toast.success(`Item ${novoStatus === 'enviado' ? 'enviado para cozinha' : 'marcado como pronto'}`);
+    } catch (error) {
+      console.error('Erro ao atualizar status:', error);
+      toast.error('Erro ao atualizar status!');
+    }
+  };
 
   // Fecha mesa (mostra modal de pagamento)
   const fecharMesa = () => {
@@ -324,6 +367,7 @@ const atualizarStatusItem = async (itemId, novoStatus) => {
         consumo: 0,
         horaAbertura: null,
         itensConsumo: {}, // Limpa itens de consumo
+        pedidosPendentes: {}, // Limpa pedidos pendentes
         qrCodeGerado: false // Reseta o status do QR code
       };
       
@@ -340,6 +384,7 @@ const atualizarStatusItem = async (itemId, novoStatus) => {
       
       setMesaSelecionada(null);
       setItensConsumo([]);
+      setPedidosPendentes([]);
       setMostrarModalPagamento(false);
       setMostrarQRCode(false);
       
@@ -479,6 +524,26 @@ const atualizarStatusItem = async (itemId, novoStatus) => {
             </div>
           </div>
         </header>
+
+        {/* Notificação de pedidos pendentes */}
+        {pedidosPendentes.length > 0 && (
+          <div className="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4">
+            <div className="container mx-auto flex justify-between items-center">
+              <div className="flex items-center">
+                <FiAlertCircle className="mr-2" size={20} />
+                <span>
+                  {pedidosPendentes.length} novo(s) pedido(s) da comanda digital!
+                </span>
+              </div>
+              <button
+                onClick={processarPedidosPendentes}
+                className="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded-lg font-medium text-sm"
+              >
+                Adicionar à comanda
+              </button>
+            </div>
+          </div>
+        )}
 
         {/* Conteúdo principal */}
         <div className="container mx-auto p-4">
@@ -640,6 +705,11 @@ const atualizarStatusItem = async (itemId, novoStatus) => {
                                      item.status === 'enviado' ? 'Enviado' : 'Pronto'}
                                   </span>
                                   <span className="text-xs text-gray-500">{item.hora}</span>
+                                  {item.origem === 'cliente' && (
+                                    <span className="text-xs bg-purple-100 text-purple-800 px-2 py-1 rounded-full">
+                                      Digital
+                                    </span>
+                                  )}
                                 </div>
                               </div>
                             </div>
@@ -778,6 +848,9 @@ const atualizarStatusItem = async (itemId, novoStatus) => {
                           <div key={item.id} className="flex justify-between text-sm">
                             <span>
                               {item.quantidade}x {item.nome}
+                              {item.origem === 'cliente' && (
+                                <span className="ml-1 text-xs bg-purple-100 text-purple-800 px-1 rounded">Digital</span>
+                              )}
                             </span>
                             <span className="font-medium">
                               R${(item.preco * item.quantidade).toFixed(2)}
