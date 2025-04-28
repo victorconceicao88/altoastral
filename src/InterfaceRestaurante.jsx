@@ -7,7 +7,8 @@ import {
   FiStar, FiHeart, FiAward, FiZap, FiSun, FiMapPin,
   FiCheckCircle, FiXCircle, FiPhone, FiAlertCircle,
   FiChevronDown, FiCreditCard, FiEdit2, FiLock, FiUnlock,
-  FiLogOut, FiSettings, FiBell, FiPieChart, FiCalendar
+  FiLogOut, FiSettings, FiBell, FiPieChart, FiCalendar,
+  FiPackage
 } from 'react-icons/fi';
 import { FaChair, FaQrcode, FaReceipt, FaUtensils, FaGlassCheers } from 'react-icons/fa';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -43,8 +44,10 @@ const MesaSystem = () => {
   const [filtro, setFiltro] = useState('todas');
   const [abaCardapio, setAbaCardapio] = useState('cozinha');
   const [garcons, setGarcons] = useState([]);
+  const [mostrarQRCode, setMostrarQRCode] = useState(false);
+  const [itensSelecionados, setItensSelecionados] = useState([]);
 
-  // Static menu (can be moved to Firebase if needed)
+  // Cardápio estático (pode ser movido para o Firebase se necessário)
   const cardapio = {
     cozinha: [
       { id: 1, nome: 'Prato do Dia', preco: 35.00, categoria: 'principais', tempoPreparo: 20 },
@@ -66,9 +69,39 @@ const MesaSystem = () => {
     ]
   };
 
-  // Load data from Firebase when component mounts
+  // Carrega dados do Firebase quando o componente é montado
   useEffect(() => {
-    // Listen for table changes
+    // Inicializa mesas padrão se não existirem
+    const verificarMesasPadrao = async () => {
+      const mesasRef = ref(database, 'restaurante/mesas');
+      const snapshot = await get(mesasRef);
+      
+      if (!snapshot.exists()) {
+        // Cria mesas padrão (1-8 Sala Interna, 9-16 Esplanada)
+        const mesasPadrao = {};
+        
+        for (let i = 1; i <= 16; i++) {
+          const area = i <= 8 ? 'Sala Interna' : 'Esplanada';
+          mesasPadrao[`mesa-${i}`] = {
+            nome: `Mesa ${i}`,
+            area,
+            status: 'livre',
+            capacidade: i <= 8 ? 4 : 6, // Capacidade diferente para cada área
+            consumo: 0,
+            qrCode: `mesa-${i}`,
+            horaAbertura: null,
+            itensConsumo: {},
+            qrCodeGerado: false // Novo campo para controlar se o QR code já foi gerado
+          };
+        }
+        
+        await set(mesasRef, mesasPadrao);
+      }
+    };
+    
+    verificarMesasPadrao();
+
+    // Observa alterações nas mesas
     const mesasRef = ref(database, 'restaurante/mesas');
     onValue(mesasRef, (snapshot) => {
       const data = snapshot.val();
@@ -79,7 +112,7 @@ const MesaSystem = () => {
         }));
         setMesas(mesasArray);
         
-        // Update selected table if open
+        // Atualiza mesa selecionada se estiver aberta
         if (mesaSelecionada) {
           const mesaAtualizada = mesasArray.find(m => m.id === mesaSelecionada.id);
           if (mesaAtualizada) {
@@ -87,12 +120,10 @@ const MesaSystem = () => {
             setItensConsumo(mesaAtualizada.itensConsumo ? Object.values(mesaAtualizada.itensConsumo) : []);
           }
         }
-      } else {
-        setMesas([]);
       }
     });
 
-    // Load waiters
+    // Carrega garçons
     const garconsRef = ref(database, 'restaurante/garcons');
     onValue(garconsRef, (snapshot) => {
       const data = snapshot.val();
@@ -106,7 +137,7 @@ const MesaSystem = () => {
     });
   }, [mesaSelecionada]);
 
-  // Open table (update in Firebase)
+  // Abre mesa (atualiza no Firebase)
   const abrirMesa = async (mesa) => {
     if (mesa.status === 'ocupada') {
       setMesaSelecionada(mesa);
@@ -117,7 +148,8 @@ const MesaSystem = () => {
       const updates = {
         status: 'ocupada',
         horaAbertura: new Date().toISOString(),
-        itensConsumo: {} // Initialize empty consumption items
+        itensConsumo: {}, // Inicializa itens de consumo vazios
+        qrCodeGerado: false // Reseta o status do QR code
       };
       
       await update(ref(database, `restaurante/mesas/${mesa.id}`), updates);
@@ -129,7 +161,7 @@ const MesaSystem = () => {
     }
   };
 
-  // Add item to consumption (update in Firebase)
+  // Adiciona item ao consumo (atualiza no Firebase)
   const adicionarItem = async (item) => {
     if (!mesaSelecionada) return;
     
@@ -139,14 +171,15 @@ const MesaSystem = () => {
         id: Date.now().toString(),
         quantidade: 1,
         hora: new Date().toLocaleTimeString(),
-        categoriaCardapio: abaCardapio
+        categoriaCardapio: abaCardapio,
+        status: 'pendente' // Novo campo para status do item
       };
       
-      // Add item to table in Firebase
+      // Adiciona item à mesa no Firebase
       const newItemRef = push(ref(database, `restaurante/mesas/${mesaSelecionada.id}/itensConsumo`));
       await set(newItemRef, novoItem);
       
-      // Update total consumption
+      // Atualiza consumo total
       const novoConsumo = (mesaSelecionada.consumo || 0) + novoItem.preco;
       await update(ref(database, `restaurante/mesas/${mesaSelecionada.id}`), {
         consumo: novoConsumo
@@ -159,23 +192,26 @@ const MesaSystem = () => {
     }
   };
 
-  // Remove item from consumption (update in Firebase)
+  // Remove item do consumo (atualiza no Firebase)
   const removerItem = async (itemId) => {
     if (!mesaSelecionada) return;
     
     try {
-      // Find item to calculate value to be removed
+      // Encontra item para calcular valor a ser removido
       const itemRemovido = itensConsumo.find(item => item.id === itemId);
       if (!itemRemovido) return;
       
-      // Remove item from Firebase
+      // Remove item do Firebase
       await remove(ref(database, `restaurante/mesas/${mesaSelecionada.id}/itensConsumo/${itemId}`));
       
-      // Update total consumption
+      // Atualiza consumo total
       const novoConsumo = (mesaSelecionada.consumo || 0) - (itemRemovido.preco * itemRemovido.quantidade);
       await update(ref(database, `restaurante/mesas/${mesaSelecionada.id}`), {
         consumo: novoConsumo
       });
+      
+      // Remove da seleção se estiver lá
+      setItensSelecionados(itensSelecionados.filter(id => id !== itemId));
       
       toast.error('Item removido da comanda!');
     } catch (error) {
@@ -184,7 +220,7 @@ const MesaSystem = () => {
     }
   };
 
-  // Update item quantity (update in Firebase)
+  // Atualiza quantidade do item (atualiza no Firebase)
   const atualizarQuantidade = async (itemId, novaQuantidade) => {
     if (novaQuantidade < 1) {
       removerItem(itemId);
@@ -195,12 +231,12 @@ const MesaSystem = () => {
       const itemAtualizado = itensConsumo.find(item => item.id === itemId);
       if (!itemAtualizado) return;
       
-      // Update quantity in Firebase
+      // Atualiza quantidade no Firebase
       await update(ref(database, `restaurante/mesas/${mesaSelecionada.id}/itensConsumo/${itemId}`), {
         quantidade: novaQuantidade
       });
       
-      // Recalculate total consumption (optional, can be done via Firebase rules)
+      // Recalcula consumo total (opcional, pode ser feito via regras do Firebase)
       const itensAtualizados = itensConsumo.map(item => 
         item.id === itemId ? { ...item, quantidade: novaQuantidade } : item
       );
@@ -216,12 +252,69 @@ const MesaSystem = () => {
     }
   };
 
-  // Close table (show payment modal)
+  // Envia todos os itens pendentes para a cozinha/bar
+  const enviarParaPreparo = async () => {
+    if (!mesaSelecionada || itensSelecionados.length === 0) return;
+    
+    try {
+      const updates = {};
+      
+      itensSelecionados.forEach(itemId => {
+        updates[`restaurante/mesas/${mesaSelecionada.id}/itensConsumo/${itemId}/status`] = 'enviado';
+      });
+      
+      await update(ref(database), updates);
+      
+      toast.success(`${itensSelecionados.length} itens enviados para preparo!`);
+      setItensSelecionados([]);
+    } catch (error) {
+      console.error('Erro ao enviar itens:', error);
+      toast.error('Erro ao enviar itens para preparo!');
+    }
+  };
+
+  // Alterna seleção de item
+  const toggleSelecionarItem = (itemId) => {
+    if (itensSelecionados.includes(itemId)) {
+      setItensSelecionados(itensSelecionados.filter(id => id !== itemId));
+    } else {
+      setItensSelecionados([...itensSelecionados, itemId]);
+    }
+  };
+
+  // Marca QR code como gerado
+  const marcarQRCodeComoGerado = async () => {
+    if (!mesaSelecionada) return;
+    
+    try {
+      await update(ref(database, `restaurante/mesas/${mesaSelecionada.id}`), {
+        qrCodeGerado: true
+      });
+    } catch (error) {
+      console.error('Erro ao marcar QR code:', error);
+    }
+  };
+
+  // Atualiza status do item (para enviar para cozinha/bar)
+const atualizarStatusItem = async (itemId, novoStatus) => {
+  try {
+    await update(ref(database, `restaurante/mesas/${mesaSelecionada.id}/itensConsumo/${itemId}`), {
+      status: novoStatus
+    });
+    
+    toast.success(`Item ${novoStatus === 'enviado' ? 'enviado para cozinha' : 'marcado como pronto'}`);
+  } catch (error) {
+    console.error('Erro ao atualizar status:', error);
+    toast.error('Erro ao atualizar status!');
+  }
+};
+
+  // Fecha mesa (mostra modal de pagamento)
   const fecharMesa = () => {
     setMostrarModalPagamento(true);
   };
 
-  // Confirm table closure (update in Firebase)
+  // Confirma fechamento da mesa (atualiza no Firebase)
   const confirmarFechamentoMesa = async () => {
     if (!mesaSelecionada) return;
     
@@ -230,22 +323,25 @@ const MesaSystem = () => {
         status: 'livre',
         consumo: 0,
         horaAbertura: null,
-        itensConsumo: {} // Clear consumption items
+        itensConsumo: {}, // Limpa itens de consumo
+        qrCodeGerado: false // Reseta o status do QR code
       };
       
       await update(ref(database, `restaurante/mesas/${mesaSelecionada.id}`), updates);
       
-      // Register closure in history
+      // Registra fechamento no histórico
       const pagamentoRef = push(ref(database, 'restaurante/historico'));
       await set(pagamentoRef, {
         mesa: mesaSelecionada.nome,
         total: mesaSelecionada.consumo,
-        data: new Date().toISOString()
+        data: new Date().toISOString(),
+        itens: itensConsumo
       });
       
       setMesaSelecionada(null);
       setItensConsumo([]);
       setMostrarModalPagamento(false);
+      setMostrarQRCode(false);
       
       toast.success(`Mesa ${mesaSelecionada.nome} fechada com sucesso!`);
     } catch (error) {
@@ -254,7 +350,7 @@ const MesaSystem = () => {
     }
   };
 
-  // Add new table (update in Firebase)
+  // Adiciona nova mesa (atualiza no Firebase)
   const adicionarNovaMesa = async () => {
     try {
       const novaMesaObj = {
@@ -264,6 +360,7 @@ const MesaSystem = () => {
         capacidade: novaMesa.capacidade,
         consumo: 0,
         qrCode: `mesa-${mesas.length + 1}`,
+        qrCodeGerado: false
       };
       
       const newMesaRef = push(ref(database, 'restaurante/mesas'));
@@ -279,7 +376,7 @@ const MesaSystem = () => {
     }
   };
 
-  // Filter tables
+  // Filtra mesas
   const mesasFiltradas = mesas.filter(mesa => {
     if (filtro === 'todas') return true;
     if (filtro === 'livres') return mesa.status === 'livre';
@@ -287,8 +384,8 @@ const MesaSystem = () => {
     return mesa.area === filtro;
   });
 
-  // QR Code View
-  if (mesaSelecionada && mesaSelecionada.status === 'livre') {
+  // Visualização do QR Code
+  if (mostrarQRCode && mesaSelecionada) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
         <div className="bg-white rounded-xl shadow-lg p-6 max-w-md w-full">
@@ -319,14 +416,17 @@ const MesaSystem = () => {
           
           <div className="flex gap-3">
             <button
-              onClick={() => window.print()}
+              onClick={() => {
+                window.print();
+                marcarQRCodeComoGerado();
+              }}
               className="flex-1 bg-indigo-100 hover:bg-indigo-200 text-indigo-700 py-3 rounded-lg font-medium flex items-center justify-center gap-2"
             >
               <FiPrinter size={16} /> Imprimir
             </button>
             
             <button
-              onClick={() => setMesaSelecionada(null)}
+              onClick={() => setMostrarQRCode(false)}
               className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white py-3 rounded-lg font-medium"
             >
               Voltar
@@ -337,13 +437,13 @@ const MesaSystem = () => {
     );
   }
 
-  // Selected table view
+  // Visualização da mesa selecionada
   if (mesaSelecionada) {
     return (
       <div className="min-h-screen bg-gray-50">
         <ToastContainer />
         
-        {/* Header */}
+        {/* Cabeçalho */}
         <header className="bg-indigo-600 text-white shadow-lg">
           <div className="container mx-auto px-4 py-4">
             <div className="flex justify-between items-center">
@@ -356,6 +456,10 @@ const MesaSystem = () => {
                   <span className="bg-white/20 px-3 py-1 rounded-full text-sm flex items-center gap-1">
                     <FiUser size={14} />
                     {mesaSelecionada.capacidade} lugares
+                  </span>
+                  <span className="bg-white/20 px-3 py-1 rounded-full text-sm flex items-center gap-1">
+                    <FiClock size={14} />
+                    {Math.floor((new Date() - new Date(mesaSelecionada.horaAbertura)) / (1000 * 60))} min
                   </span>
                 </div>
               </div>
@@ -376,16 +480,16 @@ const MesaSystem = () => {
           </div>
         </header>
 
-        {/* Main content */}
+        {/* Conteúdo principal */}
         <div className="container mx-auto p-4">
           <div className="grid lg:grid-cols-3 gap-6">
-            {/* Menu */}
+            {/* Cardápio */}
             <div className="lg:col-span-2">
               <div className="bg-white rounded-xl shadow-sm overflow-hidden mb-6">
                 <div className="p-4 border-b border-gray-200 bg-gray-50">
                   <h2 className="font-bold text-xl text-gray-800">Cardápio</h2>
                   
-                  {/* Kitchen/Bar tabs */}
+                  {/* Abas Cozinha/Bar */}
                   <div className="flex mt-3 border-b border-gray-200 -mb-px">
                     <button
                       onClick={() => setAbaCardapio('cozinha')}
@@ -411,7 +515,7 @@ const MesaSystem = () => {
                   </div>
                 </div>
                 
-                {/* Subcategories */}
+                {/* Subcategorias */}
                 <div className="p-4 border-b border-gray-200">
                   <div className="flex space-x-2 overflow-x-auto pb-2">
                     {['todas', ...new Set(cardapio[abaCardapio].map(item => item.categoria))].map(categoria => (
@@ -430,7 +534,7 @@ const MesaSystem = () => {
                   </div>
                 </div>
                 
-                {/* Menu items */}
+                {/* Itens do cardápio */}
                 <div className="p-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
                   {cardapio[abaCardapio]
                     .filter(item => filtro === 'todas' || item.categoria === filtro)
@@ -458,7 +562,7 @@ const MesaSystem = () => {
               </div>
             </div>
             
-            {/* Consumption */}
+            {/* Consumo */}
             <div className="lg:sticky lg:top-4">
               <div className="bg-white rounded-xl shadow-sm overflow-hidden">
                 <div className="p-4 border-b border-gray-200 bg-gray-50">
@@ -470,7 +574,29 @@ const MesaSystem = () => {
                   </div>
                 </div>
                 
-                {/* Consumption items */}
+                {/* Ações em lote */}
+                {itensConsumo.some(item => item.status === 'pendente') && (
+                  <div className="p-3 bg-indigo-50 border-b border-indigo-100">
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-indigo-800">
+                        {itensSelecionados.length} itens selecionados
+                      </span>
+                      <button
+                        onClick={enviarParaPreparo}
+                        disabled={itensSelecionados.length === 0}
+                        className={`px-3 py-1 rounded-lg text-sm font-medium ${
+                          itensSelecionados.length === 0
+                            ? 'bg-gray-200 text-gray-500 cursor-not-allowed'
+                            : 'bg-indigo-600 hover:bg-indigo-700 text-white'
+                        }`}
+                      >
+                        <FiSend className="inline mr-1" /> Enviar Seleção
+                      </button>
+                    </div>
+                  </div>
+                )}
+                
+                {/* Itens de consumo */}
                 <div className="p-4 max-h-[400px] overflow-y-auto">
                   {itensConsumo.length === 0 ? (
                     <div className="text-center py-8">
@@ -480,14 +606,42 @@ const MesaSystem = () => {
                   ) : (
                     <div className="space-y-3">
                       {itensConsumo.map(item => (
-                        <div key={item.id} className="flex justify-between items-start p-3 bg-gray-50 rounded-lg border border-gray-200">
+                        <div 
+                          key={item.id} 
+                          className={`flex justify-between items-start p-3 rounded-lg border ${
+                            item.status === 'pendente' && itensSelecionados.includes(item.id)
+                              ? 'border-indigo-300 bg-indigo-50'
+                              : item.status === 'pendente'
+                              ? 'border-gray-200 bg-gray-50'
+                              : item.status === 'enviado'
+                              ? 'border-blue-200 bg-blue-50'
+                              : 'border-green-200 bg-green-50'
+                          }`}
+                        >
                           <div className="flex-1 min-w-0">
-                            <div className="font-medium text-gray-800">{item.nome}</div>
-                            <div className="flex items-center gap-2 mt-1">
-                              <span className="text-xs bg-indigo-100 text-indigo-800 px-2 py-1 rounded-full">
-                                {item.categoriaCardapio === 'cozinha' ? 'Cozinha' : 'Bar'}
-                              </span>
-                              <span className="text-xs text-gray-500">{item.hora}</span>
+                            <div className="flex items-start gap-2">
+                              {item.status === 'pendente' && (
+                                <input
+                                  type="checkbox"
+                                  checked={itensSelecionados.includes(item.id)}
+                                  onChange={() => toggleSelecionarItem(item.id)}
+                                  className="mt-1"
+                                />
+                              )}
+                              <div>
+                                <h3 className="font-medium text-gray-800">{item.nome}</h3>
+                                <div className="flex items-center gap-2 mt-1">
+                                  <span className={`text-xs px-2 py-1 rounded-full ${
+                                    item.status === 'pendente' ? 'bg-yellow-100 text-yellow-800' :
+                                    item.status === 'enviado' ? 'bg-blue-100 text-blue-800' :
+                                    'bg-green-100 text-green-800'
+                                  }`}>
+                                    {item.status === 'pendente' ? 'Pendente' : 
+                                     item.status === 'enviado' ? 'Enviado' : 'Pronto'}
+                                  </span>
+                                  <span className="text-xs text-gray-500">{item.hora}</span>
+                                </div>
+                              </div>
                             </div>
                           </div>
                           <div className="flex items-center gap-3">
@@ -509,12 +663,35 @@ const MesaSystem = () => {
                             <span className="font-semibold text-indigo-600 whitespace-nowrap">
                               R${(item.preco * item.quantidade).toFixed(2)}
                             </span>
-                            <button
-                              onClick={() => removerItem(item.id)}
-                              className="text-red-400 hover:text-red-600 p-1"
-                            >
-                              <FiTrash2 size={16} />
-                            </button>
+                            <div className="flex flex-col gap-1">
+                              <button
+                                onClick={() => removerItem(item.id)}
+                                className="text-red-400 hover:text-red-600 p-1"
+                              >
+                                <FiTrash2 size={16} />
+                              </button>
+                              {item.status === 'pendente' && (
+                                <button
+                                  onClick={() => {
+                                    setItensSelecionados([item.id]);
+                                    enviarParaPreparo();
+                                  }}
+                                  className="text-blue-400 hover:text-blue-600 p-1"
+                                  title="Enviar para cozinha"
+                                >
+                                  <FiSend size={14} />
+                                </button>
+                              )}
+                              {item.status === 'enviado' && (
+                                <button
+                                  onClick={() => atualizarStatusItem(item.id, 'pronto')}
+                                  className="text-green-400 hover:text-green-600 p-1"
+                                  title="Marcar como pronto"
+                                >
+                                  <FiCheckCircle size={14} />
+                                </button>
+                              )}
+                            </div>
                           </div>
                         </div>
                       ))}
@@ -522,7 +699,7 @@ const MesaSystem = () => {
                   )}
                 </div>
                 
-                {/* Summary */}
+                {/* Resumo */}
                 <div className="p-4 border-t border-gray-200 bg-gray-50">
                   <div className="space-y-2 mb-4">
                     <div className="flex justify-between items-center">
@@ -539,25 +716,43 @@ const MesaSystem = () => {
                     </div>
                   </div>
                   
-                  <button
-                    onClick={fecharMesa}
-                    disabled={itensConsumo.length === 0}
-                    className={`w-full py-3 px-4 rounded-lg font-medium ${
-                      itensConsumo.length === 0
-                        ? 'bg-gray-200 text-gray-500 cursor-not-allowed'
-                        : 'bg-indigo-600 hover:bg-indigo-700 text-white'
-                    }`}
-                  >
-                    <FaReceipt className="inline mr-2" />
-                    Fechar Conta (R${mesaSelecionada.consumo.toFixed(2)})
-                  </button>
+                  <div className="grid grid-cols-2 gap-3">
+                    <button
+                      onClick={() => {
+                        setMostrarQRCode(true);
+                        marcarQRCodeComoGerado();
+                      }}
+                      disabled={mesaSelecionada.qrCodeGerado}
+                      className={`py-3 px-4 rounded-lg font-medium flex items-center justify-center gap-2 ${
+                        mesaSelecionada.qrCodeGerado
+                          ? 'bg-gray-200 text-gray-500 cursor-not-allowed'
+                          : 'bg-indigo-100 hover:bg-indigo-200 text-indigo-700'
+                      }`}
+                    >
+                      <FaQrcode size={16} />
+                      {mesaSelecionada.qrCodeGerado ? 'QR Gerado' : 'Gerar QR'}
+                    </button>
+                    
+                    <button
+                      onClick={fecharMesa}
+                      disabled={itensConsumo.length === 0}
+                      className={`py-3 px-4 rounded-lg font-medium ${
+                        itensConsumo.length === 0
+                          ? 'bg-gray-200 text-gray-500 cursor-not-allowed'
+                          : 'bg-indigo-600 hover:bg-indigo-700 text-white'
+                      }`}
+                    >
+                      <FaReceipt className="inline mr-2" />
+                      Fechar Conta
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Table Closing Modal */}
+        {/* Modal de Fechamento de Mesa */}
         <AnimatePresence>
           {mostrarModalPagamento && (
             <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
@@ -617,7 +812,7 @@ const MesaSystem = () => {
     );
   }
 
-  // Admin panel
+  // Painel administrativo
   if (painelAtivo !== 'mesas') {
     const mesasOcupadas = mesas.filter(mesa => mesa.status === 'ocupada');
     const totalVendas = mesasOcupadas.reduce((total, mesa) => total + mesa.consumo, 0);
@@ -626,7 +821,7 @@ const MesaSystem = () => {
       <div className="min-h-screen bg-gray-50">
         <ToastContainer />
         
-        {/* Header */}
+        {/* Cabeçalho */}
         <header className="bg-indigo-600 text-white shadow-lg">
           <div className="container mx-auto px-4 py-4">
             <div className="flex justify-between items-center">
@@ -651,7 +846,7 @@ const MesaSystem = () => {
           </div>
         </header>
 
-        {/* Navigation */}
+        {/* Navegação */}
         <div className="container mx-auto px-4 pt-4">
           <div className="flex space-x-2 overflow-x-auto pb-3">
             {['dashboard', 'historico'].map(item => (
@@ -670,11 +865,11 @@ const MesaSystem = () => {
           </div>
         </div>
 
-        {/* Panel content */}
+        {/* Conteúdo do painel */}
         <div className="container mx-auto p-4">
           {painelAtivo === 'dashboard' && (
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-              {/* Summary cards */}
+              {/* Cartões de resumo */}
               <div className="bg-white rounded-xl shadow-sm p-6">
                 <div className="flex items-center justify-between">
                   <div>
@@ -747,12 +942,12 @@ const MesaSystem = () => {
     );
   }
 
-  // Main table view
+  // Visualização principal das mesas
   return (
     <div className="min-h-screen bg-gray-50">
       <ToastContainer />
       
-      {/* Header */}
+      {/* Cabeçalho */}
       <header className="bg-indigo-600 text-white shadow-lg">
         <div className="container mx-auto px-4 py-4 flex justify-between items-center">
           <div>
@@ -780,9 +975,9 @@ const MesaSystem = () => {
         </div>
       </header>
 
-      {/* Main content */}
+      {/* Conteúdo principal */}
       <div className="container mx-auto p-4">
-        {/* Filters */}
+        {/* Filtros */}
         <div className="mb-6">
           <div className="flex space-x-2 overflow-x-auto pb-3">
             {['todas', 'livres', 'ocupadas', 'Sala Interna', 'Esplanada'].map(filtroItem => (
@@ -803,7 +998,7 @@ const MesaSystem = () => {
           </div>
         </div>
 
-        {/* Table Grid */}
+        {/* Grade de Mesas */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
           {mesasFiltradas.map(mesa => (
             <div 
@@ -865,6 +1060,7 @@ const MesaSystem = () => {
                     onClick={(e) => {
                       e.stopPropagation();
                       setMesaSelecionada(mesa);
+                      setMostrarQRCode(true);
                     }}
                     className="text-sm font-medium text-emerald-700 flex items-center justify-center gap-2 w-full"
                   >
@@ -883,7 +1079,7 @@ const MesaSystem = () => {
         </div>
       </div>
 
-      {/* New Table Modal */}
+      {/* Modal de Nova Mesa */}
       <AnimatePresence>
         {mostrarModalMesa && (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
