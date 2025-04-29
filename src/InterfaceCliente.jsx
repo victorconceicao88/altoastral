@@ -69,18 +69,17 @@ const AdminDashboard = () => {
   }, []);
 
   const filteredOrders = orders.filter(order => {
-    // Filtro por tipo de pedido
     if (activeTab === 'all' && activeArea === 'all') return true;
     if (activeTab !== 'all' && activeArea === 'all') {
       return order.orderType === activeTab;
     }
     if (activeTab === 'all' && activeArea !== 'all') {
-      if (order.orderType !== 'dine-in') return false;
+      if (order.orderType !== 'dine-in' && order.orderType !== 'event') return false;
       const tableNum = parseInt(order.tableNumber);
       return activeArea === 'internal' ? tableNum <= 8 : tableNum > 8;
     }
     if (order.orderType !== activeTab) return false;
-    if (order.orderType !== 'dine-in') return true;
+    if (order.orderType !== 'dine-in' && order.orderType !== 'event') return true;
     
     const tableNum = parseInt(order.tableNumber);
     return activeArea === 'internal' ? tableNum <= 8 : tableNum > 8;
@@ -123,58 +122,64 @@ const AdminDashboard = () => {
 
       <div className="container mx-auto p-4">
         <div className="bg-white rounded-xl shadow-md p-4 mb-6">
-          <div className="flex flex-col md:flex-row md:justify-between space-y-4 md:space-y-0">
-            <div className="flex overflow-x-auto space-x-2 pb-2">
-              <button
-                onClick={() => setActiveTab('all')}
-                className={`px-4 py-2 rounded-lg whitespace-nowrap ${activeTab === 'all' ? 'bg-astral text-white' : 'bg-gray-100'}`}
-              >
-                Todos os Pedidos
-              </button>
-              <button
-                onClick={() => setActiveTab('dine-in')}
-                className={`px-4 py-2 rounded-lg whitespace-nowrap ${activeTab === 'dine-in' ? 'bg-astral text-white' : 'bg-gray-100'}`}
-              >
-                No Restaurante
-              </button>
-              <button
-                onClick={() => setActiveTab('takeaway')}
-                className={`px-4 py-2 rounded-lg whitespace-nowrap ${activeTab === 'takeaway' ? 'bg-astral text-white' : 'bg-gray-100'}`}
-              >
-                Retirada
-              </button>
-              <button
-                onClick={() => setActiveTab('delivery')}
-                className={`px-4 py-2 rounded-lg whitespace-nowrap ${activeTab === 'delivery' ? 'bg-astral text-white' : 'bg-gray-100'}`}
-              >
-                Entrega
-              </button>
-            </div>
-            
-            {activeTab === 'dine-in' && (
-              <div className="flex overflow-x-auto space-x-2 pb-2">
-                <button
-                  onClick={() => setActiveArea('all')}
-                  className={`px-4 py-2 rounded-lg whitespace-nowrap ${activeArea === 'all' ? 'bg-astral text-white' : 'bg-gray-100'}`}
-                >
-                  Todas as Mesas
-                </button>
-                <button
-                  onClick={() => setActiveArea('internal')}
-                  className={`px-4 py-2 rounded-lg whitespace-nowrap ${activeArea === 'internal' ? 'bg-astral text-white' : 'bg-gray-100'}`}
-                >
-                  Sala Interna (1-8)
-                </button>
-                <button
-                  onClick={() => setActiveArea('external')}
-                  className={`px-4 py-2 rounded-lg whitespace-nowrap ${activeArea === 'external' ? 'bg-astral text-white' : 'bg-gray-100'}`}
-                >
-                  Esplanada (9-16)
-                </button>
-              </div>
-            )}
-          </div>
-        </div>
+        <div className="flex flex-col md:flex-row md:justify-between space-y-4 md:space-y-0">
+      <div className="flex overflow-x-auto space-x-2 pb-2">
+      <button
+        onClick={() => { setActiveTab('all'); setActiveArea('all'); }}
+        className={`px-4 py-2 rounded-lg whitespace-nowrap ${activeTab === 'all' ? 'bg-astral text-white' : 'bg-gray-100'}`}
+      >
+        Todos os Pedidos
+      </button>
+      <button
+        onClick={() => { setActiveTab('dine-in'); setActiveArea('all'); }}
+        className={`px-4 py-2 rounded-lg whitespace-nowrap ${activeTab === 'dine-in' ? 'bg-astral text-white' : 'bg-gray-100'}`}
+      >
+        No Restaurante
+      </button>
+      <button
+        onClick={() => { setActiveTab('event'); setActiveArea('all'); }}
+        className={`px-4 py-2 rounded-lg whitespace-nowrap ${activeTab === 'event' ? 'bg-astral text-white' : 'bg-gray-100'}`}
+      >
+        Eventos
+      </button>
+      <button
+        onClick={() => { setActiveTab('takeaway'); setActiveArea('all'); }}
+        className={`px-4 py-2 rounded-lg whitespace-nowrap ${activeTab === 'takeaway' ? 'bg-astral text-white' : 'bg-gray-100'}`}
+      >
+        Retirada
+      </button>
+      <button
+        onClick={() => { setActiveTab('delivery'); setActiveArea('all'); }}
+        className={`px-4 py-2 rounded-lg whitespace-nowrap ${activeTab === 'delivery' ? 'bg-astral text-white' : 'bg-gray-100'}`}
+      >
+        Entrega
+      </button>
+    </div>
+    
+    {activeTab === 'dine-in' && (
+      <div className="flex overflow-x-auto space-x-2 pb-2">
+        <button
+          onClick={() => setActiveArea('all')}
+          className={`px-4 py-2 rounded-lg whitespace-nowrap ${activeArea === 'all' ? 'bg-astral text-white' : 'bg-gray-100'}`}
+        >
+          Todas as Mesas
+        </button>
+        <button
+          onClick={() => setActiveArea('internal')}
+          className={`px-4 py-2 rounded-lg whitespace-nowrap ${activeArea === 'internal' ? 'bg-astral text-white' : 'bg-gray-100'}`}
+        >
+          Sala Interna (1-8)
+        </button>
+        <button
+          onClick={() => setActiveArea('external')}
+          className={`px-4 py-2 rounded-lg whitespace-nowrap ${activeArea === 'external' ? 'bg-astral text-white' : 'bg-gray-100'}`}
+        >
+          Esplanada (9-16)
+        </button>
+      </div>
+    )}
+  </div>
+</div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {/* Lista de Mesas/Áreas */}
@@ -237,9 +242,10 @@ const AdminDashboard = () => {
           <div className={`bg-white rounded-xl shadow-md p-4 ${activeTab === 'dine-in' ? 'md:col-span-1' : 'md:col-span-2'}`}>
             <h2 className="text-xl font-bold mb-4">
               {activeTab === 'dine-in' ? 'Pedidos no Restaurante' : 
-               activeTab === 'takeaway' ? 'Pedidos para Retirada' : 
-               activeTab === 'delivery' ? 'Pedidos para Entrega' : 
-               'Todos os Pedidos'}
+              activeTab === 'event' ? 'Pedidos de Eventos' :
+              activeTab === 'takeaway' ? 'Pedidos para Retirada' : 
+              activeTab === 'delivery' ? 'Pedidos para Entrega' : 
+              'Todos os Pedidos'}
             </h2>
             <div className="space-y-3 max-h-[600px] overflow-y-auto">
               {filteredOrders
@@ -250,6 +256,7 @@ const AdminDashboard = () => {
                     whileHover={{ y: -2 }}
                     onClick={() => setSelectedOrder(order)}
                     className={`p-3 border rounded-lg cursor-pointer ${
+                      order.orderType === 'event' ? 'border-purple-300 bg-purple-50' :
                       order.status === 'preparing' ? 'border-yellow-300 bg-yellow-50' : 
                       order.status === 'ready' ? 'border-green-300 bg-green-50' : 
                       order.status === 'completed' ? 'border-gray-300 bg-gray-50' : 
@@ -685,7 +692,8 @@ const InterfaceCliente = () => {
     const table = queryParams.get('table');
     if (table) {
       setTableNumber(table);
-      setOrderType('dine-in');
+      // Define como 'event' se a mesa for maior que 16
+      setOrderType(parseInt(table) > 16 ? 'event' : 'dine-in');
     }
   }, []);
 
@@ -863,21 +871,22 @@ const InterfaceCliente = () => {
 
   const handleCheckout = async () => {
     const orderRef = ref(database, 'orders');
+    
     const newOrder = {
       items: cart,
       customer: customerInfo,
-      orderType,
-      tableNumber: orderType === 'dine-in' ? tableNumber : null,
+      orderType: orderType,
+      tableNumber: (orderType === 'dine-in' || orderType === 'event') ? tableNumber : null,
       total: calculateTotal(),
-      status: orderType === 'dine-in' ? 'pending' : 'received',
+      status: (orderType === 'dine-in' || orderType === 'event') ? 'pending' : 'received',
       timestamp: Date.now()
     };
   
     try {
       await push(orderRef, newOrder);
       
-      // Enviar para WhatsApp apenas para retirada/entrega
-      if (orderType !== 'dine-in') {
+      // Enviar para WhatsApp apenas para retirada/entrega (não envia para restaurante ou eventos)
+      if (orderType === 'takeaway' || orderType === 'delivery') {
         const phoneNumber = '351933737672';
         const message = `*Novo Pedido Alto Astral*%0A%0A` +
           `*Tipo:* ${orderType === 'takeaway' ? 'Retirada' : 'Entrega'}%0A` +
@@ -1009,6 +1018,22 @@ const InterfaceCliente = () => {
                   <span className="text-sm text-gray-500">O pedido será enviado diretamente ao garçom</span>
                 </div>
               </motion.button>
+                          {/* NOVA Opção de Evento */}
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              onClick={() => {
+                setOrderType('event');
+                setCheckoutStep('customer-info');
+              }}
+              className={`p-6 rounded-xl border-2 transition-all ${orderType === 'event' ? 'border-purple-500 bg-purple-50 text-purple-700' : 'border-gray-200 bg-white'}`}
+            >
+              <div className="flex flex-col items-center space-y-3">
+                <FiCalendar size={32} className={orderType === 'event' ? 'text-purple-500' : 'text-gray-400'} />
+                <span className="text-lg font-medium">Participante de Evento</span>
+                <span className="text-sm text-gray-500">Pedido para mesas de eventos especiais</span>
+              </div>
+            </motion.button>
               
               <motion.button
                 whileHover={{ scale: 1.02 }}

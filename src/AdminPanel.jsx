@@ -3,7 +3,7 @@ import {
   FiShoppingCart, FiClock, FiCheck, FiTruck, 
   FiHome, FiPieChart, FiSettings, FiPlus, FiEdit, FiTrash2,
   FiFilter, FiSearch, FiPrinter, FiDownload, FiRefreshCw, FiAlertCircle,
-  FiArrowLeft, FiX, FiInfo, FiUser, FiUsers, FiPlusCircle, FiMinusCircle
+  FiArrowLeft, FiX, FiInfo, FiUser, FiUsers, FiPlusCircle, FiMinusCircle,FiCalendar
 } from 'react-icons/fi';
 import { motion, AnimatePresence } from 'framer-motion';
 import { database } from './firebase';
@@ -17,6 +17,7 @@ const Typography = ({ children, variant = 'body', className = '' }) => {
     h1: 'text-3xl md:text-4xl font-bold text-gray-800',
     h2: 'text-2xl md:text-3xl font-bold text-gray-800',
     h3: 'text-xl md:text-2xl font-semibold text-gray-700',
+    purple: 'bg-purple-100 text-purple-800',
     subtitle: 'text-lg text-gray-500',
     body: 'text-base text-gray-700',
     caption: 'text-sm text-gray-500'
@@ -102,6 +103,7 @@ const Badge = ({ children, variant = 'default', className = '' }) => {
   );
 };
 
+// No componente StatusBadge, adicione:
 const StatusBadge = ({ status }) => {
   const statusMap = {
     'pending': { color: 'warning', text: 'Pendente' },
@@ -109,7 +111,8 @@ const StatusBadge = ({ status }) => {
     'ready': { color: 'success', text: 'Pronto' },
     'completed': { color: 'dark', text: 'Concluído' },
     'canceled': { color: 'danger', text: 'Cancelado' },
-    'editing': { color: 'info', text: 'Em Edição' }
+    'editing': { color: 'info', text: 'Em Edição' },
+    'event': { color: 'purple', text: 'Evento' } // Adicione esta linha
   };
 
   return <Badge variant={statusMap[status]?.color || 'default'}>{statusMap[status]?.text || status}</Badge>;
@@ -556,7 +559,8 @@ const AdminPanel = () => {
       .reduce((sum, order) => sum + (order.total || 0), 0),
     dineInOrders: orders.filter(o => o.orderType === 'dine-in').length,
     deliveryOrders: orders.filter(o => o.orderType === 'delivery').length,
-    takeawayOrders: orders.filter(o => o.orderType === 'takeaway').length
+    takeawayOrders: orders.filter(o => o.orderType === 'takeaway').length,
+    eventOrders: orders.filter(o => o.orderType === 'event').length
   };
 
   return (
@@ -721,10 +725,15 @@ const AdminPanel = () => {
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                             {order.customer?.name || 'Cliente não informado'}
                           </td>
+                       
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                             {order.orderType === 'dine-in' ? (
                               <span className="flex items-center">
                                 <FiHome className="mr-1" /> Mesa {order.tableNumber}
+                              </span>
+                            ) : order.orderType === 'event' ? (
+                              <span className="flex items-center text-purple-600">
+                                <FiCalendar className="mr-1" /> Evento {order.tableNumber}
                               </span>
                             ) : order.orderType === 'delivery' ? (
                               <span className="flex items-center">
@@ -793,25 +802,14 @@ const AdminPanel = () => {
                     onChange={(e) => setSearchQuery(e.target.value)}
                   />
                 </div>
-                <div className="flex space-x-2">
-                  <Select
-                    value={filter}
-                    onChange={(e) => setFilter(e.target.value)}
-                    options={[
-                      { value: 'all', label: 'Todos' },
-                      { value: 'pending', label: 'Pendentes' },
-                      { value: 'preparing', label: 'Em Preparo' },
-                      { value: 'ready', label: 'Prontos' },
-                      { value: 'completed', label: 'Concluídos' }
-                    ]}
-                    className="w-32"
-                  />
+                <div className="flex space-x-2">          
                   <Select
                     value={activeOrderType}
                     onChange={(e) => setActiveOrderType(e.target.value)}
                     options={[
                       { value: 'all', label: 'Todos' },
                       { value: 'dine-in', label: 'Mesas' },
+                      { value: 'event', label: 'Eventos' },
                       { value: 'delivery', label: 'Entregas' },
                       { value: 'takeaway', label: 'Retiradas' }
                     ]}
@@ -843,6 +841,20 @@ const AdminPanel = () => {
                 {filteredOrders.filter(o => o.orderType === 'dine-in' && o.status === 'pending').length > 0 && (
                   <span className="ml-2 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
                     {filteredOrders.filter(o => o.orderType === 'dine-in' && o.status === 'pending').length}
+                  </span>
+                )}
+              </motion.button>
+              <motion.button
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                onClick={() => setActiveOrderType('event')}
+                className={`px-4 py-2 rounded-lg whitespace-nowrap flex items-center transition ${activeOrderType === 'event' ? 'bg-purple-500 text-white' : 'bg-gray-100'}`}
+              >
+                <FiCalendar className="mr-2" />
+                Eventos
+                {filteredOrders.filter(o => o.orderType === 'event' && o.status === 'pending').length > 0 && (
+                  <span className="ml-2 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                    {filteredOrders.filter(o => o.orderType === 'event' && o.status === 'pending').length}
                   </span>
                 )}
               </motion.button>
