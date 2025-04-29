@@ -783,7 +783,7 @@ const filteredOrders = orders.reduce((acc, order) => {
                               </span>
                             )}
                           </td>
-                          // Local: No return da tabela de pedidos (dentro do map que renderiza cada linha)
+          
                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                               <div className="group relative">
                                 <span className="cursor-pointer underline decoration-dotted">
