@@ -1176,36 +1176,6 @@ const InterfaceCliente = () => {
             </h3>
  
             <div className="space-y-4">
-              <div>
-                <label className="block text-gray-700 mb-1">Nome *</label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <FiUser className="text-gray-400" />
-                  </div>
-                  <input
-                    type="text"
-                    value={customerInfo.name}
-                    onChange={(e) => setCustomerInfo({...customerInfo, name: e.target.value})}
-                    className="w-full pl-10 p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-astral focus:border-transparent"
-                    required
-                  />
-                </div>
-              </div>
-              <div>
-                <label className="block text-gray-700 mb-1">Telefone *</label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <FiPhone className="text-gray-400" />
-                  </div>
-                  <input
-                    type="tel"
-                    value={customerInfo.phone}
-                    onChange={(e) => setCustomerInfo({...customerInfo, phone: e.target.value})}
-                    className="w-full pl-10 p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-astral focus:border-transparent"
-                    required
-                  />
-                </div>
-              </div>
               {orderType === 'dine-in' && tableNumber && (
                 <div>
                   <label className="block text-gray-700 mb-1">Mesa</label>
