@@ -8,14 +8,12 @@ const QRCodeGenerator = () => {
   const [baseUrl, setBaseUrl] = useState('');
 
   useEffect(() => {
-    // Obter a URL base do site
     const url = window.location.origin;
     setBaseUrl(url);
     
-    // Gerar URLs únicas para cada mesa (16 mesas internas + 8 na esplanada)
-    const codes = Array.from({ length: 24 }, (_, i) => ({
+    const codes = Array.from({ length: 16 }, (_, i) => ({
       tableNumber: i + 1,
-      area: i < 16 ? 'Interna' : 'Esplanada',
+      area: i < 8 ? 'Interna' : 'Esplanada',
       url: `${url}?table=${i + 1}`,
       qrImage: `https://api.qrserver.com/v1/create-qr-code/?size=200x200&margin=10&data=${encodeURIComponent(`${url}?table=${i + 1}`)}`
     }));
@@ -29,13 +27,74 @@ const QRCodeGenerator = () => {
   };
 
   const printQRCodes = () => {
-    window.print();
+    const printWindow = window.open('', '_blank');
+    printWindow.document.write(`
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <title>QR Codes Mesas - Alto Astral</title>
+          <style>
+            body { font-family: Arial, sans-serif; margin: 0; padding: 20px; }
+            .print-header { text-align: center; margin-bottom: 20px; }
+            .print-header img { height: 50px; }
+            .print-header h1 { margin: 10px 0; font-size: 24px; }
+            .qr-grid { 
+              display: grid; 
+              grid-template-columns: repeat(4, 1fr); 
+              gap: 15px; 
+              width: 100%;
+            }
+            .qr-card { 
+              page-break-inside: avoid; 
+              border: 1px solid #ddd; 
+              padding: 10px; 
+              text-align: center;
+              break-inside: avoid;
+            }
+            .qr-card img { width: 100%; max-width: 150px; height: auto; }
+            .qr-info { margin-top: 5px; font-size: 12px; }
+            .table-number { font-weight: bold; font-size: 16px; }
+            .table-area { font-size: 12px; color: #666; }
+            @page { size: auto; margin: 10mm; }
+            @media print {
+              .no-print { display: none !important; }
+              body { -webkit-print-color-adjust: exact; }
+            }
+          </style>
+        </head>
+        <body>
+          <div class="print-header">
+            <img src="${logo}" alt="Alto Astral" />
+            <h1>QR Codes para Mesas</h1>
+          </div>
+          <div class="qr-grid">
+            ${qrCodes.map(code => `
+              <div class="qr-card">
+                <div class="table-number">Mesa ${code.tableNumber}</div>
+                <div class="table-area">${code.area}</div>
+                <img src="${code.qrImage}" alt="QR Code Mesa ${code.tableNumber}" />
+                <div class="qr-info">${code.url}</div>
+              </div>
+            `).join('')}
+          </div>
+          <script>
+            window.onload = function() {
+              setTimeout(function() {
+                window.print();
+                window.close();
+              }, 300);
+            }
+          </script>
+        </body>
+      </html>
+    `);
+    printWindow.document.close();
   };
 
   return (
     <div className="min-h-screen bg-gray-50 p-4">
       <div className="max-w-6xl mx-auto">
-        <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center justify-between mb-6 no-print">
           <Link to="/admin" className="flex items-center text-astral hover:text-astral-dark">
             <FiArrowLeft className="mr-2" /> Voltar
           </Link>
@@ -51,7 +110,7 @@ const QRCodeGenerator = () => {
           </button>
         </div>
 
-        <div className="bg-white rounded-xl shadow-md p-6 mb-6">
+        <div className="bg-white rounded-xl shadow-md p-6 mb-6 no-print">
           <h2 className="text-xl font-bold mb-4">Instruções</h2>
           <ol className="list-decimal pl-5 space-y-2">
             <li>Imprima os QR codes abaixo</li>
@@ -60,7 +119,7 @@ const QRCodeGenerator = () => {
           </ol>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 no-print">
           {qrCodes.map((code) => (
             <div key={code.tableNumber} className="bg-white p-4 rounded-xl shadow-md text-center border border-gray-200">
               <div className="font-bold text-lg mb-2">

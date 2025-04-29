@@ -71,9 +71,7 @@ const PremiumAdminLayout = ({ children }) => {
               </button>
             </div>
             <nav className="p-4 space-y-1">
-              <MobileSidebarButton icon={<FiHome />} onClick={() => { navigate('/'); setMobileMenuOpen(false); }}>Dashboard</MobileSidebarButton>
               <MobileSidebarButton icon={<FiSettings />} onClick={() => { navigate('/admin'); setMobileMenuOpen(false); }} active>Admin</MobileSidebarButton>
-              <MobileSidebarButton icon={<FiShoppingBag />} onClick={() => { navigate('/mesas'); setMobileMenuOpen(false); }}>Mesas</MobileSidebarButton>
               <MobileSidebarButton icon={<FiCalendar />} onClick={() => { navigate('/eventos'); setMobileMenuOpen(false); }}>Eventos</MobileSidebarButton>
               <MobileSidebarButton icon={<FiLogOut />} onClick={handleLogout}>Sair</MobileSidebarButton>
             </nav>
@@ -89,9 +87,8 @@ const PremiumAdminLayout = ({ children }) => {
             <span className="text-xl font-bold">Alto Astral</span>
           </div>
           <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
-            <DesktopSidebarButton icon={<FiHome />} onClick={() => navigate('/')}>Dashboard</DesktopSidebarButton>
+
             <DesktopSidebarButton icon={<FiSettings />} onClick={() => navigate('/admin')} active>Admin</DesktopSidebarButton>
-            <DesktopSidebarButton icon={<FiShoppingBag />} onClick={() => navigate('/mesas')}>Mesas</DesktopSidebarButton>
             <DesktopSidebarButton icon={<FiCalendar />} onClick={() => navigate('/eventos')}>Eventos</DesktopSidebarButton>
           </nav>
           <div className="p-4 border-t border-gray-200">
@@ -171,13 +168,6 @@ const PremiumDashboardPage = () => {
             onClick={() => navigate('/admin')}
           />
           <PremiumDashboardCard 
-            title="Gerenciar Mesas" 
-            description="Controle de mesas e reservas"
-            icon={<FiShoppingBag />}
-            color="green"
-            onClick={() => navigate('/mesas')}
-          />
-          <PremiumDashboardCard 
             title="Eventos" 
             description="Organize eventos especiais"
             icon={<FiCalendar />}
@@ -244,30 +234,7 @@ const PremiumAdminPage = () => {
   );
 };
 
-const PremiumMesasPage = () => {
-  const navigate = useNavigate();
 
-  return (
-    <div className="max-w-7xl mx-auto">
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
-        <div>
-          <h1 className="text-2xl md:text-3xl font-bold text-gray-800">Gerenciamento de Mesas</h1>
-          <p className="text-gray-500">Controle de mesas e reservas</p>
-        </div>
-        <div className="flex justify-end">
-          <PremiumBackButton onClick={() => navigate('/')} />
-        </div>
-      </div>
-      
-      <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-200">
-        {/* Conteúdo do InterfaceRestaurante aqui */}
-        <div className="min-h-[400px] flex items-center justify-center">
-          <p className="text-gray-500">Interface de mesas será renderizada aqui</p>
-        </div>
-      </div>
-    </div>
-  );
-};
 
 const PremiumEventosPage = () => {
   const navigate = useNavigate();
@@ -301,7 +268,6 @@ const PremiumRestrictedArea = () => {
       <Route element={<PremiumAdminLayout><Outlet /></PremiumAdminLayout>}>
         <Route index element={<PremiumDashboardPage />} />
         <Route path="admin" element={<PremiumAdminPage />} />
-        <Route path="mesas" element={<PremiumMesasPage />} />
         <Route path="eventos" element={<PremiumEventosPage />} />
       </Route>
     </Routes>

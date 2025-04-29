@@ -5,9 +5,12 @@
   "dependencies": {
     "@react-pdf/renderer": "^4.3.0",
     "axios": "^1.9.0",
+    "file-saver": "^2.0.5",
     "firebase": "^11.6.1",
     "framer-motion": "^12.9.2",
     "html-to-image": "^1.11.13",
+    "html2canvas": "^1.4.1",
+    "jszip": "^3.10.1",
     "qrcode.react": "^4.2.0",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",

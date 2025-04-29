@@ -328,9 +328,13 @@ const AdminPanel = () => {
   const [isEditingOrder, setIsEditingOrder] = useState(false);
   const [activeCategory, setActiveCategory] = useState('semana');
   const [menuSearchQuery, setMenuSearchQuery] = useState('');
+  const [activeOrderType, setActiveOrderType] = useState('all');
 
   // Função para enviar notificação via WhatsApp
   const sendWhatsAppNotification = (order, newStatus) => {
+    // Não envia notificação para pedidos de mesa
+    if (order.orderType === 'dine-in') return;
+
     const phone = order.customer?.phone;
     if (!phone) return;
 
@@ -340,10 +344,10 @@ const AdminPanel = () => {
     if (newStatus === 'preparing') {
       message = `Olá ${order.customer?.name || 'cliente'}! Seu pedido #${order.id.slice(0, 6)} está sendo preparado. Agradecemos pela preferência!`;
     } else if (newStatus === 'ready') {
-      if (order.orderType === 'dine-in') {
-        message = `Olá ${order.customer?.name || 'cliente'}! Seu pedido na Mesa ${order.tableNumber} está pronto. Bom apetite!`;
+      if (order.orderType === 'delivery') {
+        message = `Olá ${order.customer?.name || 'cliente'}! Seu pedido #${order.id.slice(0, 6)} está pronto para entrega.`;
       } else {
-        message = `Olá ${order.customer?.name || 'cliente'}! Seu pedido #${order.id.slice(0, 6)} está pronto para ${order.orderType === 'delivery' ? 'entrega' : 'retirada'}.`;
+        message = `Olá ${order.customer?.name || 'cliente'}! Seu pedido #${order.id.slice(0, 6)} está pronto para retirada.`;
       }
     }
 
@@ -525,7 +529,8 @@ const AdminPanel = () => {
     const matchesSearch = searchQuery === '' || 
       (order.customer?.name?.toLowerCase().includes(searchQuery.toLowerCase()) || 
       order.id?.toLowerCase().includes(searchQuery.toLowerCase()));
-    return matchesFilter && matchesSearch;
+    const matchesOrderType = activeOrderType === 'all' || order.orderType === activeOrderType;
+    return matchesFilter && matchesSearch && matchesOrderType;
   });
 
   // Filter menu items by search
@@ -548,7 +553,10 @@ const AdminPanel = () => {
     readyOrders: orders.filter(o => o.status === 'ready').length,
     todayRevenue: orders
       .filter(o => new Date(o.timestamp).toDateString() === new Date().toDateString())
-      .reduce((sum, order) => sum + (order.total || 0), 0)
+      .reduce((sum, order) => sum + (order.total || 0), 0),
+    dineInOrders: orders.filter(o => o.orderType === 'dine-in').length,
+    deliveryOrders: orders.filter(o => o.orderType === 'delivery').length,
+    takeawayOrders: orders.filter(o => o.orderType === 'takeaway').length
   };
 
   return (
@@ -560,8 +568,8 @@ const AdminPanel = () => {
             <img src={logo} alt="Alto Astral" className="h-10 mr-2" />
             <Typography variant="h1" className="text-2xl">Painel Administrativo</Typography>
           </div>
-          <Link to="/" className="bg-white/20 hover:bg-white/30 px-4 py-2 rounded-lg">
-            Voltar ao Cardápio
+          <Link to="/restricted/" className="bg-white/20 hover:bg-white/30 px-4 py-2 rounded-lg">
+            Voltar Para o Dashboard
           </Link>
         </div>
       </header>
@@ -644,6 +652,40 @@ const AdminPanel = () => {
                   </div>
                   <Typography variant="h1" className="mt-2">€{stats.todayRevenue.toFixed(2)}</Typography>
                   <Typography variant="caption" className="mt-2">Total do dia</Typography>
+                </div>
+              </Card>
+            </div>
+
+            {/* Order Type Stats */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+              <Card>
+                <div className="p-6">
+                  <div className="flex items-center justify-between">
+                    <Typography variant="subtitle">Pedidos na Mesa</Typography>
+                    <FiHome className="text-astral" />
+                  </div>
+                  <Typography variant="h1" className="mt-2">{stats.dineInOrders}</Typography>
+                  <Typography variant="caption" className="mt-2">Comer no restaurante</Typography>
+                </div>
+              </Card>
+              <Card>
+                <div className="p-6">
+                  <div className="flex items-center justify-between">
+                    <Typography variant="subtitle">Pedidos para Entrega</Typography>
+                    <FiTruck className="text-astral" />
+                  </div>
+                  <Typography variant="h1" className="mt-2">{stats.deliveryOrders}</Typography>
+                  <Typography variant="caption" className="mt-2">Delivery</Typography>
+                </div>
+              </Card>
+              <Card>
+                <div className="p-6">
+                  <div className="flex items-center justify-between">
+                    <Typography variant="subtitle">Pedidos para Retirada</Typography>
+                    <FiShoppingCart className="text-astral" />
+                  </div>
+                  <Typography variant="h1" className="mt-2">{stats.takeawayOrders}</Typography>
+                  <Typography variant="caption" className="mt-2">Takeaway</Typography>
                 </div>
               </Card>
             </div>
@@ -736,9 +778,9 @@ const AdminPanel = () => {
         {/* Orders Tab */}
         {activeTab === 'orders' && (
           <div>
-            <div className="flex justify-between items-center mb-6">
+            <div className="flex flex-col md:flex-row md:justify-between md:items-center mb-6 gap-4">
               <Typography variant="h2">Todos os Pedidos</Typography>
-              <div className="flex space-x-2">
+              <div className="flex flex-col md:flex-row space-y-2 md:space-y-0 md:space-x-2">
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                     <FiSearch className="text-gray-400" />
@@ -746,27 +788,92 @@ const AdminPanel = () => {
                   <input
                     type="text"
                     placeholder="Buscar pedidos..."
-                    className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-astral focus:border-transparent"
+                    className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-astral focus:border-transparent w-full"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                   />
                 </div>
-                <Select
-                  value={filter}
-                  onChange={(e) => setFilter(e.target.value)}
-                  options={[
-                    { value: 'all', label: 'Todos' },
-                    { value: 'pending', label: 'Pendentes' },
-                    { value: 'preparing', label: 'Em Preparo' },
-                    { value: 'ready', label: 'Prontos' },
-                    { value: 'completed', label: 'Concluídos' }
-                  ]}
-                  className="w-40"
-                />
-                <Button variant="outline" icon={FiDownload}>
-                  Exportar
-                </Button>
+                <div className="flex space-x-2">
+                  <Select
+                    value={filter}
+                    onChange={(e) => setFilter(e.target.value)}
+                    options={[
+                      { value: 'all', label: 'Todos' },
+                      { value: 'pending', label: 'Pendentes' },
+                      { value: 'preparing', label: 'Em Preparo' },
+                      { value: 'ready', label: 'Prontos' },
+                      { value: 'completed', label: 'Concluídos' }
+                    ]}
+                    className="w-32"
+                  />
+                  <Select
+                    value={activeOrderType}
+                    onChange={(e) => setActiveOrderType(e.target.value)}
+                    options={[
+                      { value: 'all', label: 'Todos' },
+                      { value: 'dine-in', label: 'Mesas' },
+                      { value: 'delivery', label: 'Entregas' },
+                      { value: 'takeaway', label: 'Retiradas' }
+                    ]}
+                    className="w-32"
+                  />
+                </div>
               </div>
+            </div>
+
+            {/* Order Type Tabs */}
+            <div className="flex space-x-2 mb-4 overflow-x-auto pb-2">
+              <motion.button
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                onClick={() => setActiveOrderType('all')}
+                className={`px-4 py-2 rounded-lg whitespace-nowrap flex items-center transition ${activeOrderType === 'all' ? 'bg-astral text-white' : 'bg-gray-100'}`}
+              >
+                <FiShoppingCart className="mr-2" />
+                Todos os Pedidos
+              </motion.button>
+              <motion.button
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                onClick={() => setActiveOrderType('dine-in')}
+                className={`px-4 py-2 rounded-lg whitespace-nowrap flex items-center transition ${activeOrderType === 'dine-in' ? 'bg-astral text-white' : 'bg-gray-100'}`}
+              >
+                <FiHome className="mr-2" />
+                Mesas
+                {filteredOrders.filter(o => o.orderType === 'dine-in' && o.status === 'pending').length > 0 && (
+                  <span className="ml-2 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                    {filteredOrders.filter(o => o.orderType === 'dine-in' && o.status === 'pending').length}
+                  </span>
+                )}
+              </motion.button>
+              <motion.button
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                onClick={() => setActiveOrderType('delivery')}
+                className={`px-4 py-2 rounded-lg whitespace-nowrap flex items-center transition ${activeOrderType === 'delivery' ? 'bg-astral text-white' : 'bg-gray-100'}`}
+              >
+                <FiTruck className="mr-2" />
+                Entregas
+                {filteredOrders.filter(o => o.orderType === 'delivery' && o.status === 'pending').length > 0 && (
+                  <span className="ml-2 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                    {filteredOrders.filter(o => o.orderType === 'delivery' && o.status === 'pending').length}
+                  </span>
+                )}
+              </motion.button>
+              <motion.button
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                onClick={() => setActiveOrderType('takeaway')}
+                className={`px-4 py-2 rounded-lg whitespace-nowrap flex items-center transition ${activeOrderType === 'takeaway' ? 'bg-astral text-white' : 'bg-gray-100'}`}
+              >
+                <FiShoppingCart className="mr-2" />
+                Retiradas
+                {filteredOrders.filter(o => o.orderType === 'takeaway' && o.status === 'pending').length > 0 && (
+                  <span className="ml-2 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                    {filteredOrders.filter(o => o.orderType === 'takeaway' && o.status === 'pending').length}
+                  </span>
+                )}
+              </motion.button>
             </div>
 
             <Card>
@@ -788,7 +895,7 @@ const AdminPanel = () => {
                   <tbody className="bg-white divide-y divide-gray-200">
                     {filteredOrders.length > 0 ? (
                       filteredOrders.map(order => (
-                        <tr key={order.id}>
+                        <tr key={order.id} className="hover:bg-gray-50">
                           <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                             #{order.id?.slice(0, 6) || 'N/A'}
                           </td>
@@ -826,12 +933,13 @@ const AdminPanel = () => {
                             <StatusBadge status={order.status || 'pending'} />
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                            <div className="flex space-x-2">
+                            <div className="flex flex-wrap gap-2">
                               <PrintButton order={order} />
                               {order.status === 'pending' && (
                                 <Button 
                                   size="small" 
                                   onClick={() => updateOrderStatus(order.id, 'preparing')}
+                                  className="flex-grow"
                                 >
                                   <FiClock />
                                 </Button>
@@ -840,6 +948,7 @@ const AdminPanel = () => {
                                 <Button 
                                   size="small" 
                                   onClick={() => updateOrderStatus(order.id, 'ready')}
+                                  className="flex-grow"
                                 >
                                   <FiCheck />
                                 </Button>
@@ -850,13 +959,13 @@ const AdminPanel = () => {
                                   setIsEditModalOpen(true);
                                   setIsEditingOrder(order.orderType === 'dine-in');
                                 }}
-                                className="text-astral hover:text-astral-dark"
+                                className="text-astral hover:text-astral-dark p-2"
                               >
                                 <FiEdit />
                               </button>
                               <button 
                                 onClick={() => deleteOrder(order.id)}
-                                className="text-red-500 hover:text-red-700"
+                                className="text-red-500 hover:text-red-700 p-2"
                               >
                                 <FiTrash2 />
                               </button>

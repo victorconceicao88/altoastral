@@ -1,7 +1,6 @@
 import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import InterfaceCliente from './InterfaceCliente';
-import InterfaceRestaurante from './InterfaceRestaurante';
 import InterfaceEventos from './InterfaceEventos';
 import AdminPanel from './AdminPanel';
 import Login from './Login';
@@ -14,7 +13,6 @@ function App() {
     <Routes>
       <Route path="/" element={<InterfaceCliente />} />
       <Route path="/login" element={<Login />} />
-      <Route path="/mesas" element={<InterfaceRestaurante />} />
       <Route path="/eventos" element={<InterfaceEventos />} />
       <Route path="/admin" element={<AdminPanel />} />
       <Route path="/qr-codes" element={<QRCodeGenerator />} />
