@@ -477,26 +477,45 @@ const AdminPanel = () => {
   };
 
   // Função para salvar as alterações no pedido
-  const saveOrderChanges = async () => {
-    if (!currentOrder) return;
+ // Local: Na lista de funções do componente AdminPanel
+const saveOrderChanges = async () => {
+  if (!currentOrder) return;
 
-    const orderRef = ref(database, `orders/${currentOrder.id}`);
-    
-    try {
-      await update(orderRef, {
-        items: currentOrder.items,
-        total: currentOrder.total,
-        status: 'pending' // Volta para pendente após edição
-      });
+  // Nova lógica para mesas/eventos
+  if (currentOrder.orderType === 'dine-in' || currentOrder.orderType === 'event') {
+    const ordersRef = ref(database, 'orders');
+    const ordersToUpdate = orders.filter(
+      o => o.orderType === currentOrder.orderType &&
+           o.tableNumber === currentOrder.tableNumber &&
+           o.status === 'pending' &&
+           o.id !== currentOrder.id
+    );
 
-      setIsEditModalOpen(false);
-      setIsEditingOrder(false);
-      alert('Pedido atualizado com sucesso!');
-    } catch (error) {
-      console.error('Erro ao atualizar pedido:', error);
-      alert('Erro ao atualizar pedido. Por favor, tente novamente.');
-    }
-  };
+    await Promise.all(
+      ordersToUpdate.map(async order => {
+        const orderRef = ref(database, `orders/${order.id}`);
+        await update(orderRef, null);
+      })
+    );
+  }
+
+  const orderRef = ref(database, `orders/${currentOrder.id}`);
+  
+  try {
+    await update(orderRef, {
+      items: currentOrder.items,
+      total: currentOrder.total,
+      status: 'pending' // Volta para pendente após edição
+    });
+
+    setIsEditModalOpen(false);
+    setIsEditingOrder(false);
+    alert('Pedido atualizado com sucesso!');
+  } catch (error) {
+    console.error('Erro ao atualizar pedido:', error);
+    alert('Erro ao atualizar pedido. Por favor, tente novamente.');
+  }
+};
 
   // Fetch data
   useEffect(() => {
@@ -527,14 +546,33 @@ const AdminPanel = () => {
   };
 
   // Filter orders
-  const filteredOrders = orders.filter(order => {
-    const matchesFilter = filter === 'all' || order.status === filter;
-    const matchesSearch = searchQuery === '' || 
-      (order.customer?.name?.toLowerCase().includes(searchQuery.toLowerCase()) || 
-      order.id?.toLowerCase().includes(searchQuery.toLowerCase()));
-    const matchesOrderType = activeOrderType === 'all' || order.orderType === activeOrderType;
-    return matchesFilter && matchesSearch && matchesOrderType;
-  });
+// Substitua a função filteredOrders por esta:
+const filteredOrders = orders.reduce((acc, order) => {
+  // Para pedidos que não são de mesa, adiciona normalmente
+  if (order.orderType !== 'dine-in' && order.orderType !== 'event') {
+    acc.push(order);
+    return acc;
+  }
+
+  // Para pedidos de mesa/evento, verifica se já existe um pedido para aquela mesa
+  const existingOrderIndex = acc.findIndex(
+    o => o.orderType === order.orderType && 
+         o.tableNumber === order.tableNumber && 
+         o.status === order.status
+  );
+
+  if (existingOrderIndex >= 0) {
+    // Se já existe, mescla os itens
+    const existingOrder = acc[existingOrderIndex];
+    existingOrder.items = [...existingOrder.items, ...order.items];
+    existingOrder.total = existingOrder.items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+  } else {
+    // Se não existe, adiciona o pedido
+    acc.push(order);
+  }
+
+  return acc;
+}, []);
 
   // Filter menu items by search
   const filteredMenuItems = Object.entries(menu).reduce((acc, [category, items]) => {
@@ -745,9 +783,27 @@ const AdminPanel = () => {
                               </span>
                             )}
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                            {order.items?.reduce((sum, item) => sum + (item.quantity || 0), 0) || 0}
-                          </td>
+                          // Local: No return da tabela de pedidos (dentro do map que renderiza cada linha)
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                              <div className="group relative">
+                                <span className="cursor-pointer underline decoration-dotted">
+                                  {order.items?.reduce((sum, item) => sum + (item.quantity || 0), 0) || 0}
+                                </span>
+                                {order.orderType === 'dine-in' || order.orderType === 'event' ? (
+                                  <div className="hidden group-hover:block absolute z-10 w-64 p-2 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg">
+                                    <div className="text-xs font-semibold mb-1">Itens da mesa:</div>
+                                    <ul className="space-y-1">
+                                      {order.items?.map((item, idx) => (
+                                        <li key={idx} className="flex justify-between">
+                                          <span>{item.quantity}x {item.name}</span>
+                                          <span>€{(item.price * item.quantity).toFixed(2)}</span>
+                                        </li>
+                                      ))}
+                                    </ul>
+                                  </div>
+                                ) : null}
+                              </div>
+                            </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                             €{(order.total || 0).toFixed(2)}
                           </td>
