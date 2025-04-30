@@ -713,72 +713,73 @@ const AdminPanel = () => {
     }
   };
 
-// Função para consolidar pedidos da mesma mesa
-const consolidateTableOrders = (orders) => {
-  const consolidatedOrders = [];
-  const tableOrdersMap = new Map();
-
-  // Processa todos os pedidos
-  orders.forEach(order => {
-    // Garante que items existe e é um array
-    if (!order.items) {
-      order.items = [];
-    }
-
-    // Se não for pedido de mesa ou evento, adiciona diretamente
-    if (order.orderType !== 'dine-in' && order.orderType !== 'event') {
-      consolidatedOrders.push({...order, originalIds: [order.id]});
-      return;
-    }
-
-    // Cria uma chave única para mesa/evento (sem considerar o status)
-    const orderKey = `${order.orderType}-${order.tableNumber}`;
-    
-    if (tableOrdersMap.has(orderKey)) {
-      // Se já existe um pedido consolidado para esta mesa/evento
-      const existingOrder = tableOrdersMap.get(orderKey);
+  // Função para consolidar pedidos da mesma mesa
+  const consolidateTableOrders = (orders) => {
+    const consolidatedOrders = [];
+    const tableOrdersMap = new Map();
+  
+    orders.forEach(order => {
+      if (!order.items) order.items = [];
       
-      // Adiciona os itens ao pedido consolidado
-      order.items.forEach(newItem => {
-        const existingItemIndex = existingOrder.items.findIndex(
-          item => item.id === newItem.id
+      if (order.orderType !== 'dine-in' && order.orderType !== 'event') {
+        consolidatedOrders.push({...order, originalIds: [order.id]});
+        return;
+      }
+  
+      // Usa eventNumber para eventos se disponível
+      const tableOrEventNumber = order.orderType === 'event' 
+        ? (order.customer?.eventNumber || order.tableNumber)
+        : order.tableNumber;
+      
+      const orderKey = `${order.orderType}-${tableOrEventNumber}`;
+      
+      if (tableOrdersMap.has(orderKey)) {
+        // Se já existe um pedido consolidado para esta mesa/evento
+        const existingOrder = tableOrdersMap.get(orderKey);
+        
+        // Adiciona os itens ao pedido consolidado
+        order.items.forEach(newItem => {
+          const existingItemIndex = existingOrder.items.findIndex(
+            item => item.id === newItem.id
+          );
+
+          if (existingItemIndex >= 0) {
+            existingOrder.items[existingItemIndex].quantity += newItem.quantity;
+          } else {
+            existingOrder.items.push({...newItem});
+          }
+        });
+
+        // Atualiza o total
+        existingOrder.total = existingOrder.items.reduce(
+          (sum, item) => sum + (item.price * item.quantity), 
+          0
         );
 
-        if (existingItemIndex >= 0) {
-          existingOrder.items[existingItemIndex].quantity += newItem.quantity;
-        } else {
-          existingOrder.items.push({...newItem});
+        // Mantém o timestamp mais recente
+        if (new Date(order.timestamp) > new Date(existingOrder.timestamp)) {
+          existingOrder.timestamp = order.timestamp;
+          existingOrder.status = order.status; // Atualiza para o status mais recente
         }
-      });
-
-      // Atualiza o total
-      existingOrder.total = existingOrder.items.reduce(
-        (sum, item) => sum + (item.price * item.quantity), 
-        0
-      );
-
-      // Mantém o timestamp mais recente
-      if (new Date(order.timestamp) > new Date(existingOrder.timestamp)) {
-        existingOrder.timestamp = order.timestamp;
-        existingOrder.status = order.status; // Atualiza para o status mais recente
+        
+        // Adiciona o ID original à lista
+        existingOrder.originalIds.push(order.id);
+      } else {
+        // Cria um novo pedido consolidado
+        const newConsolidatedOrder = {
+          ...order,
+          tableNumber: tableOrEventNumber, // Armazena o número correto
+          items: order.items.map(item => ({...item})),
+          originalIds: [order.id]
+        };
+        tableOrdersMap.set(orderKey, newConsolidatedOrder);
+        consolidatedOrders.push(newConsolidatedOrder);
       }
-      
-      // Adiciona o ID original à lista
-      existingOrder.originalIds.push(order.id);
-    } else {
-      // Cria um novo pedido consolidado
-      const newConsolidatedOrder = {
-        ...order,
-        items: order.items.map(item => ({...item})),
-        originalIds: [order.id]
-      };
-      tableOrdersMap.set(orderKey, newConsolidatedOrder);
-      consolidatedOrders.push(newConsolidatedOrder);
-    }
-  });
+    });
+  
+    return consolidatedOrders;
+  };
 
-  return consolidatedOrders;
-};
   const filteredOrders = useMemo(() => {
     const consolidated = consolidateTableOrders(orders);
     
@@ -972,6 +973,7 @@ const consolidateTableOrders = (orders) => {
                           <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                             #{order.id?.slice(0, 6) || 'N/A'}
                           </td>
+            
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                             {order.orderType === 'dine-in' ? (
                               <span className="flex items-center">
@@ -979,7 +981,7 @@ const consolidateTableOrders = (orders) => {
                               </span>
                             ) : order.orderType === 'event' ? (
                               <span className="flex items-center text-purple-600">
-                                <FiCalendar className="mr-1" /> Evento {order.tableNumber}
+                                <FiCalendar className="mr-1" /> Evento {order.tableNumber || order.customer?.eventNumber}
                               </span>
                             ) : order.orderType === 'delivery' ? (
                               <span className="flex items-center">
@@ -1159,6 +1161,11 @@ const consolidateTableOrders = (orders) => {
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Data/Hora</th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tipo</th>
+                        {activeOrderType === 'event' && (
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          {activeOrderType === 'event' ? 'Numero da Comanda' : 'Mesa'}
+                        </th>
+                      )}
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Itens</th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total</th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
@@ -1182,7 +1189,7 @@ const consolidateTableOrders = (orders) => {
                               </span>
                             ) : order.orderType === 'event' ? (
                               <span className="flex items-center text-purple-600">
-                                <FiCalendar className="mr-1" /> Evento {order.tableNumber}
+                                <FiCalendar className="mr-1" /> Evento
                               </span>
                             ) : order.orderType === 'delivery' ? (
                               <span className="flex items-center">
@@ -1194,6 +1201,11 @@ const consolidateTableOrders = (orders) => {
                               </span>
                             )}
                           </td>
+                            {activeOrderType === 'event' && (
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                              {order.tableNumber || 'Não informado'}
+                            </td>
+                          )}
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                             {order.items?.reduce((sum, item) => sum + (item.quantity || 0), 0)}
                           </td>
@@ -1247,7 +1259,6 @@ const consolidateTableOrders = (orders) => {
                                   });
 
                                   // Cria o objeto do pedido para edição
-                                 // Cria o objeto do pedido para edição
                                   const orderToEdit = {
                                     ...order,
                                     items: order.items || [], // Garante que items existe
@@ -1290,7 +1301,7 @@ const consolidateTableOrders = (orders) => {
                       ))
                     ) : (
                       <tr>
-                        <td colSpan="7" className="px-6 py-4 text-center text-sm text-gray-500">
+                        <td colSpan={activeOrderType === 'event' ? "8" : "7"} className="px-6 py-4 text-center text-sm text-gray-500">
                           Nenhum pedido encontrado
                         </td>
                       </tr>
@@ -1330,47 +1341,47 @@ const consolidateTableOrders = (orders) => {
                       <Typography variant="h3" className="mb-4">Adicionar Itens</Typography>
                       
                       <div className="mb-4">
-  <div className="relative mb-4">
-    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-      <FiSearch className="text-gray-400" />
-    </div>
-    <input
-      type="text"
-      placeholder="Buscar itens no menu..."
-      className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-astral focus:border-transparent w-full"
-      value={menuSearchQuery}
-      onChange={(e) => setMenuSearchQuery(e.target.value)}
-    />
-  </div>
-  
-  <CategoryTabs
-    categories={menuCategories}
-    activeCategory={activeMenuCategory}
-    onSelect={(category) => {
-      setActiveMenuCategory(category);
-      // Mantém a categoria expandida ao mudar de aba
-      if (!expandedCategories[category]) {
-        setExpandedCategories(prev => ({
-          ...prev,
-          [category]: true
-        }));
-      }
-    }}
-    className="mb-4"
-  />
-  
-  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-    {filteredMenuItems.map(item => {
-      const currentItem = currentOrder?.items?.find(i => i.id === item.id);
-      const currentQuantity = currentItem ? currentItem.quantity : 0;
-      
-      return (
-        <MenuItemCard
-          key={item.id}
-          item={item}
-          onAdd={addItemToOrder}
-          onRemove={removeItemFromOrder}
-          currentQuantity={currentQuantity}
+                        <div className="relative mb-4">
+                          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <FiSearch className="text-gray-400" />
+                          </div>
+                          <input
+                            type="text"
+                            placeholder="Buscar itens no menu..."
+                            className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-astral focus:border-transparent w-full"
+                            value={menuSearchQuery}
+                            onChange={(e) => setMenuSearchQuery(e.target.value)}
+                          />
+                        </div>
+                        
+                        <CategoryTabs
+                          categories={menuCategories}
+                          activeCategory={activeMenuCategory}
+                          onSelect={(category) => {
+                            setActiveMenuCategory(category);
+                            // Mantém a categoria expandida ao mudar de aba
+                            if (!expandedCategories[category]) {
+                              setExpandedCategories(prev => ({
+                                ...prev,
+                                [category]: true
+                              }));
+                            }
+                          }}
+                          className="mb-4"
+                        />
+                        
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          {filteredMenuItems.map(item => {
+                            const currentItem = currentOrder?.items?.find(i => i.id === item.id);
+                            const currentQuantity = currentItem ? currentItem.quantity : 0;
+                            
+                            return (
+                              <MenuItemCard
+                                key={item.id}
+                                item={item}
+                                onAdd={addItemToOrder}
+                                onRemove={removeItemFromOrder}
+                                currentQuantity={currentQuantity}
                               />
                             );
                           })}
@@ -1426,11 +1437,15 @@ const consolidateTableOrders = (orders) => {
                   
                   <div className="space-y-4 mb-6">
                     <div>
-                      <Typography variant="caption" className="block mb-1">Tipo</Typography>
+                      <Typography variant="caption" className="block mb-1">
+                        {currentOrder.orderType === 'dine-in' ? 'Número da Mesa' : 
+                        currentOrder.orderType === 'event' ? 'Número do Evento' : 
+                        'Número'}
+                      </Typography>
                       <p className="bg-gray-50 p-3 rounded-lg">
-                        {currentOrder.orderType === 'dine-in' ? 'Mesa' : 
-                         currentOrder.orderType === 'event' ? 'Evento' : 
-                         currentOrder.orderType === 'delivery' ? 'Entrega' : 'Retirada'}
+                        {currentOrder.orderType === 'event' 
+                          ? currentOrder.customer?.eventNumber || currentOrder.tableNumber || 'Não informado'
+                          : currentOrder.tableNumber || 'Não informado'}
                       </p>
                     </div>
                     

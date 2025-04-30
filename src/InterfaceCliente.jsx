@@ -882,9 +882,12 @@ const InterfaceCliente = () => {
     
     const newOrder = {
       items: cart,
-      customer: customerInfo,
-      orderType: orderType,
-      tableNumber: (orderType === 'dine-in' || orderType === 'event') ? tableNumber : null,
+      customer: {
+        ...customerInfo,
+        eventNumber: customerInfo.eventNumber // Certifique-se que isso está sendo preenchido
+      },
+      orderType: 'event',
+      tableNumber: customerInfo.eventNumber,
       total: calculateTotal(),
       status: (orderType === 'dine-in' || orderType === 'event') ? 'pending' : 'received',
       timestamp: Date.now()
