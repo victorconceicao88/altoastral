@@ -1,17 +1,19 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { 
   FiShoppingCart, FiClock, FiCheck, FiTruck, 
   FiHome, FiPieChart, FiSettings, FiPlus, FiEdit, FiTrash2,
   FiFilter, FiSearch, FiPrinter, FiDownload, FiRefreshCw, FiAlertCircle,
-  FiArrowLeft, FiX, FiInfo, FiUser, FiUsers, FiPlusCircle, FiMinusCircle,FiCalendar
+  FiArrowLeft, FiX, FiInfo, FiUser, FiUsers, FiPlusCircle, FiMinusCircle, FiCalendar, FiMinus,FiCoffee,
+  FiChevronDown, FiChevronUp, FiTag
 } from 'react-icons/fi';
 import { motion, AnimatePresence } from 'framer-motion';
-import { database } from './firebase';
 import { ref, push, onValue, update, remove } from 'firebase/database';
 import { Link } from 'react-router-dom';
+import { toast } from 'react-toastify';
 import logo from './assets/logo-alto-astral.png';
+import { database } from './firebase';
 
-// Componentes UI consistentes
+// Componentes UI (atualizados com novos estilos)
 const Typography = ({ children, variant = 'body', className = '' }) => {
   const variants = {
     h1: 'text-3xl md:text-4xl font-bold text-gray-800',
@@ -30,23 +32,15 @@ const Typography = ({ children, variant = 'body', className = '' }) => {
   );
 };
 
-const Button = ({ 
-  children, 
-  variant = 'primary', 
-  size = 'medium',
-  icon: Icon,
-  iconPosition = 'left',
-  className = '',
-  disabled = false,
-  ...props 
-}) => {
+const Button = ({ children, variant = 'primary', size = 'medium', icon: Icon, iconPosition = 'left', className = '', disabled = false, ...props }) => {
   const variants = {
     primary: 'bg-gradient-to-r from-astral to-astral-dark text-white shadow-lg hover:shadow-astral/30',
     secondary: 'bg-gray-800 hover:bg-gray-900 text-white',
     outline: 'border border-astral text-astral hover:bg-astral/10',
     ghost: 'hover:bg-gray-100 text-gray-700',
     danger: 'bg-red-500 hover:bg-red-600 text-white',
-    success: 'bg-green-500 hover:bg-green-600 text-white'
+    success: 'bg-green-500 hover:bg-green-600 text-white',
+    premium: 'bg-gradient-to-r from-purple-600 to-purple-800 text-white shadow-lg hover:shadow-purple-500/30'
   };
 
   const sizes = {
@@ -59,11 +53,9 @@ const Button = ({
     <motion.button
       whileHover={!disabled ? { y: -2 } : {}}
       whileTap={!disabled ? { scale: 0.98 } : {}}
-      className={`
-        rounded-xl transition-all duration-200 flex items-center justify-center gap-2 font-medium
+      className={`rounded-xl transition-all duration-200 flex items-center justify-center gap-2 font-medium
         ${variants[variant]} ${sizes[size]} ${className}
-        ${disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
-      `}
+        ${disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
       disabled={disabled}
       {...props}
     >
@@ -76,10 +68,8 @@ const Button = ({
 
 const Card = ({ children, className = '', hoverEffect = false }) => {
   return (
-    <div className={`
-      bg-white rounded-2xl shadow-sm overflow-hidden border border-gray-200 
-      ${hoverEffect ? 'hover:shadow-md transition-all duration-300' : ''} ${className}
-    `}>
+    <div className={`bg-white rounded-2xl shadow-sm overflow-hidden border border-gray-200 
+      ${hoverEffect ? 'hover:shadow-md transition-all duration-300' : ''} ${className}`}>
       {children}
     </div>
   );
@@ -93,7 +83,8 @@ const Badge = ({ children, variant = 'default', className = '' }) => {
     warning: 'bg-yellow-100 text-yellow-800',
     danger: 'bg-red-100 text-red-800',
     info: 'bg-blue-100 text-blue-800',
-    dark: 'bg-gray-800 text-white'
+    dark: 'bg-gray-800 text-white',
+    premium: 'bg-purple-100 text-purple-800'
   };
 
   return (
@@ -103,7 +94,6 @@ const Badge = ({ children, variant = 'default', className = '' }) => {
   );
 };
 
-// No componente StatusBadge, adicione:
 const StatusBadge = ({ status }) => {
   const statusMap = {
     'pending': { color: 'warning', text: 'Pendente' },
@@ -112,7 +102,7 @@ const StatusBadge = ({ status }) => {
     'completed': { color: 'dark', text: 'Concluído' },
     'canceled': { color: 'danger', text: 'Cancelado' },
     'editing': { color: 'info', text: 'Em Edição' },
-    'event': { color: 'purple', text: 'Evento' } // Adicione esta linha
+    'event': { color: 'purple', text: 'Evento' }
   };
 
   return <Badge variant={statusMap[status]?.color || 'default'}>{statusMap[status]?.text || status}</Badge>;
@@ -160,7 +150,8 @@ const Modal = ({ isOpen, onClose, title, children, size = 'md' }) => {
     sm: 'max-w-md',
     md: 'max-w-xl',
     lg: 'max-w-3xl',
-    xl: 'max-w-5xl'
+    xl: 'max-w-5xl',
+    full: 'max-w-full w-full h-full rounded-none'
   };
 
   return (
@@ -205,7 +196,7 @@ const Modal = ({ isOpen, onClose, title, children, size = 'md' }) => {
   );
 };
 
-// Menu data structure
+// Menu data structure (mantido igual)
 const menu = {
   semana: [
     { id: 1, name: 'Frango Cremoso', description: 'Strogonoff de frango, arroz branco, salada e batata palha', price: 12.90, veg: false, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.5 },
@@ -319,6 +310,138 @@ const menu = {
   ]
 };
 
+// Novo componente para exibir itens do menu
+const MenuItemCard = ({ item, onAdd, onRemove, currentQuantity = 0 }) => {
+  return (
+    <motion.div 
+      whileHover={{ y: -2 }}
+      className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden"
+    >
+      <div className="p-4">
+        <div className="flex justify-between items-start">
+          <div className="flex-1 min-w-0">
+            <Typography variant="body" className="font-medium truncate">{item.name}</Typography>
+            {item.description && (
+              <Typography variant="caption" className="text-gray-500 truncate block">
+                {item.description}
+              </Typography>
+            )}
+          </div>
+          <Typography variant="body" className="font-medium text-astral ml-2">
+            €{item.price.toFixed(2)}
+          </Typography>
+        </div>
+        
+        <div className="flex items-center justify-between mt-3">
+          {currentQuantity > 0 ? (
+            <>
+              <div className="flex items-center border border-gray-200 rounded-lg overflow-hidden">
+                <button
+                  onClick={() => onRemove(item.id)}
+                  className="px-3 py-1 bg-gray-100 hover:bg-gray-200 text-gray-700"
+                >
+                  <FiMinus size={16} />
+                </button>
+                <span className="px-3 py-1 bg-white w-12 text-center">
+                  {currentQuantity}
+                </span>
+                <button
+                  onClick={() => onAdd(item)}
+                  className="px-3 py-1 bg-gray-100 hover:bg-gray-200 text-gray-700"
+                >
+                  <FiPlus size={16} />
+                </button>
+              </div>
+              <Typography variant="body" className="font-medium">
+                €{(item.price * currentQuantity).toFixed(2)}
+              </Typography>
+            </>
+          ) : (
+            <Button 
+              variant="outline" 
+              size="small" 
+              onClick={() => onAdd(item)}
+              className="w-full"
+            >
+              <FiPlus className="mr-1" /> Adicionar
+            </Button>
+          )}
+        </div>
+      </div>
+    </motion.div>
+  );
+};
+
+// Novo componente para exibir itens do pedido atual
+const OrderItem = ({ item, onQuantityChange, onRemove }) => {
+  return (
+    <div className="flex justify-between items-center p-3 hover:bg-gray-50 rounded-lg">
+      <div className="flex-1 min-w-0">
+        <Typography variant="body" className="font-medium truncate">{item.name}</Typography>
+        <Typography variant="caption" className="text-gray-500">
+          €{item.price.toFixed(2)} un.
+        </Typography>
+      </div>
+      
+      <div className="flex items-center ml-4">
+        <div className="flex items-center border border-gray-200 rounded-lg overflow-hidden">
+          <button
+            onClick={() => onQuantityChange(item.id, item.quantity - 1)}
+            className="px-3 py-1 bg-gray-100 hover:bg-gray-200 text-gray-700"
+            disabled={item.quantity <= 1}
+          >
+            <FiMinus size={16} />
+          </button>
+          <span className="px-3 py-1 bg-white w-12 text-center">
+            {item.quantity}
+          </span>
+          <button
+            onClick={() => onQuantityChange(item.id, item.quantity + 1)}
+            className="px-3 py-1 bg-gray-100 hover:bg-gray-200 text-gray-700"
+          >
+            <FiPlus size={16} />
+          </button>
+        </div>
+        
+        <Typography variant="body" className="font-medium ml-4 w-20 text-right">
+          €{(item.price * item.quantity).toFixed(2)}
+        </Typography>
+        
+        <button
+          onClick={() => onRemove(item.id)}
+          className="ml-4 text-red-500 hover:text-red-700 p-1"
+        >
+          <FiTrash2 size={18} />
+        </button>
+      </div>
+    </div>
+  );
+};
+
+// Novo componente para navegação por categorias
+const CategoryTabs = ({ categories, activeCategory, onSelect, className = '' }) => {
+  return (
+    <div className={`flex space-x-2 overflow-x-auto pb-2 ${className}`}>
+      {categories.map(category => (
+        <motion.button
+          key={category.key}
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            onSelect(category.key);
+          }}
+          className={`px-4 py-2 rounded-lg whitespace-nowrap flex items-center transition ${activeCategory === category.key ? 'bg-astral text-white' : 'bg-gray-100'}`}
+        >
+          {category.icon && <category.icon className="mr-2" />}
+          {category.label}
+        </motion.button>
+      ))}
+    </div>
+  );
+};
+
 const AdminPanel = () => {
   const [orders, setOrders] = useState([]);
   const [activeTab, setActiveTab] = useState('dashboard');
@@ -329,13 +452,47 @@ const AdminPanel = () => {
   const [isPrinting, setIsPrinting] = useState(false);
   const [printError, setPrintError] = useState(null);
   const [isEditingOrder, setIsEditingOrder] = useState(false);
-  const [activeCategory, setActiveCategory] = useState('semana');
-  const [menuSearchQuery, setMenuSearchQuery] = useState('');
   const [activeOrderType, setActiveOrderType] = useState('all');
+  const [menuSearchQuery, setMenuSearchQuery] = useState('');
+  const [activeMenuCategory, setActiveMenuCategory] = useState('semana');
+  const [expandedCategories, setExpandedCategories] = useState({
+    semana: true,
+    lanches: true,
+    porcoes: true,
+    pasteis: true,
+    cafe: true,
+    bebidas: true,
+    salgados: true,
+    sobremesas: true
+  });
+
+  // Categorias do menu para navegação
+  const menuCategories = [
+    { key: 'semana', label: 'Pratos da Semana', icon: FiHome },
+    { key: 'lanches', label: 'Lanches', icon: FiShoppingCart },
+    { key: 'porcoes', label: 'Porções', icon: FiUsers },
+    { key: 'pasteis', label: 'Pasteis', icon: FiTag },
+    { key: 'cafe', label: 'Café', icon: FiCoffee },
+    { key: 'bebidas', label: 'Bebidas', icon: FiTruck },
+    { key: 'salgados', label: 'Salgados', icon: FiClock },
+    { key: 'sobremesas', label: 'Sobremesas', icon: FiCheck }
+  ];
+
+  // Função para filtrar itens do menu
+  const filteredMenuItems = useMemo(() => {
+    const categoryItems = menu[activeMenuCategory] || [];
+    
+    if (!menuSearchQuery) return categoryItems;
+    
+    const query = menuSearchQuery.toLowerCase();
+    return categoryItems.filter(item => 
+      item.name.toLowerCase().includes(query) || 
+      (item.description && item.description.toLowerCase().includes(query))
+    );
+  }, [activeMenuCategory, menuSearchQuery]);
 
   // Função para enviar notificação via WhatsApp
   const sendWhatsAppNotification = (order, newStatus) => {
-    // Não envia notificação para pedidos de mesa
     if (order.orderType === 'dine-in') return;
 
     const phone = order.customer?.phone;
@@ -368,16 +525,15 @@ const AdminPanel = () => {
     setPrintError(null);
 
     try {
-      // Simulação de impressão - na prática você implementaria a lógica real de impressão
       console.log('Imprimindo pedido:', order);
       await new Promise(resolve => setTimeout(resolve, 1000));
       
       setIsPrinting(false);
-      alert(`✅ Pedido #${order.id.slice(0, 6)} impresso com sucesso!`);
+      toast.success(`✅ Pedido #${order.id.slice(0, 6)} impresso com sucesso!`);
     } catch (error) {
       setIsPrinting(false);
       setPrintError(error.message);
-      alert(`❌ Falha na impressão: ${error.message}`);
+      toast.error(`❌ Falha na impressão: ${error.message}`);
     }
   };
 
@@ -414,30 +570,29 @@ const AdminPanel = () => {
       }
     } catch (error) {
       console.error('Erro ao atualizar status:', error);
+      toast.error('Erro ao atualizar status do pedido');
     }
   };
 
-  // Função para adicionar item ao pedido
-  const addItemToOrder = (itemToAdd) => {
+  const addItemToOrder = (item) => {
     if (!currentOrder) return;
-
-    const updatedItems = [...(currentOrder.items || [])];
-    const existingItemIndex = updatedItems.findIndex(item => item.id === itemToAdd.id);
-
+  
+    const updatedItems = [...currentOrder.items];
+    const existingItemIndex = updatedItems.findIndex(i => i.id === item.id);
+  
     if (existingItemIndex >= 0) {
-      // Item já existe no pedido, incrementa quantidade
       updatedItems[existingItemIndex] = {
         ...updatedItems[existingItemIndex],
-        quantity: (updatedItems[existingItemIndex].quantity || 1) + 1
+        quantity: updatedItems[existingItemIndex].quantity + 1
       };
     } else {
-      // Adiciona novo item ao pedido
       updatedItems.push({
-        ...itemToAdd,
+        ...item,
         quantity: 1
       });
     }
-
+  
+    // Recalcula o total
     const newTotal = updatedItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
     
     setCurrentOrder({
@@ -447,26 +602,40 @@ const AdminPanel = () => {
     });
   };
 
-  // Função para remover item do pedido
+  const updateItemQuantity = (itemId, newQuantity) => {
+    if (!currentOrder || newQuantity < 1) return;
+  
+    const updatedItems = [...currentOrder.items];
+    const itemIndex = updatedItems.findIndex(item => item.id === itemId);
+  
+    if (itemIndex >= 0) {
+      updatedItems[itemIndex] = {
+        ...updatedItems[itemIndex],
+        quantity: newQuantity
+      };
+  
+      // Recalcula o total
+      const newTotal = updatedItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+      
+      setCurrentOrder({
+        ...currentOrder,
+        items: updatedItems,
+        total: newTotal
+      });
+    }
+  };
+
   const removeItemFromOrder = (itemId) => {
     if (!currentOrder) return;
-
-    const updatedItems = [...(currentOrder.items || [])];
+  
+    const updatedItems = [...currentOrder.items];
     const itemIndex = updatedItems.findIndex(item => item.id === itemId);
-
+  
     if (itemIndex >= 0) {
-      if (updatedItems[itemIndex].quantity > 1) {
-        // Diminui quantidade se for maior que 1
-        updatedItems[itemIndex] = {
-          ...updatedItems[itemIndex],
-          quantity: updatedItems[itemIndex].quantity - 1
-        };
-      } else {
-        // Remove o item se a quantidade for 1
-        updatedItems.splice(itemIndex, 1);
-      }
+      updatedItems.splice(itemIndex, 1);
     }
-
+  
+    // Recalcula o total
     const newTotal = updatedItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
     
     setCurrentOrder({
@@ -476,57 +645,55 @@ const AdminPanel = () => {
     });
   };
 
-  // Função para salvar as alterações no pedido
- // Local: Na lista de funções do componente AdminPanel
-const saveOrderChanges = async () => {
-  if (!currentOrder) return;
-
-  // Nova lógica para mesas/eventos
-  if (currentOrder.orderType === 'dine-in' || currentOrder.orderType === 'event') {
-    const ordersRef = ref(database, 'orders');
-    const ordersToUpdate = orders.filter(
-      o => o.orderType === currentOrder.orderType &&
-           o.tableNumber === currentOrder.tableNumber &&
-           o.status === 'pending' &&
-           o.id !== currentOrder.id
-    );
-
-    await Promise.all(
-      ordersToUpdate.map(async order => {
-        const orderRef = ref(database, `orders/${order.id}`);
-        await update(orderRef, null);
-      })
-    );
-  }
-
-  const orderRef = ref(database, `orders/${currentOrder.id}`);
+  const saveOrderChanges = async () => {
+    if (!currentOrder) return;
   
-  try {
-    await update(orderRef, {
-      items: currentOrder.items,
-      total: currentOrder.total,
-      status: 'pending' // Volta para pendente após edição
-    });
+    try {
+      const ordersRef = ref(database, 'orders');
+      
+      // Remove todos os pedidos originais da mesa
+      const deletePromises = currentOrder.originalIds.map(orderId => {
+        const orderRef = ref(database, `orders/${orderId}`);
+        return remove(orderRef);
+      });
+  
+      await Promise.all(deletePromises);
+  
+      // Cria um novo pedido consolidado com as alterações
+      const newOrderRef = push(ordersRef);
+      
+      await update(newOrderRef, {
+        items: currentOrder.items,
+        total: currentOrder.total,
+        status: currentOrder.status || 'pending',
+        timestamp: new Date().toISOString(),
+        customer: currentOrder.customer || { name: 'Cliente não informado', phone: '' },
+        orderType: currentOrder.orderType,
+        tableNumber: currentOrder.tableNumber || null,
+        originalIds: [newOrderRef.key] // Mantém referência do novo pedido
+      });
+  
+      toast.success(`Pedido da ${currentOrder.orderType === 'dine-in' ? 'mesa' : 'evento'} ${currentOrder.tableNumber} atualizado com sucesso!`);
+      
+      setIsEditModalOpen(false);
+      setIsEditingOrder(false);
+  
+    } catch (error) {
+      console.error('Erro ao atualizar pedido:', error);
+      toast.error('Erro ao atualizar pedido. Por favor, tente novamente.');
+    }
+  };
 
-    setIsEditModalOpen(false);
-    setIsEditingOrder(false);
-    alert('Pedido atualizado com sucesso!');
-  } catch (error) {
-    console.error('Erro ao atualizar pedido:', error);
-    alert('Erro ao atualizar pedido. Por favor, tente novamente.');
-  }
-};
-
-  // Fetch data
   useEffect(() => {
     const ordersRef = ref(database, 'orders');
-
+  
     onValue(ordersRef, (snapshot) => {
       const data = snapshot.val();
       if (data) {
         const ordersArray = Object.keys(data).map(key => ({
           id: key,
           ...data[key],
+          items: data[key].items || [], // Garante que items existe
           customer: data[key].customer || { name: 'Cliente não informado', phone: '' },
           orderType: data[key].orderType || 'takeaway'
         }));
@@ -537,56 +704,102 @@ const saveOrderChanges = async () => {
     });
   }, []);
 
-  // Delete order
   const deleteOrder = (orderId) => {
     if (window.confirm('Tem certeza que deseja excluir este pedido?')) {
       const orderRef = ref(database, `orders/${orderId}`);
-      remove(orderRef);
+      remove(orderRef)
+        .then(() => toast.success('Pedido excluído com sucesso!'))
+        .catch(error => toast.error('Erro ao excluir pedido: ' + error.message));
     }
   };
 
-  // Filter orders
-// Substitua a função filteredOrders por esta:
-const filteredOrders = orders.reduce((acc, order) => {
-  // Para pedidos que não são de mesa, adiciona normalmente
-  if (order.orderType !== 'dine-in' && order.orderType !== 'event') {
-    acc.push(order);
-    return acc;
-  }
+// Função para consolidar pedidos da mesma mesa
+const consolidateTableOrders = (orders) => {
+  const consolidatedOrders = [];
+  const tableOrdersMap = new Map();
 
-  // Para pedidos de mesa/evento, verifica se já existe um pedido para aquela mesa
-  const existingOrderIndex = acc.findIndex(
-    o => o.orderType === order.orderType && 
-         o.tableNumber === order.tableNumber && 
-         o.status === order.status
-  );
-
-  if (existingOrderIndex >= 0) {
-    // Se já existe, mescla os itens
-    const existingOrder = acc[existingOrderIndex];
-    existingOrder.items = [...existingOrder.items, ...order.items];
-    existingOrder.total = existingOrder.items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-  } else {
-    // Se não existe, adiciona o pedido
-    acc.push(order);
-  }
-
-  return acc;
-}, []);
-
-  // Filter menu items by search
-  const filteredMenuItems = Object.entries(menu).reduce((acc, [category, items]) => {
-    const filtered = items.filter(item => 
-      item.name.toLowerCase().includes(menuSearchQuery.toLowerCase()) ||
-      item.description?.toLowerCase().includes(menuSearchQuery.toLowerCase())
-    );
-    if (filtered.length > 0) {
-      acc[category] = filtered;
+  // Processa todos os pedidos
+  orders.forEach(order => {
+    // Garante que items existe e é um array
+    if (!order.items) {
+      order.items = [];
     }
-    return acc;
-  }, {});
 
-  // Stats
+    // Se não for pedido de mesa ou evento, adiciona diretamente
+    if (order.orderType !== 'dine-in' && order.orderType !== 'event') {
+      consolidatedOrders.push({...order, originalIds: [order.id]});
+      return;
+    }
+
+    // Cria uma chave única para mesa/evento (sem considerar o status)
+    const orderKey = `${order.orderType}-${order.tableNumber}`;
+    
+    if (tableOrdersMap.has(orderKey)) {
+      // Se já existe um pedido consolidado para esta mesa/evento
+      const existingOrder = tableOrdersMap.get(orderKey);
+      
+      // Adiciona os itens ao pedido consolidado
+      order.items.forEach(newItem => {
+        const existingItemIndex = existingOrder.items.findIndex(
+          item => item.id === newItem.id
+        );
+
+        if (existingItemIndex >= 0) {
+          existingOrder.items[existingItemIndex].quantity += newItem.quantity;
+        } else {
+          existingOrder.items.push({...newItem});
+        }
+      });
+
+      // Atualiza o total
+      existingOrder.total = existingOrder.items.reduce(
+        (sum, item) => sum + (item.price * item.quantity), 
+        0
+      );
+
+      // Mantém o timestamp mais recente
+      if (new Date(order.timestamp) > new Date(existingOrder.timestamp)) {
+        existingOrder.timestamp = order.timestamp;
+        existingOrder.status = order.status; // Atualiza para o status mais recente
+      }
+      
+      // Adiciona o ID original à lista
+      existingOrder.originalIds.push(order.id);
+    } else {
+      // Cria um novo pedido consolidado
+      const newConsolidatedOrder = {
+        ...order,
+        items: order.items.map(item => ({...item})),
+        originalIds: [order.id]
+      };
+      tableOrdersMap.set(orderKey, newConsolidatedOrder);
+      consolidatedOrders.push(newConsolidatedOrder);
+    }
+  });
+
+  return consolidatedOrders;
+};
+  const filteredOrders = useMemo(() => {
+    const consolidated = consolidateTableOrders(orders);
+    
+    return consolidated
+      .filter(order => {
+        if (activeOrderType !== 'all' && order.orderType !== activeOrderType) return false;
+        if (filter !== 'all' && order.status !== filter) return false;
+        
+        if (searchQuery) {
+          const searchLower = searchQuery.toLowerCase();
+          const matchesId = order.id?.toLowerCase().includes(searchLower);
+          const matchesTable = order.tableNumber?.toString().includes(searchLower);
+          
+          if (!matchesId && !matchesTable) return false;
+        }
+        
+        return true;
+      })
+      .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+  }, [orders, activeOrderType, filter, searchQuery]);
+
   const stats = {
     totalOrders: orders.length,
     pendingOrders: orders.filter(o => o.status === 'pending').length,
@@ -746,7 +959,6 @@ const filteredOrders = orders.reduce((acc, order) => {
                     <thead className="bg-gray-50">
                       <tr>
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Cliente</th>
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tipo</th>
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Itens</th>
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total</th>
@@ -755,15 +967,11 @@ const filteredOrders = orders.reduce((acc, order) => {
                       </tr>
                     </thead>
                     <tbody className="bg-white divide-y divide-gray-200">
-                      {orders.slice(0, 5).map(order => (
+                      {filteredOrders.slice(0, 5).map(order => (
                         <tr key={order.id}>
                           <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                             #{order.id?.slice(0, 6) || 'N/A'}
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                            {order.customer?.name || 'Cliente não informado'}
-                          </td>
-                       
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                             {order.orderType === 'dine-in' ? (
                               <span className="flex items-center">
@@ -783,27 +991,26 @@ const filteredOrders = orders.reduce((acc, order) => {
                               </span>
                             )}
                           </td>
-          
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                              <div className="group relative">
-                                <span className="cursor-pointer underline decoration-dotted">
-                                  {order.items?.reduce((sum, item) => sum + (item.quantity || 0), 0) || 0}
-                                </span>
-                                {order.orderType === 'dine-in' || order.orderType === 'event' ? (
-                                  <div className="hidden group-hover:block absolute z-10 w-64 p-2 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg">
-                                    <div className="text-xs font-semibold mb-1">Itens da mesa:</div>
-                                    <ul className="space-y-1">
-                                      {order.items?.map((item, idx) => (
-                                        <li key={idx} className="flex justify-between">
-                                          <span>{item.quantity}x {item.name}</span>
-                                          <span>€{(item.price * item.quantity).toFixed(2)}</span>
-                                        </li>
-                                      ))}
-                                    </ul>
-                                  </div>
-                                ) : null}
-                              </div>
-                            </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            <div className="group relative">
+                              <span className="cursor-pointer underline decoration-dotted">
+                                {order.items?.reduce((sum, item) => sum + (item.quantity || 0), 0) || 0}
+                              </span>
+                              {order.orderType === 'dine-in' || order.orderType === 'event' ? (
+                                <div className="hidden group-hover:block absolute z-10 w-64 p-2 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg">
+                                  <div className="text-xs font-semibold mb-1">Itens da mesa:</div>
+                                  <ul className="space-y-1">
+                                    {order.items?.map((item, idx) => (
+                                      <li key={idx} className="flex justify-between">
+                                        <span>{item.quantity}x {item.name}</span>
+                                        <span>€{(item.price * item.quantity).toFixed(2)}</span>
+                                      </li>
+                                    ))}
+                                  </ul>
+                                </div>
+                              ) : null}
+                            </div>
+                          </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                             €{(order.total || 0).toFixed(2)}
                           </td>
@@ -946,114 +1153,150 @@ const filteredOrders = orders.reduce((acc, order) => {
 
             <Card>
               <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
-  <thead className="bg-gray-50">
-    <tr>
-      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
-      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Data/Hora</th>
-      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Cliente</th>
-      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Telefone</th>
-      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tipo</th>
-      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Itens</th>
-      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total</th>
-      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ações</th>
-    </tr>
-  </thead>
-  <tbody className="bg-white divide-y divide-gray-200">
-    {filteredOrders.length > 0 ? (
-      filteredOrders.map(order => (
-        <tr key={order.id} className="hover:bg-gray-50">
-          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-            #{order.id?.slice(0, 6) || 'N/A'}
-          </td>
-          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-            {new Date(order.timestamp)?.toLocaleString() || 'Data inválida'}
-          </td>
-          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-            {order.customer?.name || 'Cliente não informado'}
-          </td>
-          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-            {order.customer?.phone || '--'}
-          </td>
-          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-            {order.orderType === 'dine-in' ? (
-              <span className="flex items-center">
-                <FiHome className="mr-1" /> Mesa {order.tableNumber}
-              </span>
-            ) : order.orderType === 'event' ? (
-              <span className="flex items-center text-purple-600">
-                <FiCalendar className="mr-1" /> Evento {order.tableNumber}
-              </span>
-            ) : order.orderType === 'delivery' ? (
-              <span className="flex items-center">
-                <FiTruck className="mr-1" /> Entrega
-              </span>
-            ) : (
-              <span className="flex items-center">
-                <FiShoppingCart className="mr-1" /> Retirada
-              </span>
-            )}
-          </td>
-          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-            {order.items?.reduce((sum, item) => sum + (item.quantity || 0), 0) || 0}
-          </td>
-          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-            €{(order.total || 0).toFixed(2)}
-          </td>
-          <td className="px-6 py-4 whitespace-nowrap">
-            <StatusBadge status={order.status || 'pending'} />
-          </td>
-          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-            <div className="flex flex-wrap gap-2">
-              <PrintButton order={order} />
-              {order.status === 'pending' && (
-                <Button 
-                  size="small" 
-                  onClick={() => updateOrderStatus(order.id, 'preparing')}
-                  className="flex-grow"
-                >
-                  <FiClock />
-                </Button>
-              )}
-              {order.status === 'preparing' && (
-                <Button 
-                  size="small" 
-                  onClick={() => updateOrderStatus(order.id, 'ready')}
-                  className="flex-grow"
-                >
-                  <FiCheck />
-                </Button>
-              )}
-              <button 
-                onClick={() => {
-                  setCurrentOrder(order);
-                  setIsEditModalOpen(true);
-                  setIsEditingOrder(order.orderType === 'dine-in' || order.orderType === 'event');
-                }}
-                className="text-astral hover:text-astral-dark p-2"
-              >
-                <FiEdit />
-              </button>
-              <button 
-                onClick={() => deleteOrder(order.id)}
-                className="text-red-500 hover:text-red-700 p-2"
-              >
-                <FiTrash2 />
-              </button>
-            </div>
-          </td>
-        </tr>
-      ))
-    ) : (
-      <tr>
-        <td colSpan="9" className="px-6 py-4 text-center text-sm text-gray-500">
-          Nenhum pedido encontrado
-        </td>
-      </tr>
-    )}
-  </tbody>
-</table>
+                <table className="min-w-full divide-y divide-gray-200">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Data/Hora</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tipo</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Itens</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ações</th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {filteredOrders.length > 0 ? (
+                      filteredOrders.map(order => (
+                        <tr key={order.id} className="hover:bg-gray-50">
+                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                            #{order.id?.slice(0, 6) || 'N/A'}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            {new Date(order.timestamp)?.toLocaleString() || 'Data inválida'}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            {order.orderType === 'dine-in' ? (
+                              <span className="flex items-center">
+                                <FiHome className="mr-1" /> Mesa {order.tableNumber}
+                              </span>
+                            ) : order.orderType === 'event' ? (
+                              <span className="flex items-center text-purple-600">
+                                <FiCalendar className="mr-1" /> Evento {order.tableNumber}
+                              </span>
+                            ) : order.orderType === 'delivery' ? (
+                              <span className="flex items-center">
+                                <FiTruck className="mr-1" /> Entrega
+                              </span>
+                            ) : (
+                              <span className="flex items-center">
+                                <FiShoppingCart className="mr-1" /> Retirada
+                              </span>
+                            )}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            {order.items?.reduce((sum, item) => sum + (item.quantity || 0), 0)}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            €{(order.total || 0).toFixed(2)}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <StatusBadge status={order.status || 'pending'} />
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            <div className="flex flex-wrap gap-2">
+                              <PrintButton order={order} />
+                              {order.status === 'pending' && (
+                                <Button 
+                                  size="small" 
+                                  onClick={() => updateOrderStatus(order.id, 'preparing')}
+                                  className="flex-grow"
+                                >
+                                  <FiClock />
+                                </Button>
+                              )}
+                              {order.status === 'preparing' && (
+                                <Button 
+                                  size="small" 
+                                  onClick={() => updateOrderStatus(order.id, 'ready')}
+                                  className="flex-grow"
+                                >
+                                  <FiCheck />
+                                </Button>
+                              )}                                                   
+                              <button 
+                                onClick={() => {
+                                  // Encontra todos os pedidos da mesma mesa
+                                  const allTableOrders = orders.filter(
+                                    o => o.orderType === order.orderType && 
+                                        o.tableNumber === order.tableNumber && 
+                                        o.status === order.status
+                                  );
+
+                                  // Consolida os itens manualmente
+                                  const consolidatedItems = [];
+                                  allTableOrders.forEach(tableOrder => {
+                                    tableOrder.items.forEach(item => {
+                                      const existingItem = consolidatedItems.find(i => i.id === item.id);
+                                      if (existingItem) {
+                                        existingItem.quantity += item.quantity;
+                                      } else {
+                                        consolidatedItems.push({...item});
+                                      }
+                                    });
+                                  });
+
+                                  // Cria o objeto do pedido para edição
+                                 // Cria o objeto do pedido para edição
+                                  const orderToEdit = {
+                                    ...order,
+                                    items: order.items || [], // Garante que items existe
+                                    total: order.items?.reduce((sum, item) => sum + (item.price * item.quantity), 0) || 0,
+                                    originalIds: allTableOrders.map(o => o.id)
+                                  };
+
+                                  setCurrentOrder(orderToEdit);
+                                  setIsEditModalOpen(true);
+                                  setIsEditingOrder(true);
+                                }}
+                                className="text-astral hover:text-astral-dark p-2"
+                              >
+                                <FiEdit />
+                              </button>
+                              <button 
+                                onClick={() => {
+                                  if (order.originalIds && order.originalIds.length > 0) {
+                                    if (window.confirm(`Tem certeza que deseja excluir ${order.originalIds.length > 1 ? 'todos os pedidos desta mesa?' : 'este pedido?'}`)) {
+                                      const deletePromises = order.originalIds.map(orderId => {
+                                        const orderRef = ref(database, `orders/${orderId}`);
+                                        return remove(orderRef);
+                                      });
+                                      
+                                      Promise.all(deletePromises)
+                                        .then(() => toast.success('Pedido(s) excluído(s) com sucesso!'))
+                                        .catch(error => toast.error('Erro ao excluir pedido(s): ' + error.message));
+                                    }
+                                  } else {
+                                    deleteOrder(order.id);
+                                  }
+                                }}
+                                className="text-red-500 hover:text-red-700 p-2"
+                              >
+                                <FiTrash2 />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))
+                    ) : (
+                      <tr>
+                        <td colSpan="7" className="px-6 py-4 text-center text-sm text-gray-500">
+                          Nenhum pedido encontrado
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
               </div>
             </Card>
           </div>
@@ -1067,7 +1310,7 @@ const filteredOrders = orders.reduce((acc, order) => {
           setIsEditModalOpen(false);
           setIsEditingOrder(false);
         }}
-        title={`Pedido #${currentOrder?.id?.slice(0, 6) || ''}`}
+        title={`${currentOrder?.orderType === 'dine-in' ? 'Mesa' : 'Evento'} #${currentOrder?.tableNumber || ''}`}
         size="xl"
       >
         {currentOrder && (
@@ -1080,206 +1323,211 @@ const filteredOrders = orders.reduce((acc, order) => {
             }
           }}>
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              <div className="lg:col-span-1">
-                <Typography variant="h3" className="mb-4">Informações do Cliente</Typography>
-                <div className="space-y-4">
-                  <div>
-                    <Typography variant="caption" className="block mb-1">Nome</Typography>
-                    <p className="bg-gray-50 p-3 rounded-lg">{currentOrder.customer?.name || 'Não informado'}</p>
-                  </div>
-                  <div>
-                    <Typography variant="caption" className="block mb-1">Telefone</Typography>
-                    <p className="bg-gray-50 p-3 rounded-lg">{currentOrder.customer?.phone || 'Não informado'}</p>
-                  </div>
-                  {currentOrder.orderType === 'delivery' && (
-                    <div>
-                      <Typography variant="caption" className="block mb-1">Endereço</Typography>
-                      <p className="bg-gray-50 p-3 rounded-lg">
-                        {currentOrder.customer?.address || 'Não informado'}
-                      </p>
-                    </div>
-                  )}
-                  {currentOrder.orderType === 'dine-in' && (
-                    <div>
-                      <Typography variant="caption" className="block mb-1">Mesa</Typography>
-                      <p className="bg-gray-50 p-3 rounded-lg">
-                        {currentOrder.tableNumber || 'Não informado'}
-                      </p>
-                    </div>
-                  )}
-                  <div>
-                    <Typography variant="caption" className="block mb-1">Observações</Typography>
-                    <p className="bg-gray-50 p-3 rounded-lg">
-                      {currentOrder.customer?.notes || 'Nenhuma observação'}
-                    </p>
-                  </div>
-                </div>
-              </div>
-              
               <div className="lg:col-span-2">
-                <div className="flex justify-between items-center mb-4">
-                  <Typography variant="h3">Detalhes do Pedido</Typography>
-                  {currentOrder.orderType === 'dine-in' && (
-                    <Button
-                      variant={isEditingOrder ? 'success' : 'outline'}
-                      size="small"
-                      onClick={() => setIsEditingOrder(!isEditingOrder)}
-                      icon={isEditingOrder ? FiCheck : FiEdit}
-                    >
-                      {isEditingOrder ? 'Finalizar Edição' : 'Editar Pedido'}
-                    </Button>
-                  )}
-                </div>
-                
-                <div className="mb-4">
-                  <Typography variant="caption" className="block mb-1">Status</Typography>
-                  <Select
-                    value={currentOrder.status || 'pending'}
-                    onChange={(e) => {
-                      setCurrentOrder({...currentOrder, status: e.target.value});
-                      if (!isEditingOrder) {
-                        updateOrderStatus(currentOrder.id, e.target.value);
-                      }
-                    }}
-                    disabled={isEditingOrder}
-                    options={[
-                      { value: 'pending', label: 'Pendente' },
-                      { value: 'preparing', label: 'Em Preparo' },
-                      { value: 'ready', label: 'Pronto' },
-                      { value: 'completed', label: 'Concluído' }
-                    ]}
-                  />
-                </div>
-                
-                <div className="mb-4">
-                  <Typography variant="caption" className="block mb-1">Itens</Typography>
-                  <div className="border border-gray-200 rounded-lg divide-y divide-gray-200 max-h-60 overflow-y-auto">
-                    {(currentOrder.items || []).map((item, index) => (
-                      <div key={index} className="p-3 flex justify-between items-center">
-                        <div>
-                          <Typography variant="body" className="font-medium">{item.name}</Typography>
-                          <Typography variant="caption">{item.quantity}x €{(item.price || 0).toFixed(2)}</Typography>
+                {isEditingOrder ? (
+                  <>
+                    <div className="mb-6">
+                      <Typography variant="h3" className="mb-4">Adicionar Itens</Typography>
+                      
+                      <div className="mb-4">
+  <div className="relative mb-4">
+    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+      <FiSearch className="text-gray-400" />
+    </div>
+    <input
+      type="text"
+      placeholder="Buscar itens no menu..."
+      className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-astral focus:border-transparent w-full"
+      value={menuSearchQuery}
+      onChange={(e) => setMenuSearchQuery(e.target.value)}
+    />
+  </div>
+  
+  <CategoryTabs
+    categories={menuCategories}
+    activeCategory={activeMenuCategory}
+    onSelect={(category) => {
+      setActiveMenuCategory(category);
+      // Mantém a categoria expandida ao mudar de aba
+      if (!expandedCategories[category]) {
+        setExpandedCategories(prev => ({
+          ...prev,
+          [category]: true
+        }));
+      }
+    }}
+    className="mb-4"
+  />
+  
+  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+    {filteredMenuItems.map(item => {
+      const currentItem = currentOrder?.items?.find(i => i.id === item.id);
+      const currentQuantity = currentItem ? currentItem.quantity : 0;
+      
+      return (
+        <MenuItemCard
+          key={item.id}
+          item={item}
+          onAdd={addItemToOrder}
+          onRemove={removeItemFromOrder}
+          currentQuantity={currentQuantity}
+                              />
+                            );
+                          })}
                         </div>
-                        <div className="flex items-center">
-                          <Typography variant="body" className="font-medium mr-4">
+                      </div>
+                    </div>
+                    
+                    <div className="mb-6">
+                      <Typography variant="h3" className="mb-4">Itens do Pedido</Typography>
+                      
+                      <div className="border border-gray-200 rounded-lg divide-y divide-gray-200 max-h-96 overflow-y-auto">
+                        {currentOrder.items?.length > 0 ? (
+                          currentOrder.items.map((item, index) => (
+                            <OrderItem
+                              key={`${item.id}-${index}`}
+                              item={item}
+                              onQuantityChange={updateItemQuantity}
+                              onRemove={removeItemFromOrder}
+                            />
+                          ))
+                        ) : (
+                          <div className="p-4 text-center text-gray-500">
+                            Nenhum item adicionado ao pedido
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </>
+                ) : (
+                  <div className="mb-4">
+                    <Typography variant="h3" className="mb-4">Itens do Pedido</Typography>
+                    
+                    <div className="border border-gray-200 rounded-lg divide-y divide-gray-200 max-h-96 overflow-y-auto">
+                      {(currentOrder.items || []).map((item, index) => (
+                        <div key={index} className="p-3 flex justify-between items-center">
+                          <div>
+                            <Typography variant="body" className="font-medium">{item.name}</Typography>
+                            <Typography variant="caption">{item.quantity}x €{(item.price || 0).toFixed(2)}</Typography>
+                          </div>
+                          <Typography variant="body" className="font-medium">
                             €{((item.price || 0) * (item.quantity || 0)).toFixed(2)}
                           </Typography>
-                          {isEditingOrder && (
-                            <div className="flex items-center space-x-2">
-                              <button 
-                                type="button"
-                                onClick={() => removeItemFromOrder(item.id)}
-                                className="text-red-500 hover:text-red-700 p-1"
-                              >
-                                <FiMinusCircle size={18} />
-                              </button>
-                              <button 
-                                type="button"
-                                onClick={() => addItemToOrder(item)}
-                                className="text-green-500 hover:text-green-700 p-1"
-                              >
-                                <FiPlusCircle size={18} />
-                              </button>
-                            </div>
-                          )}
                         </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                {isEditingOrder && (
-                  <div className="mb-6">
-                    <div className="flex justify-between items-center mb-3">
-                      <Typography variant="h3">Adicionar Itens</Typography>
-                      <div className="relative w-64">
-                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                          <FiSearch className="text-gray-400" />
-                        </div>
-                        <input
-                          type="text"
-                          placeholder="Buscar itens..."
-                          className="pl-10 pr-4 py-2 w-full border border-gray-300 rounded-lg focus:ring-2 focus:ring-astral focus:border-transparent"
-                          value={menuSearchQuery}
-                          onChange={(e) => setMenuSearchQuery(e.target.value)}
-                        />
-                      </div>
-                    </div>
-                    
-                    <div className="mb-4">
-                      <div className="flex space-x-2 overflow-x-auto pb-2">
-                        {Object.keys(menu).map(category => (
-                          <button
-                            key={category}
-                            onClick={() => setActiveCategory(category)}
-                            className={`px-4 py-2 rounded-lg whitespace-nowrap ${activeCategory === category ? 'bg-astral text-white' : 'bg-gray-100'}`}
-                          >
-                            {category === 'semana' ? 'Cardápio da Semana' : 
-                             category === 'lanches' ? 'Lanches' :
-                             category === 'porcoes' ? 'Porções' :
-                             category === 'pasteis' ? 'Pasteis' :
-                             category === 'cafe' ? 'Café da Manhã' :
-                             category === 'bebidas' ? 'Bebidas' :
-                             category === 'salgados' ? 'Salgados' : 'Sobremesas'}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                    
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-h-96 overflow-y-auto p-2">
-                      {filteredMenuItems[activeCategory]?.map(item => (
-                        <Card key={item.id} className="p-3 flex justify-between items-center hover:shadow-md transition-shadow">
-                          <div className="flex items-center">
-                            <div className="w-16 h-16 rounded-lg overflow-hidden mr-3">
-                              <img 
-                                src={item.image} 
-                                alt={item.name}
-                                className="w-full h-full object-cover"
-                              />
-                            </div>
-                            <div>
-                              <Typography variant="body" className="font-medium">{item.name}</Typography>
-                              {item.description && (
-                                <Typography variant="caption" className="line-clamp-1">{item.description}</Typography>
-                              )}
-                              <Typography variant="body" className="font-bold text-astral mt-1">
-                                €{item.price.toFixed(2)}
-                              </Typography>
-                            </div>
-                          </div>
-                          <Button 
-                            size="small"
-                            onClick={(e) => {
-                              e.preventDefault();
-                              addItemToOrder(item);
-                            }}
-                          >
-                            <FiPlus />
-                          </Button>
-                        </Card>
                       ))}
                     </div>
                   </div>
                 )}
-
-                <div className="space-y-2 border-t border-gray-200 pt-4">
-                  <div className="flex justify-between">
-                    <Typography variant="body">Subtotal:</Typography>
-                    <Typography variant="body" className="font-medium">
-                      €{((currentOrder.total || 0) - (currentOrder.orderType === 'delivery' ? 2.5 : 0)).toFixed(2)}
-                    </Typography>
-                  </div>
-                  {currentOrder.orderType === 'delivery' && (
-                    <div className="flex justify-between">
-                      <Typography variant="body">Taxa de Entrega:</Typography>
-                      <Typography variant="body" className="font-medium">€2.50</Typography>
+              </div>
+              
+              <div className="lg:col-span-1">
+                <div className="sticky top-4">
+                  <Typography variant="h3" className="mb-4">Informações do Pedido</Typography>
+                  
+                  <div className="space-y-4 mb-6">
+                    <div>
+                      <Typography variant="caption" className="block mb-1">Tipo</Typography>
+                      <p className="bg-gray-50 p-3 rounded-lg">
+                        {currentOrder.orderType === 'dine-in' ? 'Mesa' : 
+                         currentOrder.orderType === 'event' ? 'Evento' : 
+                         currentOrder.orderType === 'delivery' ? 'Entrega' : 'Retirada'}
+                      </p>
                     </div>
-                  )}
-                  <div className="flex justify-between pt-2">
-                    <Typography variant="body" className="font-bold">Total:</Typography>
-                    <Typography variant="body" className="font-bold text-astral">
-                      €{(currentOrder.total || 0).toFixed(2)}
-                    </Typography>
+                    
+                    <div>
+                      <Typography variant="caption" className="block mb-1">
+                        {currentOrder.orderType === 'dine-in' ? 'Número da Mesa' : 'Número do Evento'}
+                      </Typography>
+                      <p className="bg-gray-50 p-3 rounded-lg">
+                        {currentOrder.tableNumber || 'Não informado'}
+                      </p>
+                    </div>
+                    
+                    <div>
+                      <Typography variant="caption" className="block mb-1">Data/Hora</Typography>
+                      <p className="bg-gray-50 p-3 rounded-lg">
+                        {new Date(currentOrder.timestamp)?.toLocaleString() || 'Data inválida'}
+                      </p>
+                    </div>
+                    
+                    <div>
+                      <Typography variant="caption" className="block mb-1">Status</Typography>
+                      <Select
+                        value={currentOrder.status || 'pending'}
+                        onChange={(e) => {
+                          setCurrentOrder({...currentOrder, status: e.target.value});
+                        }}
+                        options={[
+                          { value: 'pending', label: 'Pendente' },
+                          { value: 'preparing', label: 'Em Preparo' },
+                          { value: 'ready', label: 'Pronto' },
+                          { value: 'completed', label: 'Concluído' }
+                        ]}
+                      />
+                    </div>
+                    
+                    <div>
+                      <Typography variant="caption" className="block mb-1">Observações</Typography>
+                      <p className="bg-gray-50 p-3 rounded-lg">
+                        {currentOrder.customer?.notes || 'Nenhuma observação'}
+                      </p>
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-2 border-t border-gray-200 pt-4">
+                    <div className="flex justify-between">
+                      <Typography variant="body">Subtotal:</Typography>
+                      <Typography variant="body" className="font-medium">
+                        €{((currentOrder.total || 0) - (currentOrder.orderType === 'delivery' ? 2.5 : 0)).toFixed(2)}
+                      </Typography>
+                    </div>
+                    {currentOrder.orderType === 'delivery' && (
+                      <div className="flex justify-between">
+                        <Typography variant="body">Taxa de Entrega:</Typography>
+                        <Typography variant="body" className="font-medium">€2.50</Typography>
+                      </div>
+                    )}
+                    <div className="flex justify-between pt-2">
+                      <Typography variant="body" className="font-bold">Total:</Typography>
+                      <Typography variant="body" className="font-bold text-astral">
+                        €{(currentOrder.total || 0).toFixed(2)}
+                      </Typography>
+                    </div>
+                  </div>
+                  
+                  <div className="mt-6 space-y-3">
+                    {(currentOrder.orderType === 'dine-in' || currentOrder.orderType === 'event') && (
+                      <Button
+                        variant={isEditingOrder ? 'success' : 'outline'}
+                        size="large"
+                        onClick={() => setIsEditingOrder(!isEditingOrder)}
+                        icon={isEditingOrder ? FiCheck : FiEdit}
+                        className="w-full"
+                      >
+                        {isEditingOrder ? 'Finalizar Edição' : 'Editar Pedido'}
+                      </Button>
+                    )}
+                    
+                    <Button
+                      variant="primary"
+                      size="large"
+                      type="submit"
+                      className="w-full"
+                    >
+                      Confirmar Alterações
+                    </Button>
+                    
+                    <Button
+                      variant="outline"
+                      size="large"
+                      onClick={() => {
+                        setIsEditModalOpen(false);
+                        setIsEditingOrder(false);
+                      }}
+                      className="w-full"
+                    >
+                      Cancelar
+                    </Button>
                   </div>
                 </div>
               </div>

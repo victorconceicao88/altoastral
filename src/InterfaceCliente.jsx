@@ -29,6 +29,7 @@ import { motion, AnimatePresence, useAnimation } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import logo from './assets/logo-alto-astral.png';
 import logoBackground from './assets/logo-alto-astral.png';
+import mbwayLogo from './assets/images.png'; // ajuste o caminho conforme necessário
 
 const logoWhite = logo;
 
@@ -122,64 +123,64 @@ const AdminDashboard = () => {
 
       <div className="container mx-auto p-4">
         <div className="bg-white rounded-xl shadow-md p-4 mb-6">
-        <div className="flex flex-col md:flex-row md:justify-between space-y-4 md:space-y-0">
-      <div className="flex overflow-x-auto space-x-2 pb-2">
-      <button
-        onClick={() => { setActiveTab('all'); setActiveArea('all'); }}
-        className={`px-4 py-2 rounded-lg whitespace-nowrap ${activeTab === 'all' ? 'bg-astral text-white' : 'bg-gray-100'}`}
-      >
-        Todos os Pedidos
-      </button>
-      <button
-        onClick={() => { setActiveTab('dine-in'); setActiveArea('all'); }}
-        className={`px-4 py-2 rounded-lg whitespace-nowrap ${activeTab === 'dine-in' ? 'bg-astral text-white' : 'bg-gray-100'}`}
-      >
-        No Restaurante
-      </button>
-      <button
-        onClick={() => { setActiveTab('event'); setActiveArea('all'); }}
-        className={`px-4 py-2 rounded-lg whitespace-nowrap ${activeTab === 'event' ? 'bg-astral text-white' : 'bg-gray-100'}`}
-      >
-        Eventos
-      </button>
-      <button
-        onClick={() => { setActiveTab('takeaway'); setActiveArea('all'); }}
-        className={`px-4 py-2 rounded-lg whitespace-nowrap ${activeTab === 'takeaway' ? 'bg-astral text-white' : 'bg-gray-100'}`}
-      >
-        Retirada
-      </button>
-      <button
-        onClick={() => { setActiveTab('delivery'); setActiveArea('all'); }}
-        className={`px-4 py-2 rounded-lg whitespace-nowrap ${activeTab === 'delivery' ? 'bg-astral text-white' : 'bg-gray-100'}`}
-      >
-        Entrega
-      </button>
-    </div>
-    
-    {activeTab === 'dine-in' && (
-      <div className="flex overflow-x-auto space-x-2 pb-2">
-        <button
-          onClick={() => setActiveArea('all')}
-          className={`px-4 py-2 rounded-lg whitespace-nowrap ${activeArea === 'all' ? 'bg-astral text-white' : 'bg-gray-100'}`}
-        >
-          Todas as Mesas
-        </button>
-        <button
-          onClick={() => setActiveArea('internal')}
-          className={`px-4 py-2 rounded-lg whitespace-nowrap ${activeArea === 'internal' ? 'bg-astral text-white' : 'bg-gray-100'}`}
-        >
-          Sala Interna (1-8)
-        </button>
-        <button
-          onClick={() => setActiveArea('external')}
-          className={`px-4 py-2 rounded-lg whitespace-nowrap ${activeArea === 'external' ? 'bg-astral text-white' : 'bg-gray-100'}`}
-        >
-          Esplanada (9-16)
-        </button>
-      </div>
-    )}
-  </div>
-</div>
+          <div className="flex flex-col md:flex-row md:justify-between space-y-4 md:space-y-0">
+            <div className="flex overflow-x-auto space-x-2 pb-2">
+              <button
+                onClick={() => { setActiveTab('all'); setActiveArea('all'); }}
+                className={`px-4 py-2 rounded-lg whitespace-nowrap ${activeTab === 'all' ? 'bg-astral text-white' : 'bg-gray-100'}`}
+              >
+                Todos os Pedidos
+              </button>
+              <button
+                onClick={() => { setActiveTab('dine-in'); setActiveArea('all'); }}
+                className={`px-4 py-2 rounded-lg whitespace-nowrap ${activeTab === 'dine-in' ? 'bg-astral text-white' : 'bg-gray-100'}`}
+              >
+                No Restaurante
+              </button>
+              <button
+                onClick={() => { setActiveTab('event'); setActiveArea('all'); }}
+                className={`px-4 py-2 rounded-lg whitespace-nowrap ${activeTab === 'event' ? 'bg-astral text-white' : 'bg-gray-100'}`}
+              >
+                Eventos
+              </button>
+              <button
+                onClick={() => { setActiveTab('takeaway'); setActiveArea('all'); }}
+                className={`px-4 py-2 rounded-lg whitespace-nowrap ${activeTab === 'takeaway' ? 'bg-astral text-white' : 'bg-gray-100'}`}
+              >
+                Retirada
+              </button>
+              <button
+                onClick={() => { setActiveTab('delivery'); setActiveArea('all'); }}
+                className={`px-4 py-2 rounded-lg whitespace-nowrap ${activeTab === 'delivery' ? 'bg-astral text-white' : 'bg-gray-100'}`}
+              >
+                Entrega
+              </button>
+            </div>
+            
+            {activeTab === 'dine-in' && (
+              <div className="flex overflow-x-auto space-x-2 pb-2">
+                <button
+                  onClick={() => setActiveArea('all')}
+                  className={`px-4 py-2 rounded-lg whitespace-nowrap ${activeArea === 'all' ? 'bg-astral text-white' : 'bg-gray-100'}`}
+                >
+                  Todas as Mesas
+                </button>
+                <button
+                  onClick={() => setActiveArea('internal')}
+                  className={`px-4 py-2 rounded-lg whitespace-nowrap ${activeArea === 'internal' ? 'bg-astral text-white' : 'bg-gray-100'}`}
+                >
+                  Sala Interna (1-8)
+                </button>
+                <button
+                  onClick={() => setActiveArea('external')}
+                  className={`px-4 py-2 rounded-lg whitespace-nowrap ${activeArea === 'external' ? 'bg-astral text-white' : 'bg-gray-100'}`}
+                >
+                  Esplanada (9-16)
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {/* Lista de Mesas/Áreas */}
@@ -267,10 +268,11 @@ const AdminDashboard = () => {
                       <div>
                         <h3 className="font-bold">
                           {order.orderType === 'dine-in' ? `Mesa ${order.tableNumber}` : 
+                           order.orderType === 'event' ? `Comanda ${order.customer.eventNumber}` :
                            order.orderType === 'takeaway' ? 'Retirada' : 'Entrega'}
                         </h3>
                         <p className="text-sm">
-                          {new Date(order.timestamp).toLocaleTimeString()} - {order.customer.name}
+                          {new Date(order.timestamp).toLocaleTimeString()} - {order.customer.name || 'Sem nome'}
                         </p>
                       </div>
                       <div className="text-right">
@@ -297,6 +299,7 @@ const AdminDashboard = () => {
                 <div className="flex justify-between items-center mb-4">
                   <h2 className="text-xl font-bold">
                     {selectedOrder.orderType === 'dine-in' ? `Mesa ${selectedOrder.tableNumber}` : 
+                     selectedOrder.orderType === 'event' ? `Comanda ${selectedOrder.customer.eventNumber}` :
                      selectedOrder.orderType === 'takeaway' ? 'Retirada' : 'Entrega'}
                   </h2>
                   <button 
@@ -307,14 +310,16 @@ const AdminDashboard = () => {
                   </button>
                 </div>
 
-                <div className="mb-4">
-                  <h3 className="font-semibold">Cliente</h3>
-                  <p>{selectedOrder.customer.name}</p>
-                  <p>{selectedOrder.customer.phone}</p>
-                  {selectedOrder.orderType === 'delivery' && (
-                    <p>{selectedOrder.customer.address}</p>
-                  )}
-                </div>
+                {selectedOrder.orderType !== 'event' && (
+                  <div className="mb-4">
+                    <h3 className="font-semibold">Cliente</h3>
+                    <p>{selectedOrder.customer.name || 'Não informado'}</p>
+                    <p>{selectedOrder.customer.phone || 'Não informado'}</p>
+                    {selectedOrder.orderType === 'delivery' && (
+                      <p>{selectedOrder.customer.address || 'Não informado'}</p>
+                    )}
+                  </div>
+                )}
 
                 <div className="mb-4">
                   <h3 className="font-semibold">Itens</h3>
@@ -331,7 +336,7 @@ const AdminDashboard = () => {
                         </div>
                         <div className="flex items-center">
                           <span className="mr-4">€{(item.price * item.quantity).toFixed(2)}</span>
-                          {selectedOrder.status === 'pending' && selectedOrder.orderType === 'dine-in' && (
+                          {selectedOrder.status === 'pending' && (selectedOrder.orderType === 'dine-in' || selectedOrder.orderType === 'event') && (
                             <button 
                               onClick={() => {
                                 const newItems = selectedOrder.items.filter((_, idx) => idx !== i);
@@ -427,7 +432,6 @@ const AdminDashboard = () => {
     </div>
   );
 };
-
 
 const Typography = {
   H1: ({ children, className = '' }) => (
@@ -576,14 +580,12 @@ const Notification = ({ message, type = 'info', onClose }) => {
 const Footer = ({ showAdminButton = true }) => {
   return (
     <footer className="relative bg-[#F5F0E6] text-[#5C4B3A] pt-20 pb-12">
-      {/* Container da onda com duas "montanhas" grandes */}
       <div className="absolute top-0 left-0 right-0 h-24 overflow-hidden">
         <svg 
           viewBox="0 0 1200 200" 
           preserveAspectRatio="none" 
           className="absolute top-0 left-0 w-full h-full"
         >
-          {/* Onda com duas montanhas pronunciadas - SEM preenchimento acima */}
           <path 
             d="M0,120 
                C300,-40 500,200 600,80 
@@ -597,11 +599,9 @@ const Footer = ({ showAdminButton = true }) => {
         </svg>
       </div>
 
-      {/* Conteúdo principal - COMEÇA ABAIXO DA ONDA */}
       <div className="container mx-auto px-6 mt-16">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
           
-          {/* Bloco de contato */}
           <div className="text-center md:text-left">
             <h3 className="text-3xl font-bold mb-4">Alto Astral</h3>
             <p className="text-[#8B7D6B] italic mb-6">Snack Bar & Restaurante</p>
@@ -622,7 +622,6 @@ const Footer = ({ showAdminButton = true }) => {
             </div>
           </div>
 
-          {/* Destaque de horário */}
           <div className="flex flex-col items-center justify-center">
             <div className="bg-[#F8F4EC] border border-[#D9C7B8] rounded-lg p-6 text-center max-w-xs">
               <FiClock className="mx-auto text-[#8B7252]"/>
@@ -632,7 +631,6 @@ const Footer = ({ showAdminButton = true }) => {
             </div>
           </div>
 
-          {/* Redes sociais */}
           <div className="text-center md:text-right">
             <h4 className="text-lg font-semibold mb-5">Siga-nos</h4>
             <div className="flex justify-center md:justify-end space-x-4">
@@ -658,7 +656,6 @@ const Footer = ({ showAdminButton = true }) => {
           </div>
         </div>
 
-        {/* Rodapé inferior */}
         <div className="border-t border-[#D9C7B8] mt-12 pt-6 text-center text-sm text-[#8B7D6B]">
           © {new Date().getFullYear()} Alto Astral • Todos os direitos reservados
         </div>
@@ -666,6 +663,7 @@ const Footer = ({ showAdminButton = true }) => {
     </footer>
   );
 };
+
 const InterfaceCliente = () => {
   const [showModal, setShowModal] = useState(true);
   const [activeTab, setActiveTab] = useState('semana');
@@ -674,9 +672,15 @@ const InterfaceCliente = () => {
   const [deliveryOption, setDeliveryOption] = useState('takeaway');
   const [customerInfo, setCustomerInfo] = useState({
     name: '',
+    surname: '', 
     phone: '',
     address: '',
-    notes: ''
+    notes: '',
+    nif: '',
+    invoice: false,
+    paymentMethod: '',
+    changeFor: '',
+    eventNumber: ''
   });
   const [notifications, setNotifications] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
@@ -684,25 +688,22 @@ const InterfaceCliente = () => {
   const [isAdminLoggedIn, setIsAdminLoggedIn] = useState(false);
   const controls = useAnimation();
   const [tableNumber, setTableNumber] = useState(null);
-  const [orderType, setOrderType] = useState(null); // 'dine-in', 'takeaway', 'delivery'
+  const [orderType, setOrderType] = useState(null);
   
-  // Verificar parâmetros da URL para mesa
   useEffect(() => {
     const queryParams = new URLSearchParams(window.location.search);
     const table = queryParams.get('table');
     if (table) {
       setTableNumber(table);
-      // Define como 'event' se a mesa for maior que 16
       setOrderType(parseInt(table) > 16 ? 'event' : 'dine-in');
     }
   }, []);
 
-  // Verificar se o admin está logado ao carregar a página
   useEffect(() => {
     const loggedIn = localStorage.getItem('adminLoggedIn') === 'true';
     setIsAdminLoggedIn(loggedIn);
   }, []);
-  // Menu Data
+
   const menu = {
     semana: [
       { id: 1, name: 'Frango Cremoso', description: 'Strogonoff de frango, arroz branco, salada e batata palha', price: 12.90, veg: false, image: foodImages.frangoCremoso, rating: 4.5 },
@@ -815,6 +816,7 @@ const InterfaceCliente = () => {
       { id: 94, name: 'Bolo de Brigadeiro (fatia)', price: 2.20, image: foodImages.sobremesa, rating: 4.8 }
     ]
   };
+
   const addNotification = (message, type = 'info') => {
     const id = Date.now();
     setNotifications([...notifications, { id, message, type }]);
@@ -827,12 +829,12 @@ const InterfaceCliente = () => {
     const newItem = { 
       ...item, 
       id: Date.now() + item.id,
-      quantity: 1
+      quantity: 1,
+      notes: '' // Adiciona campo para observações específicas do item
     };
     setCart([...cart, newItem]);
     addNotification(`${item.name} adicionado ao carrinho`, 'success');
     
-    // Animação
     controls.start({
       scale: [1, 1.2, 1],
       transition: { duration: 0.5 }
@@ -852,6 +854,12 @@ const InterfaceCliente = () => {
     
     setCart(cart.map(item => 
       item.id === id ? { ...item, quantity: newQuantity } : item
+    ));
+  };
+
+  const updateItemNotes = (id, notes) => {
+    setCart(cart.map(item => 
+      item.id === id ? { ...item, notes } : item
     ));
   };
 
@@ -885,7 +893,6 @@ const InterfaceCliente = () => {
     try {
       await push(orderRef, newOrder);
       
-      // Enviar para WhatsApp apenas para retirada/entrega (não envia para restaurante ou eventos)
       if (orderType === 'takeaway' || orderType === 'delivery') {
         const phoneNumber = '351933737672';
         const message = `*Novo Pedido Alto Astral*%0A%0A` +
@@ -959,6 +966,12 @@ const InterfaceCliente = () => {
                 <FiHome className="mr-2" /> Mesa {tableNumber}
               </p>
             </div>
+          ) : orderType === 'event' ? (
+            <div className="mb-6 bg-purple-100 text-purple-700 p-3 rounded-lg">
+              <p className="flex items-center justify-center">
+                <FiCalendar className="mr-2" /> Comanda {customerInfo.eventNumber}
+              </p>
+            </div>
           ) : (
             <div className="mb-6 bg-astral/10 text-astral p-3 rounded-lg">
               <p className="flex items-center justify-center">
@@ -1018,22 +1031,22 @@ const InterfaceCliente = () => {
                   <span className="text-sm text-gray-500">O pedido será enviado diretamente ao garçom</span>
                 </div>
               </motion.button>
-                          {/* NOVA Opção de Evento */}
-            <motion.button
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              onClick={() => {
-                setOrderType('event');
-                setCheckoutStep('customer-info');
-              }}
-              className={`p-6 rounded-xl border-2 transition-all ${orderType === 'event' ? 'border-purple-500 bg-purple-50 text-purple-700' : 'border-gray-200 bg-white'}`}
-            >
-              <div className="flex flex-col items-center space-y-3">
-                <FiCalendar size={32} className={orderType === 'event' ? 'text-purple-500' : 'text-gray-400'} />
-                <span className="text-lg font-medium">Participante de Evento</span>
-                <span className="text-sm text-gray-500">Pedido para mesas de eventos especiais</span>
-              </div>
-            </motion.button>
+
+              <motion.button
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                onClick={() => {
+                  setOrderType('event');
+                  setCheckoutStep('customer-info');
+                }}
+                className={`p-6 rounded-xl border-2 transition-all ${orderType === 'event' ? 'border-purple-500 bg-purple-50 text-purple-700' : 'border-gray-200 bg-white'}`}
+              >
+                <div className="flex flex-col items-center space-y-3">
+                  <FiCalendar size={32} className={orderType === 'event' ? 'text-purple-500' : 'text-gray-400'} />
+                  <span className="text-lg font-medium">Participante de Evento</span>
+                  <span className="text-sm text-gray-500">Pedido para mesas de eventos especiais</span>
+                </div>
+              </motion.button>
               
               <motion.button
                 whileHover={{ scale: 1.02 }}
@@ -1122,6 +1135,15 @@ const InterfaceCliente = () => {
                     <div>
                       <h4 className="font-medium">{item.name}</h4>
                       <p className="text-sm text-gray-500">€{item.price.toFixed(2)}</p>
+                      <div className="mt-1">
+                        <input
+                          type="text"
+                          placeholder="Observações (ex: sem cebola)"
+                          value={item.notes}
+                          onChange={(e) => updateItemNotes(item.id, e.target.value)}
+                          className="text-xs p-1 border border-gray-200 rounded w-full"
+                        />
+                      </div>
                     </div>
                   </div>
                   <div className="flex items-center">
@@ -1168,9 +1190,11 @@ const InterfaceCliente = () => {
           >
             <h3 className="text-lg font-semibold mb-4 flex items-center">
               {orderType === 'dine-in' ? <FiHome className="mr-2 text-astral" /> : 
+               orderType === 'event' ? <FiCalendar className="mr-2 text-purple-500" /> :
                orderType === 'takeaway' ? <FiShoppingCart className="mr-2 text-astral" /> : 
                <FiTruck className="mr-2 text-astral" />}
               {orderType === 'dine-in' ? 'Informações da Mesa' : 
+               orderType === 'event' ? 'Informações do Evento' :
                orderType === 'takeaway' ? 'Informações para Retirada' : 
                'Informações para Entrega'}
             </h3>
@@ -1187,25 +1211,186 @@ const InterfaceCliente = () => {
                   />
                 </div>
               )}
-              {orderType === 'delivery' && (
+
+              {orderType === 'event' && (
                 <div>
-                  <label className="block text-gray-700 mb-1">Endereço *</label>
-                  <div className="relative">
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <FiMapPin className="text-gray-400" />
-                    </div>
-                    <input
-                      type="text"
-                      value={customerInfo.address}
-                      onChange={(e) => setCustomerInfo({...customerInfo, address: e.target.value})}
-                      className="w-full pl-10 p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-astral focus:border-transparent"
-                      required
-                    />
-                  </div>
+                  <label className="block text-gray-700 mb-1">Número da Comanda *</label>
+                  <input
+                    type="number"
+                    value={customerInfo.eventNumber}
+                    onChange={(e) => setCustomerInfo({...customerInfo, eventNumber: e.target.value})}
+                    className="w-full p-3 border border-gray-300 rounded-lg"
+                    required
+                    placeholder="Digite o número da sua comanda"
+                  />
                 </div>
               )}
+
+              {(orderType === 'takeaway' || orderType === 'delivery') && (
+                <>
+                  <div>
+                    <label className="block text-gray-700 mb-1">Nome *</label>
+                    <div className="relative">
+                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <FiUser className="text-gray-400" />
+                      </div>
+                      <input
+                        type="text"
+                        value={customerInfo.name}
+                        onChange={(e) => setCustomerInfo({...customerInfo, name: e.target.value})}
+                        className="w-full pl-10 p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-astral focus:border-transparent"
+                        required
+                        placeholder="Seu nome completo"
+                      />
+                    </div>
+                  </div>
+
+                  {orderType === 'delivery' && (
+                    <>
+                      <div>
+                        <label className="block text-gray-700 mb-1">Apelido *</label>
+                        <input
+                          type="text"
+                          value={customerInfo.surname}
+                          onChange={(e) => setCustomerInfo({...customerInfo, surname: e.target.value})}
+                          className="w-full p-3 border border-gray-300 rounded-lg"
+                          required
+                          placeholder="Como prefere ser chamado"
+                        />
+                      </div>
+                      
+                      <div>
+                        <label className="block text-gray-700 mb-1">Morada Completa *</label>
+                        <div className="relative">
+                          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <FiMapPin className="text-gray-400" />
+                          </div>
+                          <input
+                            type="text"
+                            value={customerInfo.address}
+                            onChange={(e) => setCustomerInfo({...customerInfo, address: e.target.value})}
+                            className="w-full pl-10 p-3 border border-gray-300 rounded-lg"
+                            required
+                            placeholder="Rua, número, bairro, complemento"
+                          />
+                        </div>
+                      </div>
+                    </>
+                  )}
+
+                  <div>
+                    <label className="block text-gray-700 mb-1">Telemóvel *</label>
+                    <div className="relative">
+                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <FiPhone className="text-gray-400" />
+                      </div>
+                      <input
+                        type="tel"
+                        value={customerInfo.phone}
+                        onChange={(e) => setCustomerInfo({...customerInfo, phone: e.target.value})}
+                        className="w-full pl-10 p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-astral focus:border-transparent"
+                        required
+                        placeholder="Seu número de telefone"
+                      />
+                    </div>
+                  </div>
+                </>
+              )}
+
+              {orderType === 'delivery' && (
+                <>
+                  <div className="flex items-center mb-4">
+                    <input
+                      type="checkbox"
+                      id="invoice"
+                      checked={customerInfo.invoice}
+                      onChange={(e) => setCustomerInfo({...customerInfo, invoice: e.target.checked})}
+                      className="mr-2"
+                    />
+                    <label htmlFor="invoice">Pretende factura com NIF?</label>
+                  </div>
+                  
+                  {customerInfo.invoice && (
+                    <div>
+                      <label className="block text-gray-700 mb-1">NIF (9 dígitos) *</label>
+                      <input
+                        type="text"
+                        pattern="[0-9]{9}"
+                        maxLength="9"
+                        value={customerInfo.nif}
+                        onChange={(e) => setCustomerInfo({...customerInfo, nif: e.target.value})}
+                        className="w-full p-3 border border-gray-300 rounded-lg"
+                        required
+                        placeholder="Digite seu NIF"
+                      />
+                    </div>
+                  )}
+                  
+                  <div>
+                    <label className="block text-gray-700 mb-1">Método de Pagamento *</label>
+                    <div className="grid grid-cols-3 gap-2">
+                      <motion.button
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                        type="button"
+                        onClick={() => setCustomerInfo({...customerInfo, paymentMethod: 'mbway'})}
+                        className={`p-3 rounded-lg border-2 flex flex-col items-center ${customerInfo.paymentMethod === 'mbway' ? 'border-green-500 bg-green-50' : 'border-gray-200'}`}
+                      >
+                        <img src={mbwayLogo} alt="MBWay" className="h-6 mb-1" />
+                        <span className="text-xs">MBWay</span>
+                      </motion.button>
+                      
+                      <motion.button
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                        type="button"
+                        onClick={() => setCustomerInfo({...customerInfo, paymentMethod: 'tpa'})}
+                        className={`p-3 rounded-lg border-2 flex flex-col items-center ${customerInfo.paymentMethod === 'tpa' ? 'border-blue-500 bg-blue-50' : 'border-gray-200'}`}
+                      >
+                        <FiCreditCard className="text-blue-500 text-xl mb-1" />
+                        <span className="text-xs">Cartão no momento da entrega</span>
+                      </motion.button>
+                      
+                      <motion.button
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                        type="button"
+                        onClick={() => setCustomerInfo({...customerInfo, paymentMethod: 'cash'})}
+                        className={`p-3 rounded-lg border-2 flex flex-col items-center ${customerInfo.paymentMethod === 'cash' ? 'border-yellow-500 bg-yellow-50' : 'border-gray-200'}`}
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-yellow-500 mb-1" viewBox="0 0 20 20" fill="currentColor">
+                          <path d="M8.433 7.418c.155-.103.346-.196.567-.267v1.698a2.305 2.305 0 01-.567-.267C8.07 8.34 8 8.114 8 8c0-.114.07-.34.433-.582zM11 12.849v-1.698c.22.071.412.164.567.267.364.243.433.468.433.582 0 .114-.07.34-.433.582a2.305 2.305 0 01-.567.267z" />
+                          <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-13a1 1 0 10-2 0v.092a4.535 4.535 0 00-1.676.662C6.602 6.234 6 7.009 6 8c0 .99.602 1.765 1.324 2.246.48.32 1.054.545 1.676.662v1.941c-.391-.127-.68-.317-.843-.504a1 1 0 10-1.51 1.31c.562.649 1.413 1.076 2.353 1.253V15a1 1 0 102 0v-.092a4.535 4.535 0 001.676-.662C13.398 13.766 14 12.991 14 12c0-.99-.602-1.765-1.324-2.246A4.535 4.535 0 0011 9.092V7.151c.391.127.68.317.843.504a1 1 0 101.511-1.31c-.563-.649-1.413-1.076-2.354-1.253V5z" clipRule="evenodd" />
+                        </svg>
+                        <span className="text-xs">Dinheiro</span>
+                      </motion.button>
+                    </div>
+                  </div>
+                  
+                  {customerInfo.paymentMethod === 'cash' && (
+                    <div>
+                      <label className="block text-gray-700 mb-1">Troco para quanto?</label>
+                      <div className="relative">
+                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                          <span className="text-gray-500">€</span>
+                        </div>
+                        <input
+                          type="number"
+                          step="0.01"
+                          min={calculateTotal()}
+                          value={customerInfo.changeFor}
+                          onChange={(e) => setCustomerInfo({...customerInfo, changeFor: e.target.value})}
+                          className="w-full pl-10 p-3 border border-gray-300 rounded-lg"
+                          placeholder="Valor que irá pagar"
+                        />
+                      </div>
+                    </div>
+                  )}
+                </>
+              )}
+
               <div>
-                <label className="block text-gray-700 mb-1">Observações</label>
+                <label className="block text-gray-700 mb-1">Observações Gerais</label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 pt-3 pointer-events-none">
                     <FiEdit2 className="text-gray-400" />
@@ -1233,8 +1418,22 @@ const InterfaceCliente = () => {
             </motion.button>
             <Button 
               onClick={handleCheckout}
-              disabled={!customerInfo.name || !customerInfo.phone || (orderType === 'delivery' && !customerInfo.address)}
-              className="bg-astral text-white px-6 py-3 rounded-lg hover:bg-astral-dark transition w-full"
+              disabled={
+                (orderType === 'delivery' && (
+                  !customerInfo.name || 
+                  !customerInfo.surname || 
+                  !customerInfo.address || 
+                  !customerInfo.phone || 
+                  !customerInfo.paymentMethod ||
+                  (customerInfo.invoice && customerInfo.nif.length !== 9)
+                )) ||
+                (orderType === 'takeaway' && (
+                  !customerInfo.name || 
+                  !customerInfo.phone
+                )) ||
+                (orderType === 'event' && !customerInfo.eventNumber) ||
+                cart.length === 0
+              }
             >
               Finalizar Pedido
             </Button>
@@ -1246,7 +1445,6 @@ const InterfaceCliente = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Notifications */}
       <div className="fixed top-4 right-4 z-50 space-y-2">
         <AnimatePresence>
           {notifications.map((notification) => (
@@ -1260,7 +1458,6 @@ const InterfaceCliente = () => {
         </AnimatePresence>
       </div>
 
-      {/* Modal de Especialidades */}
       <AnimatePresence>
         {showModal && (
           <motion.div 
@@ -1342,7 +1539,6 @@ const InterfaceCliente = () => {
         )}
       </AnimatePresence>
 
-      {/* Header */}
       <header className="bg-gradient-to-r from-astral to-astral-dark text-white p-4 shadow-lg sticky top-0 z-20">
         <div className="container mx-auto flex justify-between items-center">
           <div className="flex items-center">
@@ -1372,7 +1568,6 @@ const InterfaceCliente = () => {
         </div>
       </header>
 
-      {/* Hero Section */}
       <div className="relative h-64 md:h-80 overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-r from-black/60 to-transparent z-20"></div>
 
@@ -1402,7 +1597,6 @@ const InterfaceCliente = () => {
         </div>
       </div>
 
-      {/* Search Bar */}
       <div className="container mx-auto px-4 -mt-8 z-30 relative">
         <motion.div
           initial={{ y: 20, opacity: 0 }}
@@ -1427,7 +1621,6 @@ const InterfaceCliente = () => {
         </motion.div>
       </div>
 
-      {/* Tabs */}
       <div className="bg-white shadow-sm sticky top-16 z-10">
         <div className="container mx-auto overflow-x-auto">
           <div className="flex space-x-1 p-2">
@@ -1507,7 +1700,6 @@ const InterfaceCliente = () => {
         </div>
       </div>
 
-      {/* Menu Content */}
       <main className="container mx-auto p-4 pb-20">
         <AnimatePresence mode="wait">
           <motion.div
@@ -1586,7 +1778,6 @@ const InterfaceCliente = () => {
                 </div>
               </div>
             )}
-
 
             {activeTab === 'lanches' && (
               <div>
@@ -2115,7 +2306,6 @@ const InterfaceCliente = () => {
         </AnimatePresence>
       </main>
 
-      {/* Cart Sidebar (mobile) */}
       {cart.length > 0 && (
         <motion.div 
           initial={{ y: 100 }}
@@ -2135,7 +2325,6 @@ const InterfaceCliente = () => {
         </motion.div>
       )}
 
-      {/* Footer */}
       <Footer showAdminButton={!isAdminLoggedIn} />
     </div>
   );
