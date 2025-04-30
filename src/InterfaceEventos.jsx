@@ -6,29 +6,13 @@ import {
   FiFilter, FiRefreshCw, FiBarChart2, FiPieChart, FiTag
 } from 'react-icons/fi';
 import { QRCodeSVG } from 'qrcode.react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { saveAs } from 'file-saver';
 import html2canvas from 'html2canvas';
 import JSZip from 'jszip';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Chart as ChartJS, ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement } from 'chart.js';
 import { Pie, Bar } from 'react-chartjs-2';
-import { initializeApp } from 'firebase/app';
-import { getDatabase, ref, set, onValue, push, update, remove } from 'firebase/database';
-
-// Initialize Firebase
-const firebaseConfig = {
-  apiKey: "AIzaSyDPGwoIF7ReMQsjXGngZ86vuC1P2X0iV0E",
-  authDomain: "auto-astral-b5295.firebaseapp.com",
-  databaseURL: "https://auto-astral-b5295-default-rtdb.europe-west1.firebasedatabase.app",
-  projectId: "auto-astral-b5295",
-  storageBucket: "auto-astral-b5295.firebasestorage.app",
-  messagingSenderId: "865984431676",
-  appId: "1:865984431676:web:1202dc70df895259c46539"
-};
-
-const app = initializeApp(firebaseConfig);
-const database = getDatabase(app);
 
 // Register ChartJS components
 ChartJS.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement);
@@ -147,395 +131,6 @@ const menu = {
   ]
 };
 
-// Customer Interface Component
-const CustomerInterface = ({ tableNumber }) => {
-  const [activeMenuTab, setActiveMenuTab] = useState('semana');
-  const [searchTerm, setSearchTerm] = useState('');
-  const [cart, setCart] = useState([]);
-  const [notes, setNotes] = useState('');
-  const [orderId, setOrderId] = useState(null);
-  const [orderStatus, setOrderStatus] = useState(null);
-  const [notification, setNotification] = useState(null);
-  const [isLoading, setIsLoading] = useState(false);
-
-  // Show notification
-  const showNotification = (message, type = 'success') => {
-    setNotification({ message, type });
-    setTimeout(() => setNotification(null), 5000);
-  };
-
-  // Format currency
-  const formatCurrency = (value) => {
-    return new Intl.NumberFormat('pt-BR', {
-      style: 'currency',
-      currency: 'BRL'
-    }).format(value);
-  };
-
-  // Filter menu items based on search term
-  const filteredMenuItems = (category) => {
-    return menu[category].filter(item => 
-      item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (item.description && item.description.toLowerCase().includes(searchTerm.toLowerCase()))
-    );
-  };
-
-  // Add item to cart
-  const addToCart = (item) => {
-    const existingItem = cart.find(cartItem => cartItem.id === item.id);
-    if (existingItem) {
-      setCart(cart.map(cartItem => 
-        cartItem.id === item.id 
-          ? { ...cartItem, quantity: cartItem.quantity + 1 } 
-          : cartItem
-      ));
-    } else {
-      setCart([...cart, { ...item, quantity: 1 }]);
-    }
-    showNotification(`${item.name} adicionado ao carrinho`, 'info');
-  };
-
-  // Update item quantity
-  const updateQuantity = (itemId, newQuantity) => {
-    if (newQuantity < 1) {
-      removeFromCart(itemId);
-      return;
-    }
-    setCart(cart.map(item => 
-      item.id === itemId ? { ...item, quantity: newQuantity } : item
-    ));
-  };
-
-  // Remove item from cart
-  const removeFromCart = (itemId) => {
-    setCart(cart.filter(item => item.id !== itemId));
-  };
-
-  // Calculate cart total
-  const cartTotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-
-  // Submit order to Firebase
-  const submitOrder = async () => {
-    if (cart.length === 0) {
-      showNotification('Adicione itens ao carrinho antes de enviar o pedido', 'error');
-      return;
-    }
-
-    setIsLoading(true);
-    try {
-      const orderData = {
-        tableNumber,
-        items: cart.map(item => ({
-          id: item.id,
-          name: item.name,
-          price: item.price,
-          quantity: item.quantity,
-          status: 'pending',
-          addedAt: new Date().toISOString()
-        })),
-        status: 'open',
-        createdAt: new Date().toISOString(),
-        subtotal: cartTotal,
-        tax: 0,
-        total: cartTotal,
-        notes,
-        waiter: 'Aguardando atendimento'
-      };
-
-      const newOrderRef = push(ref(database, 'orders'));
-      await set(newOrderRef, orderData);
-      setOrderId(newOrderRef.key);
-      setOrderStatus('open');
-      setCart([]);
-      setNotes('');
-      showNotification('Pedido enviado com sucesso!');
-    } catch (error) {
-      showNotification('Erro ao enviar pedido', 'error');
-      console.error('Error submitting order:', error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  // Check for existing open order
-  useEffect(() => {
-    if (!tableNumber) return;
-
-    const ordersRef = ref(database, 'orders');
-    onValue(ordersRef, (snapshot) => {
-      const ordersData = snapshot.val();
-      if (ordersData) {
-        const existingOrder = Object.entries(ordersData).find(([key, order]) => 
-          order.tableNumber === tableNumber && order.status !== 'closed'
-        );
-        
-        if (existingOrder) {
-          const [id, order] = existingOrder;
-          setOrderId(id);
-          setOrderStatus(order.status);
-        }
-      }
-    });
-  }, [tableNumber]);
-
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 p-4 md:p-8">
-      {/* Notification */}
-      <AnimatePresence>
-        {notification && (
-          <motion.div 
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            className={`fixed top-4 right-4 z-50 p-4 rounded-lg shadow-lg text-white ${
-              notification.type === 'error' ? 'bg-red-500' : 
-              notification.type === 'info' ? 'bg-blue-500' : 'bg-emerald-500'
-            }`}
-          >
-            {notification.message}
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      <div className="max-w-4xl mx-auto">
-        {/* Header */}
-        <div className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white p-6 rounded-2xl shadow-lg mb-8">
-          <h1 className="text-2xl md:text-3xl font-bold">Mesa {tableNumber}</h1>
-          <p className="text-indigo-100">Faça seu pedido diretamente pelo celular</p>
-        </div>
-
-        {/* Order Status */}
-        {orderStatus && (
-          <div className="bg-white rounded-xl shadow-md p-6 mb-8 border-l-4 border-indigo-500">
-            <h2 className="text-xl font-semibold mb-4 text-gray-800">Status do seu pedido</h2>
-            <div className="flex items-center space-x-4">
-              <div className={`w-12 h-12 rounded-full flex items-center justify-center ${
-                orderStatus === 'open' ? 'bg-blue-100 text-blue-600' :
-                orderStatus === 'preparing' ? 'bg-yellow-100 text-yellow-600' :
-                orderStatus === 'ready' ? 'bg-purple-100 text-purple-600' :
-                orderStatus === 'delivered' ? 'bg-green-100 text-green-600' :
-                'bg-gray-100 text-gray-600'
-              }`}>
-                {orderStatus === 'open' && <FiClock size={24} />}
-                {orderStatus === 'preparing' && <FiClock size={24} />}
-                {orderStatus === 'ready' && <FiCheck size={24} />}
-                {orderStatus === 'delivered' && <FiCheck size={24} />}
-              </div>
-              <div>
-                <h3 className="font-medium text-gray-800">
-                  {orderStatus === 'open' ? 'Pedido recebido' :
-                   orderStatus === 'preparing' ? 'Preparando seu pedido' :
-                   orderStatus === 'ready' ? 'Pedido pronto' :
-                   orderStatus === 'delivered' ? 'Pedido entregue' : 'Status desconhecido'}
-                </h3>
-                <p className="text-sm text-gray-500">
-                  {orderStatus === 'open' ? 'Aguarde enquanto processamos seu pedido' :
-                   orderStatus === 'preparing' ? 'Seus itens estão sendo preparados' :
-                   orderStatus === 'ready' ? 'Seu pedido está pronto para entrega' :
-                   orderStatus === 'delivered' ? 'Aproveite seu pedido!' : ''}
-                </p>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Menu */}
-        <div className="bg-white rounded-2xl shadow-xl p-6 mb-8">
-          <h2 className="text-xl font-semibold mb-6 text-gray-800">Cardápio</h2>
-          
-          {/* Search */}
-          <div className="mb-4 relative">
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <FiSearch className="text-gray-400" />
-            </div>
-            <input
-              type="text"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-xl bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-              placeholder="Buscar itens no cardápio..."
-            />
-            {searchTerm && (
-              <button
-                onClick={() => setSearchTerm('')}
-                className="absolute inset-y-0 right-0 pr-3 flex items-center"
-              >
-                <FiX className="text-gray-400 hover:text-gray-600" />
-              </button>
-            )}
-          </div>
-          
-          {/* Menu Tabs */}
-          <div className="mb-6">
-            <div className="flex space-x-1 bg-gray-100 p-1 rounded-xl overflow-x-auto">
-              {Object.keys(menu).map(category => (
-                <button
-                  key={category}
-                  className={`flex-shrink-0 py-2 px-3 text-sm font-medium rounded-lg transition-all ${
-                    activeMenuTab === category ? 'bg-white shadow-md text-indigo-600' : 'text-gray-500 hover:text-gray-700'
-                  }`}
-                  onClick={() => setActiveMenuTab(category)}
-                >
-                  {category.charAt(0).toUpperCase() + category.slice(1)}
-                </button>
-              ))}
-            </div>
-          </div>
-          
-          {/* Menu Items */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-h-[500px] overflow-y-auto pr-2">
-            {filteredMenuItems(activeMenuTab).length > 0 ? (
-              filteredMenuItems(activeMenuTab).map(item => (
-                <motion.div 
-                  key={item.id}
-                  whileHover={{ y: -2 }}
-                  className="p-4 bg-white rounded-xl border border-gray-200 hover:border-indigo-300 transition-all cursor-pointer"
-                  onClick={() => addToCart(item)}
-                >
-                  <div className="flex items-start space-x-4">
-                    <div className="w-16 h-16 bg-gray-100 rounded-lg overflow-hidden">
-                      <img 
-                        src={item.image} 
-                        alt={item.name} 
-                        className="w-full h-full object-cover"
-                      />
-                    </div>
-                    <div className="flex-1">
-                      <div className="flex justify-between items-start">
-                        <h4 className="font-medium text-gray-800">{item.name}</h4>
-                        <span className="text-sm font-medium text-indigo-600">
-                          {formatCurrency(item.price)}
-                        </span>
-                      </div>
-                      {item.description && (
-                        <p className="text-sm text-gray-500 mt-1">{item.description}</p>
-                      )}
-                      <div className="flex justify-between items-center mt-2">
-                        <span className="text-xs bg-gray-100 text-gray-800 px-2 py-1 rounded-full">
-                          {item.prepTime} min
-                        </span>
-                        <div className="flex items-center">
-                          <span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full">
-                            {item.rating} ★
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </motion.div>
-              ))
-            ) : (
-              <div className="col-span-2 text-center py-8">
-                <div className="mx-auto w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
-                  <FiSearch className="text-gray-400" />
-                </div>
-                <p className="text-gray-500">Nenhum item encontrado</p>
-                <p className="text-gray-400 mt-1">Tente alterar sua busca</p>
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Cart */}
-        <div className="bg-white rounded-2xl shadow-xl p-6 sticky bottom-0">
-          <h2 className="text-xl font-semibold mb-4 text-gray-800 flex items-center">
-            <FiShoppingBag className="mr-2 text-indigo-600" />
-            Seu Pedido
-          </h2>
-          
-          {cart.length > 0 ? (
-            <>
-              <div className="space-y-3 mb-4 max-h-64 overflow-y-auto">
-                {cart.map(item => (
-                  <div key={item.id} className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-                    <div>
-                      <h4 className="font-medium text-gray-800">{item.name}</h4>
-                      <p className="text-sm text-gray-500">{formatCurrency(item.price)} cada</p>
-                    </div>
-                    <div className="flex items-center space-x-3">
-                      <div className="flex items-center space-x-2 bg-gray-100 px-2 py-1 rounded">
-                        <button 
-                          onClick={() => updateQuantity(item.id, item.quantity - 1)}
-                          className="w-6 h-6 flex items-center justify-center rounded-full hover:bg-gray-200 transition-colors"
-                        >
-                          -
-                        </button>
-                        <span className="w-6 text-center">{item.quantity}</span>
-                        <button 
-                          onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                          className="w-6 h-6 flex items-center justify-center rounded-full hover:bg-gray-200 transition-colors"
-                        >
-                          +
-                        </button>
-                      </div>
-                      <span className="font-medium text-gray-700 w-20 text-right">
-                        {formatCurrency(item.price * item.quantity)}
-                      </span>
-                      <button
-                        onClick={() => removeFromCart(item.id)}
-                        className="text-red-500 hover:text-red-700 p-1 rounded-full hover:bg-red-50 transition-all"
-                      >
-                        <FiTrash2 size={16} />
-                      </button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-              
-              <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700 mb-1">Observações:</label>
-                <textarea
-                  value={notes}
-                  onChange={(e) => setNotes(e.target.value)}
-                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
-                  rows={2}
-                  placeholder="Alguma observação sobre seu pedido?"
-                />
-              </div>
-              
-              <div className="flex justify-between items-center text-lg font-bold text-indigo-700 border-t border-gray-200 pt-3 mt-3">
-                <span>Total:</span>
-                <span>{formatCurrency(cartTotal)}</span>
-              </div>
-              
-              <button
-                onClick={submitOrder}
-                disabled={isLoading}
-                className={`mt-4 w-full py-4 rounded-xl transition-all flex items-center justify-center space-x-2 ${
-                  isLoading 
-                    ? 'bg-gray-300 text-gray-600 cursor-not-allowed' 
-                    : 'bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white shadow-md'
-                }`}
-              >
-                {isLoading ? (
-                  <>
-                    <FiRefreshCw className="animate-spin" />
-                    <span>Enviando pedido...</span>
-                  </>
-                ) : (
-                  <>
-                    <FiCheck />
-                    <span>Enviar Pedido</span>
-                  </>
-                )}
-              </button>
-            </>
-          ) : (
-            <div className="text-center py-8">
-              <div className="mx-auto w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
-                <FiShoppingBag className="text-gray-400" />
-              </div>
-              <p className="text-gray-500">Seu carrinho está vazio</p>
-              <p className="text-gray-400 mt-1">Adicione itens do cardápio acima</p>
-            </div>
-          )}
-        </div>
-      </div>
-    </div>
-  );
-};
-
-// Main Event Interface Component
 const InterfaceEventos = () => {
   const navigate = useNavigate();
   const [eventName, setEventName] = useState('Meu Evento Premium');
@@ -563,52 +158,15 @@ const InterfaceEventos = () => {
   const [showStats, setShowStats] = useState(false);
   const [notes, setNotes] = useState('');
 
-  // Generate 50 unique QR Codes for tables
+  // Generate QR Codes with direct link to menu page including table number
   const generateQRCodes = () => {
     return Array.from({ length: 50 }, (_, i) => ({
       id: `qr-${i + 1}`,
       tableNumber: i + 1,
-      url: `${window.location.origin}/mesa${i + 1}`
+      url: `${window.location.origin}/cardapio?mesa=${i + 1}&evento=${encodeURIComponent(eventName)}`
     }));
   };
-
   const qrCodes = generateQRCodes();
-
-  // Fetch orders from Firebase
-  useEffect(() => {
-    const ordersRef = ref(database, 'orders');
-    onValue(ordersRef, (snapshot) => {
-      const ordersData = snapshot.val();
-      if (ordersData) {
-        const ordersArray = Object.entries(ordersData).map(([id, order]) => ({
-          id,
-          ...order,
-          createdAt: new Date(order.createdAt),
-          ...(order.closedAt && { closedAt: new Date(order.closedAt) })
-        }));
-        setOrders(ordersArray);
-      } else {
-        setOrders([]);
-      }
-    });
-  }, []);
-
-  // Fetch tables from Firebase
-  useEffect(() => {
-    const tablesRef = ref(database, 'tables');
-    onValue(tablesRef, (snapshot) => {
-      const tablesData = snapshot.val();
-      if (tablesData) {
-        const tablesArray = Object.entries(tablesData).map(([id, table]) => ({
-          id,
-          ...table
-        }));
-        setTables(tablesArray);
-      } else {
-        setTables([]);
-      }
-    });
-  }, []);
 
   // Calculate statistics
   const calculateStats = () => {
@@ -662,35 +220,21 @@ const InterfaceEventos = () => {
     showNotification('Convidado removido!', 'info');
   };
 
-  // Create table in Firebase
-  const createTable = async () => {
-    if (guests.length === 0) {
-      showNotification('Adicione convidados antes de criar uma mesa', 'error');
-      return;
-    }
-
-    setIsLoading(true);
-    try {
+  // Create table
+  const createTable = () => {
+    if (guests.length > 0) {
       const newTable = {
+        id: Date.now(),
         name: `Mesa ${tables.length + 1}`,
         guests: [...guests],
         qrCodeId: `qr-${tables.length + 1}`,
         activeOrder: null,
         capacity: guests.length,
-        location: 'Salão Principal',
-        createdAt: new Date().toISOString()
+        location: 'Salão Principal'
       };
-
-      const newTableRef = push(ref(database, 'tables'));
-      await set(newTableRef, newTable);
-      
+      setTables([...tables, newTable]);
       setGuests([]);
       showNotification(`Mesa ${tables.length + 1} criada com sucesso!`);
-    } catch (error) {
-      showNotification('Erro ao criar mesa', 'error');
-      console.error('Error creating table:', error);
-    } finally {
-      setIsLoading(false);
     }
   };
 
@@ -699,7 +243,7 @@ const InterfaceEventos = () => {
     setSelectedTable(table);
     // Find any active orders for this table
     const tableOrder = orders.find(order => 
-      order.tableNumber === table.name.replace('Mesa ', '') && order.status !== 'closed'
+      order.tableId === table.id && order.status !== 'closed'
     );
     if (tableOrder) {
       setCurrentOrder(tableOrder);
@@ -761,211 +305,179 @@ const InterfaceEventos = () => {
     }
   };
 
-  // Create new order in Firebase
-  const createNewOrder = async () => {
-    if (!selectedTable) return;
-
-    setIsLoading(true);
-    try {
-      const newOrder = {
-        tableNumber: selectedTable.name.replace('Mesa ', ''),
-        items: [],
-        status: 'open',
-        createdAt: new Date().toISOString(),
-        subtotal: 0,
-        tax: 0,
-        total: 0,
-        notes: '',
-        waiter: 'Garçom Principal'
-      };
-
-      const newOrderRef = push(ref(database, 'orders'));
-      await set(newOrderRef, newOrder);
-      
-      // Update table with active order
-      await update(ref(database, `tables/${selectedTable.id}`), {
-        activeOrder: newOrderRef.key
-      });
-      
-      setCurrentOrder({ id: newOrderRef.key, ...newOrder });
-      showNotification(`Nova comanda criada para ${selectedTable.name}`);
-    } catch (error) {
-      showNotification('Erro ao criar comanda', 'error');
-      console.error('Error creating order:', error);
-    } finally {
-      setIsLoading(false);
-    }
+  // Create new order
+  const createNewOrder = () => {
+    const newOrder = {
+      id: Date.now(),
+      tableId: selectedTable.id,
+      tableName: selectedTable.name,
+      items: [],
+      status: 'open', // open, preparing, ready, delivered, closed
+      createdAt: new Date(),
+      subtotal: 0,
+      tax: 0,
+      total: 0,
+      notes: '',
+      waiter: 'Garçom Principal'
+    };
+    setOrders([...orders, newOrder]);
+    setCurrentOrder(newOrder);
+    
+    // Update table with active order
+    const updatedTables = tables.map(table => 
+      table.id === selectedTable.id ? { ...table, activeOrder: newOrder.id } : table
+    );
+    setTables(updatedTables);
+    
+    showNotification(`Nova comanda criada para ${selectedTable.name}`);
   };
 
-  // Add item to current order in Firebase
-  const addItemToOrder = async (item) => {
+  // Add item to current order
+  const addItemToOrder = (item) => {
     if (!currentOrder) return;
     
-    setIsLoading(true);
-    try {
-      const newItem = {
-        id: item.id,
-        name: item.name,
-        price: item.price,
+    const updatedOrder = {
+      ...currentOrder,
+      items: [...currentOrder.items, {
+        ...item,
+        orderItemId: Date.now(),
+        status: 'pending', // pending, preparing, ready, delivered
         quantity: 1,
-        status: 'pending',
-        addedAt: new Date().toISOString(),
-        description: item.description || ''
-      };
-
-      const orderItemsRef = ref(database, `orders/${currentOrder.id}/items`);
-      const newItemRef = push(orderItemsRef);
-      await set(newItemRef, newItem);
-      
-      // Update order totals
-      const updatedOrder = {
-        ...currentOrder,
-        subtotal: currentOrder.subtotal + item.price,
-        total: currentOrder.subtotal + item.price
-      };
-      
-      await update(ref(database, `orders/${currentOrder.id}`), {
-        subtotal: updatedOrder.subtotal,
-        total: updatedOrder.total
-      });
-      
-      setCurrentOrder(updatedOrder);
-      showNotification(`${item.name} adicionado à comanda`, 'info');
-    } catch (error) {
-      showNotification('Erro ao adicionar item', 'error');
-      console.error('Error adding item:', error);
-    } finally {
-      setIsLoading(false);
-    }
+        notes: '',
+        addedAt: new Date()
+      }],
+      subtotal: currentOrder.subtotal + item.price,
+      total: currentOrder.subtotal + item.price
+    };
+    
+    setCurrentOrder(updatedOrder);
+    
+    // Update orders list
+    const updatedOrders = orders.map(order => 
+      order.id === currentOrder.id ? updatedOrder : order
+    );
+    setOrders(updatedOrders);
+    
+    showNotification(`${item.name} adicionado à comanda`, 'info');
   };
 
-  // Update item quantity in Firebase
-  const updateItemQuantity = async (orderItemId, newQuantity) => {
+  // Update item quantity
+  const updateItemQuantity = (orderItemId, newQuantity) => {
     if (!currentOrder || newQuantity < 1) return;
     
-    setIsLoading(true);
-    try {
-      const itemToUpdate = currentOrder.items.find(item => item.orderItemId === orderItemId);
-      if (!itemToUpdate) return;
-      
-      const priceDifference = (newQuantity - itemToUpdate.quantity) * itemToUpdate.price;
-      
-      await update(ref(database, `orders/${currentOrder.id}/items/${orderItemId}`), {
-        quantity: newQuantity
-      });
-      
-      // Update order totals
-      const updatedOrder = {
-        ...currentOrder,
-        subtotal: currentOrder.subtotal + priceDifference,
-        total: currentOrder.total + priceDifference
-      };
-      
-      await update(ref(database, `orders/${currentOrder.id}`), {
-        subtotal: updatedOrder.subtotal,
-        total: updatedOrder.total
-      });
-      
-      setCurrentOrder(updatedOrder);
-    } catch (error) {
-      showNotification('Erro ao atualizar quantidade', 'error');
-      console.error('Error updating quantity:', error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  // Remove item from order in Firebase
-  const removeItemFromOrder = async (orderItemId) => {
-    if (!currentOrder) return;
-    
-    setIsLoading(true);
-    try {
-      const itemToRemove = currentOrder.items.find(item => item.orderItemId === orderItemId);
-      if (!itemToRemove) return;
-      
-      await remove(ref(database, `orders/${currentOrder.id}/items/${orderItemId}`));
-      
-      // Update order totals
-      const updatedOrder = {
-        ...currentOrder,
-        subtotal: currentOrder.subtotal - (itemToRemove.price * itemToRemove.quantity),
-        total: currentOrder.total - (itemToRemove.price * itemToRemove.quantity)
-      };
-      
-      await update(ref(database, `orders/${currentOrder.id}`), {
-        subtotal: updatedOrder.subtotal,
-        total: updatedOrder.total
-      });
-      
-      setCurrentOrder(updatedOrder);
-      showNotification(`${itemToRemove.name} removido da comanda`, 'info');
-    } catch (error) {
-      showNotification('Erro ao remover item', 'error');
-      console.error('Error removing item:', error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  // Update order status in Firebase
-  const updateOrderStatus = async (status) => {
-    if (!currentOrder) return;
-    
-    setIsLoading(true);
-    try {
-      const updates = {
-        status,
-        notes,
-        ...(status === 'closed' && { closedAt: new Date().toISOString() })
-      };
-      
-      await update(ref(database, `orders/${currentOrder.id}`), updates);
-      
-      // If closing order, remove from table's active order
-      if (status === 'closed' && selectedTable) {
-        await update(ref(database, `tables/${selectedTable.id}`), {
-          activeOrder: null
-        });
+    const updatedItems = currentOrder.items.map(item => {
+      if (item.orderItemId === orderItemId) {
+        const priceDifference = (newQuantity - item.quantity) * item.price;
+        return {
+          ...item,
+          quantity: newQuantity
+        };
       }
-      
-      setCurrentOrder({ ...currentOrder, ...updates });
-      showNotification(`Status da comanda atualizado para ${getStatusText(status)}`, 'info');
-    } catch (error) {
-      showNotification('Erro ao atualizar status', 'error');
-      console.error('Error updating status:', error);
-    } finally {
-      setIsLoading(false);
-    }
+      return item;
+    });
+    
+    const subtotal = updatedItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+    
+    const updatedOrder = {
+      ...currentOrder,
+      items: updatedItems,
+      subtotal,
+      total: subtotal
+    };
+    
+    setCurrentOrder(updatedOrder);
+    
+    // Update orders list
+    const updatedOrders = orders.map(order => 
+      order.id === currentOrder.id ? updatedOrder : order
+    );
+    setOrders(updatedOrders);
   };
 
-  // Update item status in Firebase
-  const updateItemStatus = async (orderItemId, status) => {
+  // Remove item from order
+  const removeItemFromOrder = (orderItemId) => {
     if (!currentOrder) return;
     
-    setIsLoading(true);
-    try {
-      await update(ref(database, `orders/${currentOrder.id}/items/${orderItemId}`), {
-        status
-      });
-      
-      const updatedItems = currentOrder.items.map(item => {
-        if (item.orderItemId === orderItemId) {
-          return { ...item, status };
-        }
-        return item;
-      });
-      
-      setCurrentOrder({
-        ...currentOrder,
-        items: updatedItems
-      });
-    } catch (error) {
-      showNotification('Erro ao atualizar status do item', 'error');
-      console.error('Error updating item status:', error);
-    } finally {
-      setIsLoading(false);
+    const itemToRemove = currentOrder.items.find(item => item.orderItemId === orderItemId);
+    if (!itemToRemove) return;
+    
+    const updatedItems = currentOrder.items.filter(item => item.orderItemId !== orderItemId);
+    const subtotal = currentOrder.subtotal - (itemToRemove.price * itemToRemove.quantity);
+    
+    const updatedOrder = {
+      ...currentOrder,
+      items: updatedItems,
+      subtotal,
+      total: subtotal
+    };
+    
+    setCurrentOrder(updatedOrder);
+    
+    // Update orders list
+    const updatedOrders = orders.map(order => 
+      order.id === currentOrder.id ? updatedOrder : order
+    );
+    setOrders(updatedOrders);
+    
+    showNotification(`${itemToRemove.name} removido da comanda`, 'info');
+  };
+
+  // Update order status
+  const updateOrderStatus = (status) => {
+    if (!currentOrder) return;
+    
+    const updatedOrder = {
+      ...currentOrder,
+      status,
+      notes,
+      ...(status === 'closed' && { closedAt: new Date() })
+    };
+    
+    setCurrentOrder(updatedOrder);
+    
+    // Update orders list
+    const updatedOrders = orders.map(order => 
+      order.id === currentOrder.id ? updatedOrder : order
+    );
+    setOrders(updatedOrders);
+    
+    // If closing order, remove from table's active order
+    if (status === 'closed') {
+      const updatedTables = tables.map(table => 
+        table.id === selectedTable.id ? { ...table, activeOrder: null } : table
+      );
+      setTables(updatedTables);
     }
+    
+    showNotification(`Status da comanda atualizado para ${getStatusText(status)}`, 'info');
+  };
+
+  // Update item status
+  const updateItemStatus = (orderItemId, status) => {
+    if (!currentOrder) return;
+    
+    const updatedItems = currentOrder.items.map(item => {
+      if (item.orderItemId === orderItemId) {
+        return {
+          ...item,
+          status
+        };
+      }
+      return item;
+    });
+    
+    const updatedOrder = {
+      ...currentOrder,
+      items: updatedItems
+    };
+    
+    setCurrentOrder(updatedOrder);
+    
+    // Update orders list
+    const updatedOrders = orders.map(order => 
+      order.id === currentOrder.id ? updatedOrder : order
+    );
+    setOrders(updatedOrders);
   };
 
   // Get status text
@@ -1096,6 +608,65 @@ const InterfaceEventos = () => {
     );
   };
 
+  // Add sample data for demonstration
+  useEffect(() => {
+    if (tables.length === 0 && guests.length === 0) {
+      setGuests([
+        { id: 1, name: 'Ana Silva' },
+        { id: 2, name: 'Carlos Oliveira' },
+        { id: 3, name: 'Mariana Santos' }
+      ]);
+    }
+    
+    // Simulate some orders for demo
+    if (tables.length > 0 && orders.length === 0) {
+      const demoOrders = [
+        {
+          id: 1,
+          tableId: tables[0].id,
+          tableName: tables[0].name,
+          items: [
+            { ...menu.semana[0], orderItemId: 101, quantity: 2, status: 'delivered', addedAt: new Date(Date.now() - 3600000) },
+            { ...menu.bebidas[0], orderItemId: 102, quantity: 1, status: 'delivered', addedAt: new Date(Date.now() - 3500000) }
+          ],
+          status: 'open',
+          createdAt: new Date(Date.now() - 3600000),
+          subtotal: menu.semana[0].price * 2 + menu.bebidas[0].price,
+          tax: 0,
+          total: menu.semana[0].price * 2 + menu.bebidas[0].price,
+          notes: 'Sem cebola no strogonoff',
+          waiter: 'João Silva'
+        },
+        {
+          id: 2,
+          tableId: tables[1]?.id || 999,
+          tableName: tables[1]?.name || 'Mesa 2',
+          items: [
+            { ...menu.lanches[0], orderItemId: 201, quantity: 1, status: 'ready', addedAt: new Date(Date.now() - 1800000) },
+            { ...menu.bebidas[3], orderItemId: 202, quantity: 2, status: 'ready', addedAt: new Date(Date.now() - 1700000) },
+            { ...menu.sobremesas[0], orderItemId: 203, quantity: 1, status: 'pending', addedAt: new Date(Date.now() - 1600000) }
+          ],
+          status: 'preparing',
+          createdAt: new Date(Date.now() - 1800000),
+          subtotal: menu.lanches[0].price + (menu.bebidas[3].price * 2) + menu.sobremesas[0].price,
+          tax: 0,
+          total: menu.lanches[0].price + (menu.bebidas[3].price * 2) + menu.sobremesas[0].price,
+          notes: 'Whiskey com gelo',
+          waiter: 'Maria Oliveira'
+        }
+      ];
+      setOrders(demoOrders.filter(order => tables.some(t => t.id === order.tableId)));
+      
+      // Set active order for first table
+      if (tables.length > 0) {
+        const updatedTables = tables.map((table, index) => 
+          index === 0 ? { ...table, activeOrder: 1 } : table
+        );
+        setTables(updatedTables);
+      }
+    }
+  }, [tables]);
+
   // Prepare data for charts
   const prepareChartData = () => {
     const categories = Object.keys(menu);
@@ -1188,7 +759,101 @@ const InterfaceEventos = () => {
           <div className="p-6 md:p-8">
             {customerView ? (
               // Customer View
-              <CustomerInterface tableNumber={selectedTable.name.replace('Mesa ', '')} />
+              <div className="space-y-8">
+                <div className="bg-gradient-to-r from-indigo-50 to-purple-50 p-6 rounded-xl border border-indigo-100">
+                  <h3 className="text-xl font-semibold mb-4 text-indigo-800 flex items-center">
+                    <FiShoppingBag className="mr-2" />
+                    Sua Comanda
+                  </h3>
+                  
+                  {currentOrder ? (
+                    <div>
+                      <div className="flex justify-between items-center mb-4">
+                        <span className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(currentOrder.status)}`}>
+                          {getStatusText(currentOrder.status)}
+                        </span>
+                        <span className="text-gray-500 text-sm">
+                          {new Date(currentOrder.createdAt).toLocaleTimeString()}
+                        </span>
+                      </div>
+                      
+                      <div className="space-y-4 mb-6">
+                        {currentOrder.items.map(item => (
+                          <div key={item.orderItemId} className="flex justify-between items-center p-4 bg-white rounded-lg border border-gray-200">
+                            <div>
+                              <h4 className="font-medium text-gray-800">{item.name}</h4>
+                              <p className="text-sm text-gray-500">{item.description}</p>
+                              <span className={`text-xs px-2 py-1 rounded-full ${getStatusColor(item.status)}`}>
+                                {getStatusText(item.status)}
+                              </span>
+                            </div>
+                            <div className="flex items-center space-x-4">
+                              <span className="font-medium text-gray-700">
+                                {formatCurrency(item.price * item.quantity)}
+                              </span>
+                              <span className="bg-gray-100 px-2 py-1 rounded text-sm">
+                                {item.quantity}x
+                              </span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                      
+                      <div className="border-t border-gray-200 pt-4">
+                        <div className="flex justify-between items-center mb-2">
+                          <span className="text-gray-600">Subtotal:</span>
+                          <span className="font-medium">{formatCurrency(currentOrder.subtotal)}</span>
+                        </div>
+                        <div className="flex justify-between items-center mb-2">
+                          <span className="text-gray-600">Taxas:</span>
+                          <span className="font-medium">{formatCurrency(currentOrder.tax)}</span>
+                        </div>
+                        <div className="flex justify-between items-center text-lg font-bold text-indigo-700">
+                          <span>Total:</span>
+                          <span>{formatCurrency(currentOrder.total)}</span>
+                        </div>
+                      </div>
+                      
+                      {currentOrder.notes && (
+                        <div className="mt-4 p-3 bg-yellow-50 border border-yellow-100 rounded-lg">
+                          <h4 className="text-sm font-medium text-yellow-800 mb-1">Observações:</h4>
+                          <p className="text-sm text-yellow-700">{currentOrder.notes}</p>
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="text-center py-8">
+                      <div className="mx-auto w-16 h-16 bg-indigo-100 rounded-full flex items-center justify-center mb-4">
+                        <FiShoppingBag className="text-indigo-600 text-2xl" />
+                      </div>
+                      <h4 className="text-lg font-medium text-gray-700 mb-1">Nenhuma comanda ativa</h4>
+                      <p className="text-gray-500">Escaneie o QR Code para fazer seu pedido</p>
+                    </div>
+                  )}
+                </div>
+                
+                {/* QR Code */}
+                <div className="bg-gradient-to-r from-indigo-50 to-purple-50 p-6 rounded-xl border border-indigo-100">
+                  <h3 className="text-xl font-semibold mb-6 text-indigo-800 flex items-center">
+                    <FiGrid className="mr-2" />
+                    QR Code da Mesa
+                  </h3>
+                  <div className="flex flex-col items-center">
+                    <div className="p-5 bg-white border-2 border-indigo-100 rounded-2xl shadow-sm mb-6">
+                      <QRCodeSVG 
+                        value={`${window.location.origin}/cardapio?mesa=${selectedTable.name.replace('Mesa ', '')}&evento=${encodeURIComponent(eventName)}`}
+                        size={200}
+                        level="H"
+                        includeMargin={true}
+                        fgColor="#4f46e5"
+                      />
+                    </div>
+                    <p className="text-center text-gray-600 mb-6">
+                      Escaneie este código para fazer pedidos diretamente
+                    </p>
+                  </div>
+                </div>
+              </div>
             ) : (
               // Waiter View
               <div className="grid lg:grid-cols-2 gap-10">
@@ -1547,7 +1212,7 @@ const InterfaceEventos = () => {
                         className="p-3 bg-white border-2 border-indigo-100 rounded-xl mb-2 shadow-sm hover:shadow-md transition-all"
                       >
                         <QRCodeSVG 
-                          value={`${window.location.origin}/mesa${selectedTable.name.replace('Mesa ', '')}`}
+                          value={`${window.location.origin}/cardapio?mesa=${selectedTable.name.replace('Mesa ', '')}&evento=${encodeURIComponent(eventName)}`}
                           size={180}
                           level="H"
                           includeMargin={false}
@@ -1803,22 +1468,16 @@ const InterfaceEventos = () => {
 
               <button
                 onClick={createTable}
-                disabled={guests.length === 0 || isLoading}
+                disabled={guests.length === 0}
                 className={`mt-6 w-full py-4 rounded-xl transition-all flex items-center justify-center space-x-2 ${
                   guests.length > 0 
                     ? 'bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white shadow-md' 
                     : 'bg-gray-100 text-gray-400 cursor-not-allowed'
                 }`}
               >
-                {isLoading ? (
-                  <FiRefreshCw className="animate-spin" />
-                ) : (
-                  <>
-                    <FiUsers size={20} />
-                    <span>Criar Mesa com {guests.length} Convidado{guests.length !== 1 ? 's' : ''}</span>
-                    <FiChevronRight />
-                  </>
-                )}
+                <FiUsers size={20} />
+                <span>Criar Mesa com {guests.length} Convidado{guests.length !== 1 ? 's' : ''}</span>
+                <FiChevronRight />
               </button>
             </div>
 
@@ -1877,60 +1536,62 @@ const InterfaceEventos = () => {
         ) : activeTab === 'qrcodes' ? (
           /* QR Codes Tab */
           <div className="bg-white rounded-2xl shadow-xl p-6">
-            <h2 className="text-xl md:text-2xl font-semibold mb-6 text-gray-900 flex items-center">
-              <span className="w-8 h-8 bg-indigo-100 rounded-full flex items-center justify-center mr-3">
-                <FiGrid className="text-indigo-600" />
-              </span>
-              QR Codes para Pedidos
-            </h2>
-            <div className="mb-8">
-              <p className="text-gray-600 max-w-3xl">
-                Cada QR Code abaixo é único para uma mesa específica. Quando escaneado, levará os clientes diretamente à página de pedidos daquela mesa. 
-                Você pode baixar individualmente ou todos de uma vez.
-              </p>
-            </div>
-            
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
-              {qrCodes.map(qr => (
-                <motion.div 
-                  key={qr.id} 
-                  whileHover={{ y: -5 }}
-                  className="flex flex-col items-center"
-                >
-                  <div 
-                    id={qr.id}
-                    className="p-3 bg-white border-2 border-gray-100 rounded-xl mb-2 shadow-sm hover:shadow-md transition-all"
-                  >
-                    <QRCodeSVG 
-                      value={qr.url}
-                      size={120}
-                      level="H"
-                      includeMargin={false}
-                      fgColor="#4f46e5"
-                    />
-                  </div>
-                  <span className="text-sm font-medium text-gray-700">Mesa {qr.tableNumber}</span>
-                  <button 
-                    onClick={() => downloadQRCode(qr.id)}
-                    disabled={isLoading}
-                    className="mt-1 text-xs text-indigo-600 hover:text-indigo-800 flex items-center"
-                  >
-                    <FiDownload className="mr-1" />
-                    {isLoading ? 'Baixando...' : 'Baixar'}
-                  </button>
-                </motion.div>
-              ))}
-            </div>
-
-            <div className="mt-12 flex justify-center">
-              <button 
-                onClick={downloadAllQRCodes}
-                disabled={isLoading}
-                className="flex items-center space-x-2 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white py-3 px-8 rounded-xl transition-all shadow-md disabled:opacity-70"
+          <h2 className="text-xl md:text-2xl font-semibold mb-6 text-gray-900 flex items-center">
+            <span className="w-8 h-8 bg-indigo-100 rounded-full flex items-center justify-center mr-3">
+              <FiGrid className="text-indigo-600" />
+            </span>
+            QR Codes para Cardápio
+          </h2>
+          <div className="mb-8">
+            <p className="text-gray-600 max-w-3xl">
+              Cada QR Code abaixo é único para uma mesa específica. Quando escaneado, levará os clientes diretamente à página do cardápio com a mesa já identificada.
+            </p>
+          </div>
+          
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
+            {qrCodes.map(qr => (
+              <motion.div 
+                key={qr.id} 
+                whileHover={{ y: -5 }}
+                className="flex flex-col items-center"
               >
-                <FiDownload />
-                <span>{isLoading ? 'Preparando arquivo...' : 'Baixar Todos os QR Codes (ZIP)'}</span>
-              </button>
+                <div 
+                  id={qr.id}
+                  className="p-3 bg-white border-2 border-gray-100 rounded-xl mb-2 shadow-sm hover:shadow-md transition-all"
+                >
+                  <QRCodeSVG 
+                    value={qr.url}
+                    size={120}
+                    level="H"
+                    includeMargin={false}
+                    fgColor="#4f46e5"
+                  />
+                </div>
+                <div className="text-center bg-white p-2 rounded-lg border border-indigo-100 mb-1 w-full">
+                  <p className="text-sm font-medium text-indigo-700">Mesa {qr.tableNumber}</p>
+                  <p className="text-xs text-gray-500 truncate">{eventName}</p>
+                </div>
+                <button 
+                  onClick={() => downloadQRCode(qr.id)}
+                  disabled={isLoading}
+                  className="mt-1 text-xs text-indigo-600 hover:text-indigo-800 flex items-center"
+                >
+                  <FiDownload className="mr-1" />
+                  {isLoading ? 'Baixando...' : 'Baixar'}
+                </button>
+              </motion.div>
+            ))}
+          </div>
+      
+          <div className="mt-12 flex justify-center">
+            <button 
+              onClick={downloadAllQRCodes}
+              disabled={isLoading}
+              className="flex items-center space-x-2 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white py-3 px-8 rounded-xl transition-all shadow-md disabled:opacity-70"
+            >
+              <FiDownload />
+              <span>{isLoading ? 'Preparando arquivo...' : 'Baixar Todos os QR Codes (ZIP)'}</span>
+            </button>
             </div>
           </div>
         ) : (
@@ -2006,7 +1667,7 @@ const InterfaceEventos = () => {
                   .filter(order => orderStatusFilter === 'all' || order.status === orderStatusFilter)
                   .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
                   .map(order => {
-                    const table = tables.find(t => t.name === `Mesa ${order.tableNumber}`);
+                    const table = tables.find(t => t.id === order.tableId);
                     return (
                       <motion.div 
                         key={order.id} 
@@ -2019,7 +1680,7 @@ const InterfaceEventos = () => {
                         }}
                       >
                         <div className="flex justify-between items-center mb-2">
-                          <h3 className="font-semibold text-gray-800">Mesa {order.tableNumber}</h3>
+                          <h3 className="font-semibold text-gray-800">{order.tableName}</h3>
                           <span className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(order.status)}`}>
                             {getStatusText(order.status)}
                           </span>
@@ -2056,12 +1717,6 @@ const InterfaceEventos = () => {
       </div>
     </div>
   );
-};
-
-// Customer Interface Route
-export const CustomerOrderInterface = () => {
-  const { tableNumber } = useParams();
-  return <CustomerInterface tableNumber={tableNumber} />;
 };
 
 export default InterfaceEventos;
