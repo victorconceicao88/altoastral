@@ -1,123 +1,133 @@
 import React, { useState, useEffect } from 'react';
-import { FiUser, FiPlus, FiTrash2, FiUsers, FiGrid, FiArrowLeft, FiDownload, FiChevronRight, FiShoppingBag, FiClock, FiDollarSign, FiCheck, FiX, FiEdit2, FiPrinter } from 'react-icons/fi';
+import { 
+  FiUser, FiPlus, FiTrash2, FiUsers, FiGrid, FiArrowLeft, 
+  FiDownload, FiChevronRight, FiShoppingBag, FiClock, 
+  FiDollarSign, FiCheck, FiX, FiEdit2, FiPrinter, FiSearch,
+  FiFilter, FiRefreshCw, FiBarChart2, FiPieChart, FiTag
+} from 'react-icons/fi';
 import { QRCodeSVG } from 'qrcode.react';
 import { useNavigate } from 'react-router-dom';
 import { saveAs } from 'file-saver';
 import html2canvas from 'html2canvas';
 import JSZip from 'jszip';
 import { motion, AnimatePresence } from 'framer-motion';
+import { Chart as ChartJS, ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement } from 'chart.js';
+import { Pie, Bar } from 'react-chartjs-2';
 
-// Premium Menu Data
+// Register ChartJS components
+ChartJS.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement);
+
+// Premium Menu Data with enhanced structure
 const menu = {
   semana: [
-    { id: 1, name: 'Frango Cremoso', description: 'Strogonoff de frango, arroz branco, salada e batata palha', price: 12.90, veg: false, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.5 },
-    { id: 2, name: 'Picanha Premium', description: 'Picanha grelhada, arroz branco, feijão tropeiro e vinagrete', price: 15.90, veg: false, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.8 },
-    { id: 3, name: 'Costela Raiz', description: 'Costela de vaca com mandioca, arroz branco, farofa e salada', price: 14.90, veg: false, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.7 },
-    { id: 4, name: 'Frango Supremo', description: 'Filé de frango à parmegiana, arroz branco, batata frita e salada', price: 13.90, veg: false, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.3 },
-    { id: 5, name: 'Feijoada Astral', description: 'Feijoada brasileira, arroz branco, couve, farofa, torresmo e laranja', price: 12.90, veg: false, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.9 },
-    { id: 6, name: 'Opção Vegetariana', description: 'Prato vegetariano sob consulta - acompanha bebida e café', price: 12.90, veg: true, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.2 }
+    { id: 1, name: 'Frango Cremoso', description: 'Strogonoff de frango, arroz branco, salada e batata palha', price: 12.90, veg: false, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.5, prepTime: 15, category: 'prato principal' },
+    { id: 2, name: 'Picanha Premium', description: 'Picanha grelhada, arroz branco, feijão tropeiro e vinagrete', price: 15.90, veg: false, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.8, prepTime: 20, category: 'prato principal' },
+    { id: 3, name: 'Costela Raiz', description: 'Costela de vaca com mandioca, arroz branco, farofa e salada', price: 14.90, veg: false, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.7, prepTime: 25, category: 'prato principal' },
+    { id: 4, name: 'Frango Supremo', description: 'Filé de frango à parmegiana, arroz branco, batata frita e salada', price: 13.90, veg: false, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.3, prepTime: 18, category: 'prato principal' },
+    { id: 5, name: 'Feijoada Astral', description: 'Feijoada brasileira, arroz branco, couve, farofa, torresmo e laranja', price: 12.90, veg: false, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.9, prepTime: 30, category: 'prato principal' },
+    { id: 6, name: 'Opção Vegetariana', description: 'Prato vegetariano sob consulta - acompanha bebida e café', price: 12.90, veg: true, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.2, prepTime: 15, category: 'prato principal' }
   ],
   lanches: [
-    { id: 7, name: 'Hambúrguer com Fritas', description: 'Carne, alface, tomate, cebola, cheddar, molho da casa', price: 7.00, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.4 },
-    { id: 8, name: 'Hambúrguer Alto Astral', description: 'Carne 120g, bacon, queijo, anéis de cebola, alface, tomate, cheddar, molho coquetel e especial', price: 9.90, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.7 },
-    { id: 9, name: 'Hambúrguer Neg\'s', description: 'Carne 120g, frango panado, bacon, queijo, anéis de cebola, cebola crispy, alface, tomate, cheddar, molho coquetel e especial', price: 12.90, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.9 },
-    { id: 10, name: 'Sandes de Panado', description: 'Frango panado, alface, tomate, cebola, molho da casa', price: 5.50, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.1 },
-    { id: 11, name: 'Tostas Premium', description: 'Frango ou atum acompanha queijo, alface, tomate e cebola roxa', price: 6.50, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.0 },
-    { id: 12, name: 'Sandes Natural', description: 'Patê de frango, queijo, rúcula, tomate, cebola roxa e cenoura ralada', price: 6.50, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 3.9 }
+    { id: 7, name: 'Hambúrguer com Fritas', description: 'Carne, alface, tomate, cebola, cheddar, molho da casa', price: 7.00, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.4, prepTime: 10, category: 'lanche' },
+    { id: 8, name: 'Hambúrguer Alto Astral', description: 'Carne 120g, bacon, queijo, anéis de cebola, alface, tomate, cheddar, molho coquetel e especial', price: 9.90, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.7, prepTime: 12, category: 'lanche' },
+    { id: 9, name: 'Hambúrguer Neg\'s', description: 'Carne 120g, frango panado, bacon, queijo, anéis de cebola, cebola crispy, alface, tomate, cheddar, molho coquetel e especial', price: 12.90, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.9, prepTime: 15, category: 'lanche' },
+    { id: 10, name: 'Sandes de Panado', description: 'Frango panado, alface, tomate, cebola, molho da casa', price: 5.50, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.1, prepTime: 8, category: 'lanche' },
+    { id: 11, name: 'Tostas Premium', description: 'Frango ou atum acompanha queijo, alface, tomate e cebola roxa', price: 6.50, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.0, prepTime: 7, category: 'lanche' },
+    { id: 12, name: 'Sandes Natural', description: 'Patê de frango, queijo, rúcula, tomate, cebola roxa e cenoura ralada', price: 6.50, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 3.9, prepTime: 7, category: 'lanche' }
   ],
   porcoes: [
-    { id: 13, name: 'Batata Frita', description: 'Porção com 400g de batata frita', price: 4.00, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.2 },
-    { id: 14, name: 'Fritas com Bacon e Queijo', description: 'Porção com 400g de batatas com bacon e queijo cheddar', price: 6.50, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.6 },
-    { id: 15, name: 'Chouriça com Cebola', description: 'Porção com 600g de chouriça acebolada e pão fatiado', price: 9.00, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.5 },
-    { id: 16, name: 'Asinha de Frango', description: 'Porção com 700g de asinhas de frango e molho barbecue', price: 12.00, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.4 },
-    { id: 17, name: 'Costelinha', description: 'Porção com 800g de costelinha e molho barbecue', price: 12.00, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.7 },
-    { id: 18, name: 'Picanha com Fritas', description: 'Porção com 600g de tiras de picanha temperada com sal de parrilha e acompanhado de batata frita ou doce', price: 18.00, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.8 },
-    { id: 19, name: 'Filé de Tilápia', description: 'Porção com 800g de filé de tilápia e molho tartaro', price: 14.00, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.3 }
+    { id: 13, name: 'Batata Frita', description: 'Porção com 400g de batata frita', price: 4.00, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.2, prepTime: 10, category: 'porção' },
+    { id: 14, name: 'Fritas com Bacon e Queijo', description: 'Porção com 400g de batatas com bacon e queijo cheddar', price: 6.50, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.6, prepTime: 12, category: 'porção' },
+    { id: 15, name: 'Chouriça com Cebola', description: 'Porção com 600g de chouriça acebolada e pão fatiado', price: 9.00, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.5, prepTime: 15, category: 'porção' },
+    { id: 16, name: 'Asinha de Frango', description: 'Porção com 700g de asinhas de frango e molho barbecue', price: 12.00, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.4, prepTime: 20, category: 'porção' },
+    { id: 17, name: 'Costelinha', description: 'Porção com 800g de costelinha e molho barbecue', price: 12.00, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.7, prepTime: 25, category: 'porção' },
+    { id: 18, name: 'Picanha com Fritas', description: 'Porção com 600g de tiras de picanha temperada com sal de parrilha e acompanhado de batata frita ou doce', price: 18.00, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.8, prepTime: 30, category: 'porção' },
+    { id: 19, name: 'Filé de Tilápia', description: 'Porção com 800g de filé de tilápia e molho tartaro', price: 14.00, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.3, prepTime: 22, category: 'porção' }
   ],
   pasteis: [
-    { id: 20, name: 'Pastel Simples', description: 'Frango desfiado, carne picada ou queijo', price: 5.00, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.3 },
-    { id: 21, name: 'Pastel de Frango com Queijo', description: 'Frango desfiado com queijo', price: 5.50, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.5 },
-    { id: 22, name: 'Pastel de Frango com Queijo e Bacon', description: 'Frango desfiado com queijo e bacon em cubos', price: 6.50, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.7 },
-    { id: 23, name: 'Pastel de Carne com Queijo', description: 'Carne picada com queijo e azeitona', price: 5.50, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.4 },
-    { id: 24, name: 'Pastel de Carne com Queijo e Bacon', description: 'Carne picada com queijo, azeitona e bacon em cubos', price: 6.50, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.6 },
-    { id: 25, name: 'Pastel de Chouriça', description: 'Queijo, chouriça e milho', price: 5.50, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.2 },
-    { id: 26, name: 'Pastel Misto', description: 'Fiambre, queijo, azeitona e milho', price: 5.50, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.1 },
-    { id: 27, name: 'Pastel de Pizza', description: 'Queijo, fiambre, tomate e orégano', price: 5.50, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.0 },
-    { id: 28, name: 'Pastel Alto Astral', description: 'Queijo, bacon, tomate, azeitona, cheddar e orégano', price: 6.50, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.8 },
-    { id: 29, name: 'Pastel Romeu e Julieta', description: 'Queijo com goiabada', price: 5.50, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.7 },
-    { id: 30, name: 'Pastel de Banana com Nutela', description: 'Queijo, banana e nutella', price: 6.00, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.9 }
+    { id: 20, name: 'Pastel Simples', description: 'Frango desfiado, carne picada ou queijo', price: 5.00, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.3, prepTime: 8, category: 'pastel' },
+    { id: 21, name: 'Pastel de Frango com Queijo', description: 'Frango desfiado com queijo', price: 5.50, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.5, prepTime: 8, category: 'pastel' },
+    { id: 22, name: 'Pastel de Frango com Queijo e Bacon', description: 'Frango desfiado com queijo e bacon em cubos', price: 6.50, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.7, prepTime: 10, category: 'pastel' },
+    { id: 23, name: 'Pastel de Carne com Queijo', description: 'Carne picada com queijo e azeitona', price: 5.50, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.4, prepTime: 8, category: 'pastel' },
+    { id: 24, name: 'Pastel de Carne com Queijo e Bacon', description: 'Carne picada com queijo, azeitona e bacon em cubos', price: 6.50, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.6, prepTime: 10, category: 'pastel' },
+    { id: 25, name: 'Pastel de Chouriça', description: 'Queijo, chouriça e milho', price: 5.50, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.2, prepTime: 8, category: 'pastel' },
+    { id: 26, name: 'Pastel Misto', description: 'Fiambre, queijo, azeitona e milho', price: 5.50, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.1, prepTime: 8, category: 'pastel' },
+    { id: 27, name: 'Pastel de Pizza', description: 'Queijo, fiambre, tomate e orégano', price: 5.50, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.0, prepTime: 8, category: 'pastel' },
+    { id: 28, name: 'Pastel Alto Astral', description: 'Queijo, bacon, tomate, azeitona, cheddar e orégano', price: 6.50, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.8, prepTime: 10, category: 'pastel' },
+    { id: 29, name: 'Pastel Romeu e Julieta', description: 'Queijo com goiabada', price: 5.50, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.7, prepTime: 8, category: 'pastel' },
+    { id: 30, name: 'Pastel de Banana com Nutela', description: 'Queijo, banana e nutella', price: 6.00, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.9, prepTime: 8, category: 'pastel' }
   ],
   cafe: [
-    { id: 31, name: 'Café Expresso', price: 1.00, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.5 },
-    { id: 32, name: 'Café Descafeinado', price: 1.00, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.3 },
-    { id: 33, name: 'Café Duplo', price: 2.00, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.6 },
-    { id: 34, name: 'Garoto', price: 1.00, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.2 },
-    { id: 35, name: 'Abatanado', price: 1.10, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.1 },
-    { id: 36, name: 'Meia de Leite', price: 1.50, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.4 },
-    { id: 37, name: 'Galão', price: 1.60, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.5 },
-    { id: 38, name: 'Chá', price: 1.60, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.0 },
-    { id: 39, name: 'Cappuccino', price: 3.00, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.7 },
-    { id: 40, name: 'Caricoa de Limão', price: 1.00, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 3.9 },
-    { id: 41, name: 'Chocolate Quente', price: 3.00, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.8 },
-    { id: 42, name: 'Torrada com Pão Caseiro', price: 2.00, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.3 },
-    { id: 43, name: 'Torrada com Pão de Forma', price: 1.50, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.1 },
-    { id: 44, name: 'Meia Torrada', price: 1.00, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.0 },
-    { id: 45, name: 'Croissant Misto', price: 3.00, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.6 },
-    { id: 46, name: 'Croissant Misto Tostado', price: 3.20, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.7 },
-    { id: 47, name: 'Tosta Mista', price: 3.20, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.5 },
-    { id: 48, name: 'Tosta Mista (Pão de Forma)', price: 2.80, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.4 },
-    { id: 49, name: 'Sandes Mista', price: 2.20, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.2 },
-    { id: 50, name: 'Pão com Ovo', price: 2.20, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.1 },
-    { id: 51, name: 'Ovos com Bacon', price: 4.00, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.7 }
+    { id: 31, name: 'Café Expresso', price: 1.00, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.5, prepTime: 3, category: 'bebida' },
+    { id: 32, name: 'Café Descafeinado', price: 1.00, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.3, prepTime: 3, category: 'bebida' },
+    { id: 33, name: 'Café Duplo', price: 2.00, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.6, prepTime: 4, category: 'bebida' },
+    { id: 34, name: 'Garoto', price: 1.00, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.2, prepTime: 3, category: 'bebida' },
+    { id: 35, name: 'Abatanado', price: 1.10, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.1, prepTime: 3, category: 'bebida' },
+    { id: 36, name: 'Meia de Leite', price: 1.50, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.4, prepTime: 4, category: 'bebida' },
+    { id: 37, name: 'Galão', price: 1.60, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.5, prepTime: 4, category: 'bebida' },
+    { id: 38, name: 'Chá', price: 1.60, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.0, prepTime: 5, category: 'bebida' },
+    { id: 39, name: 'Cappuccino', price: 3.00, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.7, prepTime: 7, category: 'bebida' },
+    { id: 40, name: 'Caricoa de Limão', price: 1.00, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 3.9, prepTime: 5, category: 'bebida' },
+    { id: 41, name: 'Chocolate Quente', price: 3.00, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.8, prepTime: 8, category: 'bebida' },
+    { id: 42, name: 'Torrada com Pão Caseiro', price: 2.00, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.3, prepTime: 6, category: 'lanche' },
+    { id: 43, name: 'Torrada com Pão de Forma', price: 1.50, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.1, prepTime: 5, category: 'lanche' },
+    { id: 44, name: 'Meia Torrada', price: 1.00, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.0, prepTime: 4, category: 'lanche' },
+    { id: 45, name: 'Croissant Misto', price: 3.00, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.6, prepTime: 7, category: 'lanche' },
+    { id: 46, name: 'Croissant Misto Tostado', price: 3.20, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.7, prepTime: 8, category: 'lanche' },
+    { id: 47, name: 'Tosta Mista', price: 3.20, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.5, prepTime: 8, category: 'lanche' },
+    { id: 48, name: 'Tosta Mista (Pão de Forma)', price: 2.80, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.4, prepTime: 7, category: 'lanche' },
+    { id: 49, name: 'Sandes Mista', price: 2.20, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.2, prepTime: 6, category: 'lanche' },
+    { id: 50, name: 'Pão com Ovo', price: 2.20, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.1, prepTime: 6, category: 'lanche' },
+    { id: 51, name: 'Ovos com Bacon', price: 4.00, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.7, prepTime: 10, category: 'lanche' }
   ],
   bebidas: [
-    { id: 52, name: 'Caipirinha', description: 'Cachaça 51 ou Velho Barreiro, lima, açúcar e gelo', price: 6.00, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.8 },
-    { id: 53, name: 'Caipiblack', description: 'Cachaça preta, lima, açúcar e gelo', price: 6.00, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.9 },
-    { id: 54, name: 'Whiskey Jamenson', price: 3.50, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.7 },
-    { id: 55, name: 'Whiskey J&B', price: 3.00, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.5 },
-    { id: 56, name: 'Whiskey Jack Daniels', price: 3.50, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.8 },
-    { id: 57, name: 'Whiskey Black Label', price: 4.00, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.9 },
-    { id: 58, name: 'Vodka', price: 4.00, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.6 },
-    { id: 59, name: 'Somersby', price: 2.50, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.4 },
-    { id: 60, name: 'Imperial Heineken (0.20)', price: 1.50, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.5 },
-    { id: 61, name: 'Caneca Heineken (0.50)', price: 3.00, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.7 },
-    { id: 62, name: 'Cerveja Garrafa (0.33ml)', price: 1.40, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.3 },
-    { id: 63, name: 'Cerveja Mini (0.20ml)', price: 1.10, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.2 },
-    { id: 64, name: 'Taça de Sangria', description: 'Sangria branca, rosé ou tinta', price: 6.00, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.8 },
-    { id: 65, name: 'Refrigerante Lata', price: 1.60, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.1 },
-    { id: 66, name: 'Água 1.5L', price: 1.50, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.0 },
-    { id: 67, name: 'Água 0.5L', price: 1.00, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.0 },
-    { id: 68, name: 'Água 0.33L', price: 0.60, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.0 },
-    { id: 69, name: 'Água Castelo', price: 1.40, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.2 },
-    { id: 70, name: 'Água das Pedras', price: 1.40, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.3 }
+    { id: 52, name: 'Caipirinha', description: 'Cachaça 51 ou Velho Barreiro, lima, açúcar e gelo', price: 6.00, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.8, prepTime: 8, category: 'bebida alcoólica' },
+    { id: 53, name: 'Caipiblack', description: 'Cachaça preta, lima, açúcar e gelo', price: 6.00, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.9, prepTime: 8, category: 'bebida alcoólica' },
+    { id: 54, name: 'Whiskey Jamenson', price: 3.50, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.7, prepTime: 2, category: 'bebida alcoólica' },
+    { id: 55, name: 'Whiskey J&B', price: 3.00, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.5, prepTime: 2, category: 'bebida alcoólica' },
+    { id: 56, name: 'Whiskey Jack Daniels', price: 3.50, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.8, prepTime: 2, category: 'bebida alcoólica' },
+    { id: 57, name: 'Whiskey Black Label', price: 4.00, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.9, prepTime: 2, category: 'bebida alcoólica' },
+    { id: 58, name: 'Vodka', price: 4.00, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.6, prepTime: 2, category: 'bebida alcoólica' },
+    { id: 59, name: 'Somersby', price: 2.50, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.4, prepTime: 1, category: 'bebida alcoólica' },
+    { id: 60, name: 'Imperial Heineken (0.20)', price: 1.50, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.5, prepTime: 1, category: 'bebida alcoólica' },
+    { id: 61, name: 'Caneca Heineken (0.50)', price: 3.00, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.7, prepTime: 1, category: 'bebida alcoólica' },
+    { id: 62, name: 'Cerveja Garrafa (0.33ml)', price: 1.40, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.3, prepTime: 1, category: 'bebida alcoólica' },
+    { id: 63, name: 'Cerveja Mini (0.20ml)', price: 1.10, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.2, prepTime: 1, category: 'bebida alcoólica' },
+    { id: 64, name: 'Taça de Sangria', description: 'Sangria branca, rosé ou tinta', price: 6.00, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.8, prepTime: 5, category: 'bebida alcoólica' },
+    { id: 65, name: 'Refrigerante Lata', price: 1.60, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.1, prepTime: 1, category: 'bebida' },
+    { id: 66, name: 'Água 1.5L', price: 1.50, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.0, prepTime: 1, category: 'bebida' },
+    { id: 67, name: 'Água 0.5L', price: 1.00, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.0, prepTime: 1, category: 'bebida' },
+    { id: 68, name: 'Água 0.33L', price: 0.60, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.0, prepTime: 1, category: 'bebida' },
+    { id: 69, name: 'Água Castelo', price: 1.40, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.2, prepTime: 1, category: 'bebida' },
+    { id: 70, name: 'Água das Pedras', price: 1.40, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.3, prepTime: 1, category: 'bebida' }
   ],
   salgados: [
-    { id: 71, name: 'Pão de Queijo', price: 1.60, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.5 },
-    { id: 72, name: 'Pastel de Nata', price: 1.30, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.7 },
-    { id: 73, name: 'Empada de Frango', price: 2.00, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.4 },
-    { id: 74, name: 'Kibe', price: 2.20, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.3 },
-    { id: 75, name: 'Fiambre e Queijo', price: 2.20, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.2 },
-    { id: 76, name: 'Bauru', price: 2.20, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.1 },
-    { id: 77, name: 'Bola de Queijo', price: 2.20, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.3 },
-    { id: 78, name: 'Coxinha de Frango', price: 2.20, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.6 },
-    { id: 79, name: 'Coxinha com Catupiry', price: 3.00, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.8 },
-    { id: 80, name: 'Hamburgão', price: 3.50, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.7 }
+    { id: 71, name: 'Pão de Queijo', price: 1.60, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.5, prepTime: 5, category: 'salgado' },
+    { id: 72, name: 'Pastel de Nata', price: 1.30, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.7, prepTime: 5, category: 'salgado' },
+    { id: 73, name: 'Empada de Frango', price: 2.00, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.4, prepTime: 6, category: 'salgado' },
+    { id: 74, name: 'Kibe', price: 2.20, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.3, prepTime: 6, category: 'salgado' },
+    { id: 75, name: 'Fiambre e Queijo', price: 2.20, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.2, prepTime: 5, category: 'salgado' },
+    { id: 76, name: 'Bauru', price: 2.20, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.1, prepTime: 5, category: 'salgado' },
+    { id: 77, name: 'Bola de Queijo', price: 2.20, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.3, prepTime: 6, category: 'salgado' },
+    { id: 78, name: 'Coxinha de Frango', price: 2.20, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.6, prepTime: 7, category: 'salgado' },
+    { id: 79, name: 'Coxinha com Catupiry', price: 3.00, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.8, prepTime: 8, category: 'salgado' },
+    { id: 80, name: 'Hamburgão', price: 3.50, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.7, prepTime: 10, category: 'salgado' }
   ],
   sobremesas: [
-    { id: 81, name: 'Bolo no Pote - Prestígio', description: 'Chocolate com coco', price: 4.00, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.8 },
-    { id: 82, name: 'Bolo no Pote - Chocolate', description: 'Massa de chocolate com recheio de chocolate', price: 4.00, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.9 },
-    { id: 83, name: 'Bolo no Pote - Ananás', description: 'Creme de ninho com pedaços de ananás', price: 4.00, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.7 },
-    { id: 84, name: 'Bolo no Pote - Choco Misto', description: 'Chocolate preto com ninho', price: 4.00, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.8 },
-    { id: 85, name: 'Cheesecake - Goiabada', price: 3.50, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.7 },
-    { id: 86, name: 'Cheesecake - Frutos Vermelhos', price: 3.50, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.8 },
-    { id: 87, name: 'Brigadeiro Tradicional', price: 1.50, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.6 },
-    { id: 88, name: 'Brigadeiro Beijinho', price: 1.50, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.5 },
-    { id: 89, name: 'Brigadeiro Ninho', price: 2.00, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.8 },
-    { id: 90, name: 'Brigadeiro Paçoca', price: 2.00, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.7 },
-    { id: 91, name: 'Brigadeiro Morango', price: 2.00, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.8 },
-    { id: 92, name: 'Brigadeiro Churros', price: 2.00, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.9 },
-    { id: 93, name: 'Tarte de Toblerone', price: 2.20, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.7 },
-    { id: 94, name: 'Bolo de Brigadeiro (fatia)', price: 2.20, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.8 }
+    { id: 81, name: 'Bolo no Pote - Prestígio', description: 'Chocolate com coco', price: 4.00, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.8, prepTime: 5, category: 'sobremesa' },
+    { id: 82, name: 'Bolo no Pote - Chocolate', description: 'Massa de chocolate com recheio de chocolate', price: 4.00, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.9, prepTime: 5, category: 'sobremesa' },
+    { id: 83, name: 'Bolo no Pote - Ananás', description: 'Creme de ninho com pedaços de ananás', price: 4.00, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.7, prepTime: 5, category: 'sobremesa' },
+    { id: 84, name: 'Bolo no Pote - Choco Misto', description: 'Chocolate preto com ninho', price: 4.00, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.8, prepTime: 5, category: 'sobremesa' },
+    { id: 85, name: 'Cheesecake - Goiabada', price: 3.50, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.7, prepTime: 5, category: 'sobremesa' },
+    { id: 86, name: 'Cheesecake - Frutos Vermelhos', price: 3.50, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.8, prepTime: 5, category: 'sobremesa' },
+    { id: 87, name: 'Brigadeiro Tradicional', price: 1.50, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.6, prepTime: 3, category: 'sobremesa' },
+    { id: 88, name: 'Brigadeiro Beijinho', price: 1.50, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.5, prepTime: 3, category: 'sobremesa' },
+    { id: 89, name: 'Brigadeiro Ninho', price: 2.00, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.8, prepTime: 4, category: 'sobremesa' },
+    { id: 90, name: 'Brigadeiro Paçoca', price: 2.00, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.7, prepTime: 4, category: 'sobremesa' },
+    { id: 91, name: 'Brigadeiro Morango', price: 2.00, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.8, prepTime: 4, category: 'sobremesa' },
+    { id: 92, name: 'Brigadeiro Churros', price: 2.00, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.9, prepTime: 4, category: 'sobremesa' },
+    { id: 93, name: 'Tarte de Toblerone', price: 2.20, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.7, prepTime: 5, category: 'sobremesa' },
+    { id: 94, name: 'Bolo de Brigadeiro (fatia)', price: 2.20, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.8, prepTime: 5, category: 'sobremesa' }
   ]
 };
 
@@ -138,6 +148,15 @@ const InterfaceEventos = () => {
   const [showOrderDetails, setShowOrderDetails] = useState(false);
   const [orderStatusFilter, setOrderStatusFilter] = useState('all');
   const [customerView, setCustomerView] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [stats, setStats] = useState({
+    totalOrders: 0,
+    totalRevenue: 0,
+    avgOrderValue: 0,
+    popularItems: []
+  });
+  const [showStats, setShowStats] = useState(false);
+  const [notes, setNotes] = useState('');
 
   // Generate 50 unique QR Codes for tables
   const generateQRCodes = () => {
@@ -149,6 +168,37 @@ const InterfaceEventos = () => {
   };
 
   const qrCodes = generateQRCodes();
+
+  // Calculate statistics
+  const calculateStats = () => {
+    const totalOrders = orders.length;
+    const totalRevenue = orders.reduce((sum, order) => sum + order.total, 0);
+    const avgOrderValue = totalOrders > 0 ? totalRevenue / totalOrders : 0;
+    
+    // Get popular items
+    const itemCounts = {};
+    orders.forEach(order => {
+      order.items.forEach(item => {
+        if (itemCounts[item.name]) {
+          itemCounts[item.name] += item.quantity;
+        } else {
+          itemCounts[item.name] = item.quantity;
+        }
+      });
+    });
+    
+    const popularItems = Object.entries(itemCounts)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 5)
+      .map(([name, count]) => ({ name, count }));
+    
+    setStats({
+      totalOrders,
+      totalRevenue,
+      avgOrderValue,
+      popularItems
+    });
+  };
 
   // Show notification
   const showNotification = (message, type = 'success') => {
@@ -179,7 +229,9 @@ const InterfaceEventos = () => {
         name: `Mesa ${tables.length + 1}`,
         guests: [...guests],
         qrCodeId: `qr-${tables.length + 1}`,
-        activeOrder: null
+        activeOrder: null,
+        capacity: guests.length,
+        location: 'Salão Principal'
       };
       setTables([...tables, newTable]);
       setGuests([]);
@@ -196,6 +248,7 @@ const InterfaceEventos = () => {
     );
     if (tableOrder) {
       setCurrentOrder(tableOrder);
+      setNotes(tableOrder.notes || '');
     }
   };
 
@@ -203,6 +256,7 @@ const InterfaceEventos = () => {
   const closeTable = () => {
     setSelectedTable(null);
     setCurrentOrder(null);
+    setNotes('');
   };
 
   // Back to dashboard
@@ -264,7 +318,8 @@ const InterfaceEventos = () => {
       subtotal: 0,
       tax: 0,
       total: 0,
-      notes: ''
+      notes: '',
+      waiter: 'Garçom Principal'
     };
     setOrders([...orders, newOrder]);
     setCurrentOrder(newOrder);
@@ -289,7 +344,8 @@ const InterfaceEventos = () => {
         orderItemId: Date.now(),
         status: 'pending', // pending, preparing, ready, delivered
         quantity: 1,
-        notes: ''
+        notes: '',
+        addedAt: new Date()
       }],
       subtotal: currentOrder.subtotal + item.price,
       total: currentOrder.subtotal + item.price
@@ -373,7 +429,9 @@ const InterfaceEventos = () => {
     
     const updatedOrder = {
       ...currentOrder,
-      status
+      status,
+      notes,
+      ...(status === 'closed' && { closedAt: new Date() })
     };
     
     setCurrentOrder(updatedOrder);
@@ -395,6 +453,34 @@ const InterfaceEventos = () => {
     showNotification(`Status da comanda atualizado para ${getStatusText(status)}`, 'info');
   };
 
+  // Update item status
+  const updateItemStatus = (orderItemId, status) => {
+    if (!currentOrder) return;
+    
+    const updatedItems = currentOrder.items.map(item => {
+      if (item.orderItemId === orderItemId) {
+        return {
+          ...item,
+          status
+        };
+      }
+      return item;
+    });
+    
+    const updatedOrder = {
+      ...currentOrder,
+      items: updatedItems
+    };
+    
+    setCurrentOrder(updatedOrder);
+    
+    // Update orders list
+    const updatedOrders = orders.map(order => 
+      order.id === currentOrder.id ? updatedOrder : order
+    );
+    setOrders(updatedOrders);
+  };
+
   // Get status text
   const getStatusText = (status) => {
     switch (status) {
@@ -403,6 +489,7 @@ const InterfaceEventos = () => {
       case 'ready': return 'Pronta';
       case 'delivered': return 'Entregue';
       case 'closed': return 'Fechada';
+      case 'pending': return 'Pendente';
       default: return status;
     }
   };
@@ -415,6 +502,7 @@ const InterfaceEventos = () => {
       case 'ready': return 'bg-purple-100 text-purple-800';
       case 'delivered': return 'bg-green-100 text-green-800';
       case 'closed': return 'bg-gray-100 text-gray-800';
+      case 'pending': return 'bg-gray-100 text-gray-800';
       default: return 'bg-gray-100 text-gray-800';
     }
   };
@@ -425,6 +513,11 @@ const InterfaceEventos = () => {
       style: 'currency',
       currency: 'BRL'
     }).format(value);
+  };
+
+  // Format time
+  const formatTime = (date) => {
+    return new Date(date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   };
 
   // Print order
@@ -445,6 +538,7 @@ const InterfaceEventos = () => {
             .total { font-weight: bold; font-size: 1.2em; }
             .header { display: flex; justify-content: space-between; margin-bottom: 20px; }
             .notes { margin-top: 20px; padding: 10px; background-color: #f3f4f6; border-radius: 4px; }
+            .footer { margin-top: 30px; font-size: 0.8em; color: #666; text-align: center; }
           </style>
         </head>
         <body>
@@ -476,6 +570,10 @@ const InterfaceEventos = () => {
             Total: ${formatCurrency(currentOrder.total)}
           </div>
           ${currentOrder.notes ? `<div class="notes"><strong>Observações:</strong> ${currentOrder.notes}</div>` : ''}
+          <div class="footer">
+            <p>Evento: ${eventName}</p>
+            <p>Impresso em: ${new Date().toLocaleString()}</p>
+          </div>
           <script>
             window.onload = function() {
               setTimeout(function() {
@@ -493,6 +591,22 @@ const InterfaceEventos = () => {
   // Toggle customer view
   const toggleCustomerView = () => {
     setCustomerView(!customerView);
+  };
+
+  // Toggle stats view
+  const toggleStats = () => {
+    setShowStats(!showStats);
+    if (!showStats) {
+      calculateStats();
+    }
+  };
+
+  // Filter menu items based on search term
+  const filteredMenuItems = (category) => {
+    return menu[category].filter(item => 
+      item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (item.description && item.description.toLowerCase().includes(searchTerm.toLowerCase()))
+    );
   };
 
   // Add sample data for demonstration
@@ -513,44 +627,106 @@ const InterfaceEventos = () => {
           tableId: tables[0].id,
           tableName: tables[0].name,
           items: [
-            { ...menu.semana[0], orderItemId: 101, quantity: 2, status: 'delivered' },
-            { ...menu.bebidas[0], orderItemId: 102, quantity: 1, status: 'delivered' }
+            { ...menu.semana[0], orderItemId: 101, quantity: 2, status: 'delivered', addedAt: new Date(Date.now() - 3600000) },
+            { ...menu.bebidas[0], orderItemId: 102, quantity: 1, status: 'delivered', addedAt: new Date(Date.now() - 3500000) }
           ],
           status: 'open',
           createdAt: new Date(Date.now() - 3600000),
           subtotal: menu.semana[0].price * 2 + menu.bebidas[0].price,
           tax: 0,
           total: menu.semana[0].price * 2 + menu.bebidas[0].price,
-          notes: 'Sem cebola no strogonoff'
+          notes: 'Sem cebola no strogonoff',
+          waiter: 'João Silva'
+        },
+        {
+          id: 2,
+          tableId: tables[1]?.id || 999,
+          tableName: tables[1]?.name || 'Mesa 2',
+          items: [
+            { ...menu.lanches[0], orderItemId: 201, quantity: 1, status: 'ready', addedAt: new Date(Date.now() - 1800000) },
+            { ...menu.bebidas[3], orderItemId: 202, quantity: 2, status: 'ready', addedAt: new Date(Date.now() - 1700000) },
+            { ...menu.sobremesas[0], orderItemId: 203, quantity: 1, status: 'pending', addedAt: new Date(Date.now() - 1600000) }
+          ],
+          status: 'preparing',
+          createdAt: new Date(Date.now() - 1800000),
+          subtotal: menu.lanches[0].price + (menu.bebidas[3].price * 2) + menu.sobremesas[0].price,
+          tax: 0,
+          total: menu.lanches[0].price + (menu.bebidas[3].price * 2) + menu.sobremesas[0].price,
+          notes: 'Whiskey com gelo',
+          waiter: 'Maria Oliveira'
         }
       ];
-      setOrders(demoOrders);
+      setOrders(demoOrders.filter(order => tables.some(t => t.id === order.tableId)));
       
       // Set active order for first table
-      const updatedTables = tables.map((table, index) => 
-        index === 0 ? { ...table, activeOrder: 1 } : table
-      );
-      setTables(updatedTables);
+      if (tables.length > 0) {
+        const updatedTables = tables.map((table, index) => 
+          index === 0 ? { ...table, activeOrder: 1 } : table
+        );
+        setTables(updatedTables);
+      }
     }
   }, [tables]);
+
+  // Prepare data for charts
+  const prepareChartData = () => {
+    const categories = Object.keys(menu);
+    const data = categories.map(category => 
+      orders.reduce((sum, order) => 
+        sum + order.items.filter(item => menu[category].some(m => m.id === item.id)).length, 0)
+    );
+    
+    return {
+      labels: categories.map(c => c.charAt(0).toUpperCase() + c.slice(1)),
+      datasets: [
+        {
+          label: 'Itens Pedidos',
+          data,
+          backgroundColor: [
+            'rgba(79, 70, 229, 0.7)',
+            'rgba(99, 102, 241, 0.7)',
+            'rgba(129, 140, 248, 0.7)',
+            'rgba(167, 139, 250, 0.7)',
+            'rgba(217, 70, 239, 0.7)',
+            'rgba(236, 72, 153, 0.7)',
+            'rgba(244, 114, 182, 0.7)'
+          ],
+          borderColor: [
+            'rgba(79, 70, 229, 1)',
+            'rgba(99, 102, 241, 1)',
+            'rgba(129, 140, 248, 1)',
+            'rgba(167, 139, 250, 1)',
+            'rgba(217, 70, 239, 1)',
+            'rgba(236, 72, 153, 1)',
+            'rgba(244, 114, 182, 1)'
+          ],
+          borderWidth: 1
+        }
+      ]
+    };
+  };
+
+  const chartData = prepareChartData();
 
   if (selectedTable) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 p-4 md:p-8">
         {/* Notification */}
-        {notification && (
-          <motion.div 
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            className={`fixed top-4 right-4 z-50 p-4 rounded-lg shadow-lg text-white ${
-              notification.type === 'error' ? 'bg-red-500' : 
-              notification.type === 'info' ? 'bg-blue-500' : 'bg-emerald-500'
-            }`}
-          >
-            {notification.message}
-          </motion.div>
-        )}
+        <AnimatePresence>
+          {notification && (
+            <motion.div 
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              className={`fixed top-4 right-4 z-50 p-4 rounded-lg shadow-lg text-white ${
+                notification.type === 'error' ? 'bg-red-500' : 
+                notification.type === 'info' ? 'bg-blue-500' : 'bg-emerald-500'
+              }`}
+            >
+              {notification.message}
+            </motion.div>
+          )}
+        </AnimatePresence>
         
         <div className="max-w-6xl mx-auto bg-white rounded-2xl shadow-xl overflow-hidden">
           {/* Header */}
@@ -608,6 +784,9 @@ const InterfaceEventos = () => {
                             <div>
                               <h4 className="font-medium text-gray-800">{item.name}</h4>
                               <p className="text-sm text-gray-500">{item.description}</p>
+                              <span className={`text-xs px-2 py-1 rounded-full ${getStatusColor(item.status)}`}>
+                                {getStatusText(item.status)}
+                              </span>
                             </div>
                             <div className="flex items-center space-x-4">
                               <span className="font-medium text-gray-700">
@@ -736,31 +915,71 @@ const InterfaceEventos = () => {
                             <span className="text-sm text-gray-500">Aberta em:</span>
                             <span className="font-medium">{new Date(currentOrder.createdAt).toLocaleString()}</span>
                           </div>
+                          <div className="flex justify-between items-center mb-2">
+                            <span className="text-sm text-gray-500">Garçom:</span>
+                            <span className="font-medium">{currentOrder.waiter}</span>
+                          </div>
                           <div className="flex justify-between items-center">
                             <span className="text-sm text-gray-500">Total:</span>
                             <span className="font-bold text-indigo-600">{formatCurrency(currentOrder.total)}</span>
                           </div>
                         </div>
                         
-                        <div className="space-y-3">
+                        <div className="space-y-3 max-h-96 overflow-y-auto pr-2">
                           {currentOrder.items.map(item => (
-                            <div key={item.orderItemId} className="flex justify-between items-center p-4 bg-white rounded-lg border border-gray-200 hover:border-indigo-300 transition-all">
-                              <div>
-                                <h4 className="font-medium text-gray-800">{item.name}</h4>
-                                <p className="text-sm text-gray-500">{item.description}</p>
+                            <div key={item.orderItemId} className="flex justify-between items-start p-4 bg-white rounded-lg border border-gray-200 hover:border-indigo-300 transition-all">
+                              <div className="flex-1">
+                                <div className="flex justify-between items-start">
+                                  <div>
+                                    <h4 className="font-medium text-gray-800">{item.name}</h4>
+                                    <p className="text-sm text-gray-500">{item.description}</p>
+                                  </div>
+                                  <span className={`text-xs px-2 py-1 rounded-full ${getStatusColor(item.status)}`}>
+                                    {getStatusText(item.status)}
+                                  </span>
+                                </div>
+                                <div className="mt-2 text-xs text-gray-500">
+                                  Adicionado: {formatTime(item.addedAt)}
+                                </div>
+                                <div className="mt-2 flex space-x-2">
+                                  <button
+                                    onClick={() => updateItemStatus(item.orderItemId, 'pending')}
+                                    className={`text-xs px-2 py-1 rounded ${item.status === 'pending' ? 'bg-gray-200' : 'bg-gray-100 hover:bg-gray-200'}`}
+                                  >
+                                    Pendente
+                                  </button>
+                                  <button
+                                    onClick={() => updateItemStatus(item.orderItemId, 'preparing')}
+                                    className={`text-xs px-2 py-1 rounded ${item.status === 'preparing' ? 'bg-yellow-200' : 'bg-yellow-100 hover:bg-yellow-200'}`}
+                                  >
+                                    Preparando
+                                  </button>
+                                  <button
+                                    onClick={() => updateItemStatus(item.orderItemId, 'ready')}
+                                    className={`text-xs px-2 py-1 rounded ${item.status === 'ready' ? 'bg-purple-200' : 'bg-purple-100 hover:bg-purple-200'}`}
+                                  >
+                                    Pronto
+                                  </button>
+                                  <button
+                                    onClick={() => updateItemStatus(item.orderItemId, 'delivered')}
+                                    className={`text-xs px-2 py-1 rounded ${item.status === 'delivered' ? 'bg-green-200' : 'bg-green-100 hover:bg-green-200'}`}
+                                  >
+                                    Entregue
+                                  </button>
+                                </div>
                               </div>
-                              <div className="flex items-center space-x-4">
+                              <div className="flex flex-col items-end space-y-2 ml-4">
                                 <div className="flex items-center space-x-2">
                                   <button 
                                     onClick={() => updateItemQuantity(item.orderItemId, item.quantity - 1)}
-                                    className="w-8 h-8 flex items-center justify-center bg-gray-100 hover:bg-gray-200 rounded-full transition-colors"
+                                    className="w-6 h-6 flex items-center justify-center bg-gray-100 hover:bg-gray-200 rounded-full transition-colors"
                                   >
                                     -
                                   </button>
-                                  <span className="w-8 text-center">{item.quantity}</span>
+                                  <span className="w-6 text-center">{item.quantity}</span>
                                   <button 
                                     onClick={() => updateItemQuantity(item.orderItemId, item.quantity + 1)}
-                                    className="w-8 h-8 flex items-center justify-center bg-gray-100 hover:bg-gray-200 rounded-full transition-colors"
+                                    className="w-6 h-6 flex items-center justify-center bg-gray-100 hover:bg-gray-200 rounded-full transition-colors"
                                   >
                                     +
                                   </button>
@@ -772,7 +991,7 @@ const InterfaceEventos = () => {
                                   onClick={() => removeItemFromOrder(item.orderItemId)}
                                   className="text-red-500 hover:text-red-700 p-1 rounded-full hover:bg-red-50 transition-all"
                                 >
-                                  <FiTrash2 size={16} />
+                                  <FiTrash2 size={14} />
                                 </button>
                               </div>
                             </div>
@@ -780,6 +999,16 @@ const InterfaceEventos = () => {
                         </div>
                         
                         <div className="bg-gray-50 rounded-xl p-4 border border-gray-200 mt-4">
+                          <div className="mb-4">
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Observações:</label>
+                            <textarea
+                              value={notes}
+                              onChange={(e) => setNotes(e.target.value)}
+                              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
+                              rows={2}
+                              placeholder="Adicione observações sobre o pedido..."
+                            />
+                          </div>
                           <div className="flex justify-between items-center mb-2">
                             <span className="text-gray-600">Subtotal:</span>
                             <span className="font-medium">{formatCurrency(currentOrder.subtotal)}</span>
@@ -877,6 +1106,28 @@ const InterfaceEventos = () => {
                       Cardápio
                     </h3>
                     
+                    {/* Search */}
+                    <div className="mb-4 relative">
+                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <FiSearch className="text-gray-400" />
+                      </div>
+                      <input
+                        type="text"
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-xl bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                        placeholder="Buscar itens no cardápio..."
+                      />
+                      {searchTerm && (
+                        <button
+                          onClick={() => setSearchTerm('')}
+                          className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                        >
+                          <FiX className="text-gray-400 hover:text-gray-600" />
+                        </button>
+                      )}
+                    </div>
+                    
                     {/* Menu Tabs */}
                     <div className="mb-6">
                       <div className="flex space-x-1 bg-gray-100 p-1 rounded-xl">
@@ -896,40 +1147,55 @@ const InterfaceEventos = () => {
                     
                     {/* Menu Items */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-h-[600px] overflow-y-auto pr-2">
-                      {menu[activeMenuTab].map(item => (
-                        <motion.div 
-                          key={item.id}
-                          whileHover={{ y: -2 }}
-                          className="p-4 bg-white rounded-xl border border-gray-200 hover:border-indigo-300 transition-all cursor-pointer"
-                          onClick={() => currentOrder && addItemToOrder(item)}
-                        >
-                          <div className="flex items-start space-x-4">
-                            <div className="w-16 h-16 bg-gray-100 rounded-lg overflow-hidden">
-                              <img 
-                                src={item.image} 
-                                alt={item.name} 
-                                className="w-full h-full object-cover"
-                              />
-                            </div>
-                            <div className="flex-1">
-                              <h4 className="font-medium text-gray-800">{item.name}</h4>
-                              {item.description && (
-                                <p className="text-sm text-gray-500 mt-1">{item.description}</p>
-                              )}
-                              <div className="flex justify-between items-center mt-2">
-                                <span className="text-sm font-medium text-indigo-600">
-                                  {formatCurrency(item.price)}
-                                </span>
-                                <div className="flex items-center">
-                                  <span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full">
-                                    {item.rating} ★
+                      {filteredMenuItems(activeMenuTab).length > 0 ? (
+                        filteredMenuItems(activeMenuTab).map(item => (
+                          <motion.div 
+                            key={item.id}
+                            whileHover={{ y: -2 }}
+                            className="p-4 bg-white rounded-xl border border-gray-200 hover:border-indigo-300 transition-all cursor-pointer"
+                            onClick={() => currentOrder && addItemToOrder(item)}
+                          >
+                            <div className="flex items-start space-x-4">
+                              <div className="w-16 h-16 bg-gray-100 rounded-lg overflow-hidden">
+                                <img 
+                                  src={item.image} 
+                                  alt={item.name} 
+                                  className="w-full h-full object-cover"
+                                />
+                              </div>
+                              <div className="flex-1">
+                                <div className="flex justify-between items-start">
+                                  <h4 className="font-medium text-gray-800">{item.name}</h4>
+                                  <span className="text-sm font-medium text-indigo-600">
+                                    {formatCurrency(item.price)}
                                   </span>
+                                </div>
+                                {item.description && (
+                                  <p className="text-sm text-gray-500 mt-1">{item.description}</p>
+                                )}
+                                <div className="flex justify-between items-center mt-2">
+                                  <span className="text-xs bg-gray-100 text-gray-800 px-2 py-1 rounded-full">
+                                    {item.prepTime} min
+                                  </span>
+                                  <div className="flex items-center">
+                                    <span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full">
+                                      {item.rating} ★
+                                    </span>
+                                  </div>
                                 </div>
                               </div>
                             </div>
+                          </motion.div>
+                        ))
+                      ) : (
+                        <div className="col-span-2 text-center py-8">
+                          <div className="mx-auto w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
+                            <FiSearch className="text-gray-400" />
                           </div>
-                        </motion.div>
-                      ))}
+                          <p className="text-gray-500">Nenhum item encontrado</p>
+                          <p className="text-gray-400 mt-1">Tente alterar sua busca</p>
+                        </div>
+                      )}
                     </div>
                   </div>
                   
@@ -979,36 +1245,100 @@ const InterfaceEventos = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 p-4 md:p-8">
       {/* Notification */}
-      {notification && (
-        <motion.div 
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -20 }}
-          className={`fixed top-4 right-4 z-50 p-4 rounded-lg shadow-lg text-white ${
-            notification.type === 'error' ? 'bg-red-500' : 
-            notification.type === 'info' ? 'bg-blue-500' : 'bg-emerald-500'
-          }`}
-        >
-          {notification.message}
-        </motion.div>
-      )}
+      <AnimatePresence>
+        {notification && (
+          <motion.div 
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            className={`fixed top-4 right-4 z-50 p-4 rounded-lg shadow-lg text-white ${
+              notification.type === 'error' ? 'bg-red-500' : 
+              notification.type === 'info' ? 'bg-blue-500' : 'bg-emerald-500'
+            }`}
+          >
+            {notification.message}
+          </motion.div>
+        )}
+      </AnimatePresence>
       
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 md:mb-12">
           <div className="mb-4 md:mb-0">
-            <h1 className="text-3xl md:text-4xl font-bold text-gray-900">Gestão de Eventos</h1>
-            <p className="text-gray-600 mt-1">Sistema premium para gerenciamento completo</p>
+            <h1 className="text-3xl md:text-4xl font-bold text-gray-900">Gestão de Eventos Premium</h1>
+            <p className="text-gray-600 mt-1">Sistema completo para gerenciamento de mesas, comandas e pedidos</p>
           </div>
-          <button
-            onClick={handleBackToDashboard}
-            className="flex items-center space-x-2 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white py-3 px-6 rounded-xl transition-all shadow-md"
-          >
-            <FiGrid />
-            <span>Voltar para Dashboard</span>
-            <FiChevronRight />
-          </button>
+          <div className="flex space-x-3">
+            <button
+              onClick={toggleStats}
+              className="flex items-center space-x-2 bg-indigo-600 hover:bg-indigo-700 text-white py-3 px-6 rounded-xl transition-all shadow-md"
+            >
+              <FiBarChart2 />
+              <span>{showStats ? 'Esconder Estatísticas' : 'Mostrar Estatísticas'}</span>
+            </button>
+            <button
+              onClick={handleBackToDashboard}
+              className="flex items-center space-x-2 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white py-3 px-6 rounded-xl transition-all shadow-md"
+            >
+              <FiGrid />
+              <span>Voltar para Dashboard</span>
+              <FiChevronRight />
+            </button>
+          </div>
         </div>
+        
+        {/* Statistics Panel */}
+        {showStats && (
+          <div className="bg-white rounded-2xl shadow-xl p-6 mb-8">
+            <h2 className="text-xl md:text-2xl font-semibold mb-6 text-gray-900 flex items-center">
+              <span className="w-8 h-8 bg-indigo-100 rounded-full flex items-center justify-center mr-3">
+                <FiBarChart2 className="text-indigo-600" />
+              </span>
+              Estatísticas do Evento
+            </h2>
+            
+            <div className="grid md:grid-cols-3 gap-6 mb-8">
+              <div className="bg-indigo-50 p-6 rounded-xl border border-indigo-100">
+                <h3 className="text-lg font-medium text-indigo-800 mb-2">Total de Comandas</h3>
+                <p className="text-3xl font-bold text-indigo-600">{stats.totalOrders}</p>
+              </div>
+              <div className="bg-green-50 p-6 rounded-xl border border-green-100">
+                <h3 className="text-lg font-medium text-green-800 mb-2">Faturamento Total</h3>
+                <p className="text-3xl font-bold text-green-600">{formatCurrency(stats.totalRevenue)}</p>
+              </div>
+              <div className="bg-purple-50 p-6 rounded-xl border border-purple-100">
+                <h3 className="text-lg font-medium text-purple-800 mb-2">Ticket Médio</h3>
+                <p className="text-3xl font-bold text-purple-600">{formatCurrency(stats.avgOrderValue)}</p>
+              </div>
+            </div>
+            
+            <div className="grid md:grid-cols-2 gap-6">
+              <div className="bg-white p-4 rounded-xl border border-gray-200">
+                <h3 className="text-lg font-medium text-gray-800 mb-4">Itens Mais Pedidos</h3>
+                {stats.popularItems.length > 0 ? (
+                  <div className="space-y-3">
+                    {stats.popularItems.map((item, index) => (
+                      <div key={index} className="flex justify-between items-center">
+                        <span className="text-gray-700">{item.name}</span>
+                        <span className="bg-indigo-100 text-indigo-800 px-3 py-1 rounded-full text-sm">
+                          {item.count} pedidos
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-gray-500 text-center py-4">Nenhum dado disponível</p>
+                )}
+              </div>
+              <div className="bg-white p-4 rounded-xl border border-gray-200">
+                <h3 className="text-lg font-medium text-gray-800 mb-4">Distribuição por Categoria</h3>
+                <div className="h-64">
+                  <Pie data={chartData} options={{ responsive: true, maintainAspectRatio: false }} />
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
         
         {/* Event Settings */}
         <div className="bg-white rounded-2xl shadow-xl p-6 mb-8">
@@ -1171,8 +1501,9 @@ const InterfaceEventos = () => {
               ) : (
                 <div className="grid sm:grid-cols-2 gap-4">
                   {tables.map(table => (
-                    <div 
+                    <motion.div 
                       key={table.id} 
+                      whileHover={{ scale: 1.02 }}
                       onClick={() => openTable(table)}
                       className="p-4 border border-gray-200 rounded-xl cursor-pointer hover:border-indigo-300 hover:bg-indigo-50/30 transition-all group"
                     >
@@ -1180,21 +1511,24 @@ const InterfaceEventos = () => {
                         <h3 className="font-semibold text-indigo-700 group-hover:text-indigo-800">{table.name}</h3>
                         <span className="flex items-center text-sm bg-indigo-100 text-indigo-800 py-1 px-3 rounded-full">
                           <FiUsers className="mr-1" />
-                          {table.guests.length}
+                          {table.guests.length}/{table.capacity}
                         </span>
                       </div>
-                      <div className="flex items-center text-sm text-gray-500">
+                      <div className="flex items-center text-sm text-gray-500 mb-2">
                         <div className={`w-2.5 h-2.5 rounded-full ${
                           table.activeOrder ? 'bg-emerald-400' : 'bg-gray-400'
                         } mr-2`}></div>
                         {table.activeOrder ? 'Comanda ativa' : 'Mesa disponível'}
+                      </div>
+                      <div className="text-xs text-gray-500 mb-1">
+                        {table.location}
                       </div>
                       <div className="mt-2 flex justify-end">
                         <span className="text-xs text-indigo-500 flex items-center">
                           Ver detalhes <FiChevronRight className="ml-1" />
                         </span>
                       </div>
-                    </div>
+                    </motion.div>
                   ))}
                 </div>
               )}
@@ -1218,7 +1552,11 @@ const InterfaceEventos = () => {
             
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
               {qrCodes.map(qr => (
-                <div key={qr.id} className="flex flex-col items-center">
+                <motion.div 
+                  key={qr.id} 
+                  whileHover={{ y: -5 }}
+                  className="flex flex-col items-center"
+                >
                   <div 
                     id={qr.id}
                     className="p-3 bg-white border-2 border-gray-100 rounded-xl mb-2 shadow-sm hover:shadow-md transition-all"
@@ -1240,7 +1578,7 @@ const InterfaceEventos = () => {
                     <FiDownload className="mr-1" />
                     {isLoading ? 'Baixando...' : 'Baixar'}
                   </button>
-                </div>
+                </motion.div>
               ))}
             </div>
 
@@ -1330,8 +1668,9 @@ const InterfaceEventos = () => {
                   .map(order => {
                     const table = tables.find(t => t.id === order.tableId);
                     return (
-                      <div 
+                      <motion.div 
                         key={order.id} 
+                        whileHover={{ scale: 1.01 }}
                         className="p-4 border border-gray-200 rounded-xl hover:border-indigo-300 transition-all cursor-pointer"
                         onClick={() => {
                           if (table) {
@@ -1355,7 +1694,7 @@ const InterfaceEventos = () => {
                             Ver detalhes <FiChevronRight className="ml-1" />
                           </span>
                         </div>
-                      </div>
+                      </motion.div>
                     );
                   })
               ) : (
