@@ -481,15 +481,16 @@ const AdminPanel = () => {
   // Função para filtrar itens do menu
   const filteredMenuItems = useMemo(() => {
     const categoryItems = menu[activeMenuCategory] || [];
-    
+  
     if (!menuSearchQuery) return categoryItems;
-    
+  
     const query = menuSearchQuery.toLowerCase();
     return categoryItems.filter(item => 
       item.name.toLowerCase().includes(query) || 
       (item.description && item.description.toLowerCase().includes(query))
     );
   }, [activeMenuCategory, menuSearchQuery]);
+  
 
   // Função para enviar notificação via WhatsApp
   const sendWhatsAppNotification = (order, newStatus) => {
@@ -695,14 +696,37 @@ const AdminPanel = () => {
           ...data[key],
           items: data[key].items || [], // Garante que items existe
           customer: data[key].customer || { name: 'Cliente não informado', phone: '' },
-          orderType: data[key].orderType || 'takeaway'
+          orderType: data[key].orderType || 'takeaway' // Define um padrão para orderType
         }));
+        
+        // Verifica se há um novo pedido para direcionar para a aba correta
+        if (ordersArray.length > 0 && orders.length > 0) {
+          const newOrder = ordersArray[0];
+          const isNewOrder = !orders.some(order => order.id === newOrder.id);
+          
+          if (isNewOrder) {
+            // Direciona para a aba de pedidos
+            setActiveTab('orders');
+            
+            // Define a aba de tipo de pedido com base no orderType
+            if (newOrder.orderType === 'dine-in') {
+              setActiveOrderType('dine-in');
+            } else if (newOrder.orderType === 'delivery') {
+              setActiveOrderType('delivery');
+            } else if (newOrder.orderType === 'event') {
+              setActiveOrderType('event');
+            } else {
+              setActiveOrderType('takeaway');
+            }
+          }
+        }
+        
         setOrders(ordersArray.reverse());
       } else {
         setOrders([]);
       }
     });
-  }, []);
+  }, [orders]);
 
   const deleteOrder = (orderId) => {
     if (window.confirm('Tem certeza que deseja excluir este pedido?')) {
@@ -713,29 +737,26 @@ const AdminPanel = () => {
     }
   };
 
-  // Função para consolidar pedidos da mesma mesa
-  const consolidateTableOrders = (orders) => {
+  // Função para consolidar pedidos da mesma mesa ou evento
+  const consolidateOrders = (orders) => {
     const consolidatedOrders = [];
-    const tableOrdersMap = new Map();
+    const ordersMap = new Map();
   
     orders.forEach(order => {
       if (!order.items) order.items = [];
       
+      // Para pedidos que não são de mesa ou evento, adiciona diretamente
       if (order.orderType !== 'dine-in' && order.orderType !== 'event') {
         consolidatedOrders.push({...order, originalIds: [order.id]});
         return;
       }
   
-      // Usa eventNumber para eventos se disponível
-      const tableOrEventNumber = order.orderType === 'event' 
-        ? (order.customer?.eventNumber || order.tableNumber)
-        : order.tableNumber;
+      // Cria uma chave única para agrupamento
+      const orderKey = `${order.orderType}-${order.tableNumber || '0'}`;
       
-      const orderKey = `${order.orderType}-${tableOrEventNumber}`;
-      
-      if (tableOrdersMap.has(orderKey)) {
+      if (ordersMap.has(orderKey)) {
         // Se já existe um pedido consolidado para esta mesa/evento
-        const existingOrder = tableOrdersMap.get(orderKey);
+        const existingOrder = ordersMap.get(orderKey);
         
         // Adiciona os itens ao pedido consolidado
         order.items.forEach(newItem => {
@@ -768,11 +789,10 @@ const AdminPanel = () => {
         // Cria um novo pedido consolidado
         const newConsolidatedOrder = {
           ...order,
-          tableNumber: tableOrEventNumber, // Armazena o número correto
           items: order.items.map(item => ({...item})),
           originalIds: [order.id]
         };
-        tableOrdersMap.set(orderKey, newConsolidatedOrder);
+        ordersMap.set(orderKey, newConsolidatedOrder);
         consolidatedOrders.push(newConsolidatedOrder);
       }
     });
@@ -781,19 +801,24 @@ const AdminPanel = () => {
   };
 
   const filteredOrders = useMemo(() => {
-    const consolidated = consolidateTableOrders(orders);
+    const consolidated = consolidateOrders(orders);
     
     return consolidated
       .filter(order => {
+        // Filtra por tipo de pedido
         if (activeOrderType !== 'all' && order.orderType !== activeOrderType) return false;
+        
+        // Filtra por status
         if (filter !== 'all' && order.status !== filter) return false;
         
+        // Filtra por busca
         if (searchQuery) {
           const searchLower = searchQuery.toLowerCase();
           const matchesId = order.id?.toLowerCase().includes(searchLower);
           const matchesTable = order.tableNumber?.toString().includes(searchLower);
+          const matchesCustomer = order.customer?.name?.toLowerCase().includes(searchLower);
           
-          if (!matchesId && !matchesTable) return false;
+          if (!matchesId && !matchesTable && !matchesCustomer) return false;
         }
         
         return true;
@@ -1161,9 +1186,9 @@ const AdminPanel = () => {
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Data/Hora</th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tipo</th>
-                        {activeOrderType === 'event' && (
+                      {(activeOrderType === 'dine-in' || activeOrderType === 'event') && (
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          {activeOrderType === 'event' ? 'Numero da Comanda' : 'Mesa'}
+                          {activeOrderType === 'event' ? 'Número do Evento' : 'Mesa'}
                         </th>
                       )}
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Itens</th>
@@ -1185,7 +1210,7 @@ const AdminPanel = () => {
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                             {order.orderType === 'dine-in' ? (
                               <span className="flex items-center">
-                                <FiHome className="mr-1" /> Mesa {order.tableNumber}
+                                <FiHome className="mr-1" /> Mesa
                               </span>
                             ) : order.orderType === 'event' ? (
                               <span className="flex items-center text-purple-600">
@@ -1201,7 +1226,7 @@ const AdminPanel = () => {
                               </span>
                             )}
                           </td>
-                            {activeOrderType === 'event' && (
+                          {(activeOrderType === 'dine-in' || activeOrderType === 'event') && (
                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                               {order.tableNumber || 'Não informado'}
                             </td>
@@ -1238,7 +1263,7 @@ const AdminPanel = () => {
                               )}                                                   
                               <button 
                                 onClick={() => {
-                                  // Encontra todos os pedidos da mesma mesa
+                                  // Encontra todos os pedidos da mesma mesa/evento
                                   const allTableOrders = orders.filter(
                                     o => o.orderType === order.orderType && 
                                         o.tableNumber === order.tableNumber && 
@@ -1277,7 +1302,7 @@ const AdminPanel = () => {
                               <button 
                                 onClick={() => {
                                   if (order.originalIds && order.originalIds.length > 0) {
-                                    if (window.confirm(`Tem certeza que deseja excluir ${order.originalIds.length > 1 ? 'todos os pedidos desta mesa?' : 'este pedido?'}`)) {
+                                    if (window.confirm(`Tem certeza que deseja excluir ${order.originalIds.length > 1 ? 'todos os pedidos desta mesa/evento?' : 'este pedido?'}`)) {
                                       const deletePromises = order.originalIds.map(orderId => {
                                         const orderRef = ref(database, `orders/${orderId}`);
                                         return remove(orderRef);
@@ -1301,7 +1326,7 @@ const AdminPanel = () => {
                       ))
                     ) : (
                       <tr>
-                        <td colSpan={activeOrderType === 'event' ? "8" : "7"} className="px-6 py-4 text-center text-sm text-gray-500">
+                        <td colSpan={activeOrderType === 'dine-in' || activeOrderType === 'event' ? "7" : "6"} className="px-6 py-4 text-center text-sm text-gray-500">
                           Nenhum pedido encontrado
                         </td>
                       </tr>
@@ -1321,7 +1346,7 @@ const AdminPanel = () => {
           setIsEditModalOpen(false);
           setIsEditingOrder(false);
         }}
-        title={`${currentOrder?.orderType === 'dine-in' ? 'Mesa' : 'Evento'} #${currentOrder?.tableNumber || ''}`}
+        title={`${currentOrder?.orderType === 'dine-in' ? 'Mesa' : currentOrder?.orderType === 'event' ? 'Evento' : 'Pedido'} #${currentOrder?.tableNumber || ''}`}
         size="xl"
       >
         {currentOrder && (
@@ -1439,22 +1464,20 @@ const AdminPanel = () => {
                     <div>
                       <Typography variant="caption" className="block mb-1">
                         {currentOrder.orderType === 'dine-in' ? 'Número da Mesa' : 
-                        currentOrder.orderType === 'event' ? 'Número do Evento' : 
-                        'Número'}
+                         currentOrder.orderType === 'event' ? 'Número do Evento' : 
+                         'Número'}
                       </Typography>
                       <p className="bg-gray-50 p-3 rounded-lg">
-                        {currentOrder.orderType === 'event' 
-                          ? currentOrder.customer?.eventNumber || currentOrder.tableNumber || 'Não informado'
-                          : currentOrder.tableNumber || 'Não informado'}
+                        {currentOrder.tableNumber || 'Não informado'}
                       </p>
                     </div>
                     
                     <div>
-                      <Typography variant="caption" className="block mb-1">
-                        {currentOrder.orderType === 'dine-in' ? 'Número da Mesa' : 'Número do Evento'}
-                      </Typography>
+                      <Typography variant="caption" className="block mb-1">Tipo de Pedido</Typography>
                       <p className="bg-gray-50 p-3 rounded-lg">
-                        {currentOrder.tableNumber || 'Não informado'}
+                        {currentOrder.orderType === 'dine-in' ? 'Mesa' :
+                         currentOrder.orderType === 'event' ? 'Evento' :
+                         currentOrder.orderType === 'delivery' ? 'Entrega' : 'Retirada'}
                       </p>
                     </div>
                     
@@ -1480,6 +1503,15 @@ const AdminPanel = () => {
                         ]}
                       />
                     </div>
+                    
+                    {currentOrder.orderType !== 'dine-in' && currentOrder.orderType !== 'event' && (
+                      <div>
+                        <Typography variant="caption" className="block mb-1">Cliente</Typography>
+                        <p className="bg-gray-50 p-3 rounded-lg">
+                          {currentOrder.customer?.name || 'Não informado'}
+                        </p>
+                      </div>
+                    )}
                     
                     <div>
                       <Typography variant="caption" className="block mb-1">Observações</Typography>
