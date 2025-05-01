@@ -76,13 +76,13 @@ const AdminDashboard = () => {
     }
     if (activeTab === 'all' && activeArea !== 'all') {
       if (order.orderType !== 'dine-in' && order.orderType !== 'event') return false;
-      const tableNum = parseInt(order.tableNumber);
+      const tableNum = parseInt(order.tableNumber || order.customer?.eventNumber || 0);
       return activeArea === 'internal' ? tableNum <= 8 : tableNum > 8;
     }
     if (order.orderType !== activeTab) return false;
     if (order.orderType !== 'dine-in' && order.orderType !== 'event') return true;
     
-    const tableNum = parseInt(order.tableNumber);
+    const tableNum = parseInt(order.tableNumber || order.customer?.eventNumber || 0);
     return activeArea === 'internal' ? tableNum <= 8 : tableNum > 8;
   });
 
@@ -882,12 +882,9 @@ const InterfaceCliente = () => {
     
     const newOrder = {
       items: cart,
-      customer: {
-        ...customerInfo,
-        eventNumber: customerInfo.eventNumber // Certifique-se que isso está sendo preenchido
-      },
-      orderType: 'event',
-      tableNumber: customerInfo.eventNumber,
+      customer: customerInfo,
+      orderType: orderType,
+      tableNumber: (orderType === 'dine-in' || orderType === 'event') ? tableNumber : null,
       total: calculateTotal(),
       status: (orderType === 'dine-in' || orderType === 'event') ? 'pending' : 'received',
       timestamp: Date.now()
@@ -1351,7 +1348,7 @@ const InterfaceCliente = () => {
                         className={`p-3 rounded-lg border-2 flex flex-col items-center ${customerInfo.paymentMethod === 'tpa' ? 'border-blue-500 bg-blue-50' : 'border-gray-200'}`}
                       >
                         <FiCreditCard className="text-blue-500 text-xl mb-1" />
-                        <span className="text-xs">Cartão no momento da entrega</span>
+                        <span className="text-xs">Levar TPA</span>
                       </motion.button>
                       
                       <motion.button
@@ -2327,8 +2324,6 @@ const InterfaceCliente = () => {
           </motion.button>
         </motion.div>
       )}
-
-      <Footer showAdminButton={!isAdminLoggedIn} />
     </div>
   );
 };
