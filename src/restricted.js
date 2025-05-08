@@ -1,9 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useNavigate, Routes, Route, Outlet } from 'react-router-dom';
 import { 
   FiHome, 
-  FiShoppingBag, 
-  FiCalendar, 
   FiSettings, 
   FiLogOut, 
   FiArrowLeft,
@@ -13,8 +11,8 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 import logo from './assets/logo-alto-astral.png';
 
-// 1. Componente do Botão Voltar Premium
-const PremiumBackButton = ({ onClick }) => (
+// Componente do Botão Voltar
+const AdminBackButton = ({ onClick }) => (
   <motion.button
     whileHover={{ x: -3 }}
     whileTap={{ scale: 0.97 }}
@@ -26,8 +24,8 @@ const PremiumBackButton = ({ onClick }) => (
   </motion.button>
 );
 
-// 2. Layout Principal Premium
-const PremiumAdminLayout = ({ children }) => {
+// Layout Principal Administrativo
+const AdminLayout = ({ children }) => {
   const navigate = useNavigate();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
@@ -71,9 +69,25 @@ const PremiumAdminLayout = ({ children }) => {
               </button>
             </div>
             <nav className="p-4 space-y-1">
-              <MobileSidebarButton icon={<FiSettings />} onClick={() => { navigate('/admin'); setMobileMenuOpen(false); }} active>Admin</MobileSidebarButton>
-              <MobileSidebarButton icon={<FiCalendar />} onClick={() => { navigate('/eventos'); setMobileMenuOpen(false); }}>Eventos</MobileSidebarButton>
-              <MobileSidebarButton icon={<FiLogOut />} onClick={handleLogout}>Sair</MobileSidebarButton>
+              <MobileSidebarButton 
+                icon={<FiHome />} 
+                onClick={() => { navigate('/'); setMobileMenuOpen(false); }} 
+                active
+              >
+                Dashboard
+              </MobileSidebarButton>
+              <MobileSidebarButton 
+                icon={<FiSettings />} 
+                onClick={() => { navigate('/admin'); setMobileMenuOpen(false); }}
+              >
+                Administração
+              </MobileSidebarButton>
+              <MobileSidebarButton 
+                icon={<FiLogOut />} 
+                onClick={handleLogout}
+              >
+                Sair
+              </MobileSidebarButton>
             </nav>
           </motion.div>
         )}
@@ -87,12 +101,27 @@ const PremiumAdminLayout = ({ children }) => {
             <span className="text-xl font-bold">Alto Astral</span>
           </div>
           <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
-
-            <DesktopSidebarButton icon={<FiSettings />} onClick={() => navigate('/admin')} active>Admin</DesktopSidebarButton>
-            <DesktopSidebarButton icon={<FiCalendar />} onClick={() => navigate('/eventos')}>Eventos</DesktopSidebarButton>
+            <DesktopSidebarButton 
+              icon={<FiHome />} 
+              onClick={() => navigate('/')} 
+              active
+            >
+              Dashboard
+            </DesktopSidebarButton>
+            <DesktopSidebarButton 
+              icon={<FiSettings />} 
+              onClick={() => navigate('/admin')}
+            >
+              Administração
+            </DesktopSidebarButton>
           </nav>
           <div className="p-4 border-t border-gray-200">
-            <DesktopSidebarButton icon={<FiLogOut />} onClick={handleLogout}>Sair</DesktopSidebarButton>
+            <DesktopSidebarButton 
+              icon={<FiLogOut />} 
+              onClick={handleLogout}
+            >
+              Sair
+            </DesktopSidebarButton>
           </div>
         </div>
       </div>
@@ -149,30 +178,23 @@ const DesktopSidebarButton = ({ icon, children, onClick, active = false }) => (
   </motion.button>
 );
 
-// 3. Páginas Premium
-const PremiumDashboardPage = () => {
+// Página de Dashboard
+const DashboardPage = () => {
   const navigate = useNavigate();
 
   return (
     <div className="max-w-7xl mx-auto">
       <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-200">
-        <h1 className="text-2xl md:text-3xl font-bold text-gray-800 mb-2">Dashboard</h1>
-        <p className="text-gray-500 mb-6">Visão geral do sistema</p>
+        <h1 className="text-2xl md:text-3xl font-bold text-gray-800 mb-2">Dashboard Administrativo</h1>
+        <p className="text-gray-500 mb-6">Controle total do sistema do restaurante</p>
         
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          <PremiumDashboardCard 
+          <DashboardCard 
             title="Administração" 
-            description="Gerencie pedidos e configurações"
+            description="Gestão completa do restaurante"
             icon={<FiSettings />}
             color="blue"
             onClick={() => navigate('/admin')}
-          />
-          <PremiumDashboardCard 
-            title="Eventos" 
-            description="Organize eventos especiais"
-            icon={<FiCalendar />}
-            color="purple"
-            onClick={() => navigate('/eventos')}
           />
         </div>
       </div>
@@ -180,7 +202,7 @@ const PremiumDashboardPage = () => {
   );
 };
 
-const PremiumDashboardCard = ({ title, description, icon, color, onClick }) => {
+const DashboardCard = ({ title, description, icon, color, onClick }) => {
   const colorClasses = {
     blue: 'from-blue-50 to-blue-100 border-blue-200 text-blue-600',
     green: 'from-green-50 to-green-100 border-green-200 text-green-600',
@@ -209,69 +231,40 @@ const PremiumDashboardCard = ({ title, description, icon, color, onClick }) => {
   );
 };
 
-const PremiumAdminPage = () => {
+const AdminPage = () => {
   const navigate = useNavigate();
 
   return (
     <div className="max-w-7xl mx-auto">
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
         <div>
-          <h1 className="text-2xl md:text-3xl font-bold text-gray-800">Administração</h1>
-          <p className="text-gray-500">Gerencie todos os aspectos do restaurante</p>
+          <h1 className="text-2xl md:text-3xl font-bold text-gray-800">Painel Administrativo</h1>
+          <p className="text-gray-500">Controle total do restaurante</p>
         </div>
         <div className="flex justify-end">
-          <PremiumBackButton onClick={() => navigate('/')} />
+          <AdminBackButton onClick={() => navigate('/')} />
         </div>
       </div>
       
       <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-200">
-        {/* Conteúdo do AdminPanel aqui */}
         <div className="min-h-[400px] flex items-center justify-center">
-          <p className="text-gray-500">Interface de administração será renderizada aqui</p>
+          <p className="text-gray-500">Interface administrativa será renderizada aqui</p>
         </div>
       </div>
     </div>
   );
 };
 
-
-
-const PremiumEventosPage = () => {
-  const navigate = useNavigate();
-
-  return (
-    <div className="max-w-7xl mx-auto">
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
-        <div>
-          <h1 className="text-2xl md:text-3xl font-bold text-gray-800">Gestão de Eventos</h1>
-          <p className="text-gray-500">Organize eventos especiais</p>
-        </div>
-        <div className="flex justify-end">
-          <PremiumBackButton onClick={() => navigate('/')} />
-        </div>
-      </div>
-      
-      <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-200">
-        {/* Conteúdo do InterfaceEventos aqui */}
-        <div className="min-h-[400px] flex items-center justify-center">
-          <p className="text-gray-500">Interface de eventos será renderizada aqui</p>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-// 4. Componente Principal Premium
-const PremiumRestrictedArea = () => {
+// Componente Principal
+const RestrictedArea = () => {
   return (
     <Routes>
-      <Route element={<PremiumAdminLayout><Outlet /></PremiumAdminLayout>}>
-        <Route index element={<PremiumDashboardPage />} />
-        <Route path="admin" element={<PremiumAdminPage />} />
-        <Route path="eventos" element={<PremiumEventosPage />} />
+      <Route element={<AdminLayout><Outlet /></AdminLayout>}>
+        <Route index element={<DashboardPage />} />
+        <Route path="admin" element={<AdminPage />} />
       </Route>
     </Routes>
   );
 };
 
-export default PremiumRestrictedArea;
+export default RestrictedArea;

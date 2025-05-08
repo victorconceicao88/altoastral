@@ -1,45 +1,44 @@
-import React, { useState, useEffect, createContext } from 'react';
-import { ref, push, onValue, update } from 'firebase/database';
-import { database } from './firebase';
+import React, { useState, useEffect, createContext, useCallback } from 'react';
+import { ref, push, update, database, loginAnonimo } from './firebase';
+import { getDatabase, set, onValue } from 'firebase/database';
+import { getAuth } from "firebase/auth";
 import { 
-  FiShoppingCart, 
-  FiX, 
-  FiCheck, 
-  FiClock, 
-  FiTruck, 
-  FiHome, 
-  FiCalendar, 
-  FiCoffee, 
-  FiMeh,
-  FiPlus,
-  FiMinus,
-  FiInfo,
-  FiStar,
-  FiHeart,
-  FiShare2,
-  FiUser,
-  FiMapPin,
-  FiPhone,
-  FiEdit2,
-  FiCreditCard,
-  FiLock,
-  FiLogIn
+  FiShoppingCart, FiX, FiCheck, FiClock, FiTruck, FiHome, 
+  FiCalendar, FiCoffee, FiMeh, FiPlus, FiMinus, FiInfo, 
+  FiStar, FiHeart, FiShare2, FiUser, FiMapPin, FiPhone, 
+  FiEdit2, FiCreditCard, FiLock, FiLogIn
 } from 'react-icons/fi';
 import { motion, AnimatePresence, useAnimation } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import logo from './assets/logo-alto-astral.png';
 import logoBackground from './assets/logo-alto-astral.png';
 import mbwayLogo from './assets/images.png';
+import frangoCremoso from './assets/frango-cremoso.jpg';
+import picanha from './assets/picanha.jpg';
+import costelaRaiz from './assets/costela-raiz.jpg';
+import frangoSupremo from './assets/frangosupremo.jpg';
+import feijoadaAstral from './assets/feijoada.jpg';
+import hamburguer from './assets/hamburguer.jpg';
+import chorica from './assets/choriça.jpg';
+import Asinha from './assets/Asinha.jpg';
+import Picanhacomfritas from './assets/picanha-com-fritas.jpg';
+import Filetilapia from './assets/filetilapia.jpg';
+
 
 const logoWhite = logo;
 
 // Mock images
 const foodImages = {
-  frangoCremoso: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
-  picanhaPremium: 'https://images.unsplash.com/photo-1558030006-450675393462?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
-  costelaRaiz: 'https://images.unsplash.com/photo-1598515214211-89d3c41ae87b?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
-  feijoada: 'https://images.unsplash.com/photo-1601050690597-df0568f70950?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
-  hamburguer: 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
+  frangoCremoso: frangoCremoso,
+  picanhaPremium: picanha,
+  costelaRaiz: costelaRaiz,
+  frangosupremo: frangoSupremo,
+  feijoadaAstral: feijoadaAstral,
+  hamburguer: hamburguer,
+  chorica: chorica,
+  Asinha: Asinha,
+  Picanhacomfritas: Picanhacomfritas,
+  Filetilapia: Filetilapia,
   batataFrita: 'https://images.unsplash.com/photo-1541592106381-b31e9677c0e5?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
   pastel: 'https://images.unsplash.com/photo-1631853551243-ca3d3b769de3?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
   cafe: 'https://images.unsplash.com/photo-1517701550927-30cf4ba1dba5?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
@@ -49,7 +48,118 @@ const foodImages = {
   background: logoBackground 
 };
 
-// Componentes personalizados
+const menu = {
+  semana: [
+    { id: 1, name: 'Frango Cremoso', description: 'Strogonoff de frango, arroz branco, salada e batata palha', price: 12.90, veg: false, image: foodImages.frangoCremoso, rating: 4.5 },
+    { id: 2, name: 'Picanha Premium', description: 'Picanha grelhada, arroz branco, feijão tropeiro e vinagrete', price: 15.90, veg: false, image: foodImages.picanhaPremium, rating: 4.8 },
+    { id: 3, name: 'Costela Raiz', description: 'Costela de vaca com mandioca, arroz branco, farofa e salada', price: 14.90, veg: false, image: foodImages.costelaRaiz, rating: 4.7 },
+    { id: 4, name: 'Frango Supremo', description: 'Filé de frango à parmegiana, arroz branco, batata frita e salada', price: 13.90, veg: false, image: foodImages.frangosupremo, rating: 4.3 },
+    { id: 5, name: 'Feijoada Astral', description: 'Feijoada brasileira, arroz branco, couve, farofa, torresmo e laranja', price: 12.90, veg: false, image: foodImages.feijoadaAstral, rating: 4.9 },
+    { id: 6, name: 'Opção Vegetariana', description: 'Prato vegetariano sob consulta - acompanha bebida e café', price: 12.90, veg: true, image: foodImages.frangoCremoso, rating: 4.2 }
+  ],
+  lanches: [
+    { id: 7, name: 'Hambúrguer com Fritas', description: 'Carne, alface, tomate, cebola, cheddar, molho da casa', price: 7.00, image: foodImages.hamburguer, rating: 4.4 },
+    { id: 8, name: 'Hambúrguer Alto Astral', description: 'Carne 120g, bacon, queijo, anéis de cebola, alface, tomate, cheddar, molho coquetel e especial', price: 9.90, image: foodImages.hamburguer, rating: 4.7 },
+    { id: 9, name: 'Hambúrguer Neg\'s', description: 'Carne 120g, frango panado, bacon, queijo, anéis de cebola, cebola crispy, alface, tomate, cheddar, molho coquetel e especial', price: 12.90, image: foodImages.hamburguer, rating: 4.9 },
+    { id: 10, name: 'Sandes de Panado', description: 'Frango panado, alface, tomate, cebola, molho da casa', price: 5.50, image: foodImages.hamburguer, rating: 4.1 },
+    { id: 11, name: 'Tostas Premium', description: 'Frango ou atum acompanha queijo, alface, tomate e cebola roxa', price: 6.50, image: foodImages.hamburguer, rating: 4.0 },
+    { id: 12, name: 'Sandes Natural', description: 'Patê de frango, queijo, rúcula, tomate, cebola roxa e cenoura ralada', price: 6.50, image: foodImages.hamburguer, rating: 3.9 }
+  ],
+  porcoes: [
+    { id: 13, name: 'Batata Frita', description: 'Porção com 400g de batata frita', price: 4.00, image: foodImages.batataFrita, rating: 4.2 },
+    { id: 14, name: 'Fritas com Bacon e Queijo', description: 'Porção com 400g de batatas com bacon e queijo cheddar', price: 6.50, image: foodImages.batataFrita, rating: 4.6 },
+    { id: 15, name: 'Chouriça com Cebola', description: 'Porção com 600g de chouriça acebolada e pão fatiado', price: 9.00, image: foodImages.chorica, rating: 4.5 },
+    { id: 16, name: 'Asinha de Frango', description: 'Porção com 700g de asinhas de frango e molho barbecue', price: 12.00, image: foodImages.Asinha, rating: 4.4 },
+    { id: 17, name: 'Costelinha', description: 'Porção com 800g de costelinha e molho barbecue', price: 12.00, image: foodImages.batataFrita, rating: 4.7 },
+    { id: 18, name: 'Picanha com Fritas', description: 'Porção com 600g de tiras de picanha temperada com sal de parrilha e acompanhado de batata frita ou doce', price: 18.00, image: foodImages.Picanhacomfritas, rating: 4.8 },
+    { id: 19, name: 'Filé de Tilápia', description: 'Porção com 800g de filé de tilápia e molho tartaro', price: 14.00, image: foodImages.Filetilapia, rating: 4.3 }
+  ],
+  pasteis: [
+    { id: 20, name: 'Pastel Simples', description: 'Frango desfiado, carne picada ou queijo', price: 5.00, image: foodImages.pastel, rating: 4.3 },
+    { id: 21, name: 'Pastel de Frango com Queijo', description: 'Frango desfiado com queijo', price: 5.50, image: foodImages.pastel, rating: 4.5 },
+    { id: 22, name: 'Pastel de Frango com Queijo e Bacon', description: 'Frango desfiado com queijo e bacon em cubos', price: 6.50, image: foodImages.pastel, rating: 4.7 },
+    { id: 23, name: 'Pastel de Carne com Queijo', description: 'Carne picada com queijo e azeitona', price: 5.50, image: foodImages.pastel, rating: 4.4 },
+    { id: 24, name: 'Pastel de Carne com Queijo e Bacon', description: 'Carne picada com queijo, azeitona e bacon em cubos', price: 6.50, image: foodImages.pastel, rating: 4.6 },
+    { id: 25, name: 'Pastel de Chouriça', description: 'Queijo, chouriça e milho', price: 5.50, image: foodImages.pastel, rating: 4.2 },
+    { id: 26, name: 'Pastel Misto', description: 'Fiambre, queijo, azeitona e milho', price: 5.50, image: foodImages.pastel, rating: 4.1 },
+    { id: 27, name: 'Pastel de Pizza', description: 'Queijo, fiambre, tomate e orégano', price: 5.50, image: foodImages.pastel, rating: 4.0 },
+    { id: 28, name: 'Pastel Alto Astral', description: 'Queijo, bacon, tomate, azeitona, cheddar e orégano', price: 6.50, image: foodImages.pastel, rating: 4.8 },
+    { id: 29, name: 'Pastel Romeu e Julieta', description: 'Queijo com goiabada', price: 5.50, image: foodImages.pastel, rating: 4.7 },
+    { id: 30, name: 'Pastel de Banana com Nutela', description: 'Queijo, banana e nutella', price: 6.00, image: foodImages.pastel, rating: 4.9 }
+  ],
+  cafe: [
+    { id: 31, name: 'Café Expresso', price: 1.00, image: foodImages.cafe, rating: 4.5 },
+    { id: 32, name: 'Café Descafeinado', price: 1.00, image: foodImages.cafe, rating: 4.3 },
+    { id: 33, name: 'Café Duplo', price: 2.00, image: foodImages.cafe, rating: 4.6 },
+    { id: 34, name: 'Garoto', price: 1.00, image: foodImages.cafe, rating: 4.2 },
+    { id: 35, name: 'Abatanado', price: 1.10, image: foodImages.cafe, rating: 4.1 },
+    { id: 36, name: 'Meia de Leite', price: 1.50, image: foodImages.cafe, rating: 4.4 },
+    { id: 37, name: 'Galão', price: 1.60, image: foodImages.cafe, rating: 4.5 },
+    { id: 38, name: 'Chá', price: 1.60, image: foodImages.cafe, rating: 4.0 },
+    { id: 39, name: 'Cappuccino', price: 3.00, image: foodImages.cafe, rating: 4.7 },
+    { id: 40, name: 'Caricoa de Limão', price: 1.00, image: foodImages.cafe, rating: 3.9 },
+    { id: 41, name: 'Chocolate Quente', price: 3.00, image: foodImages.cafe, rating: 4.8 },
+    { id: 42, name: 'Torrada com Pão Caseiro', price: 2.00, image: foodImages.cafe, rating: 4.3 },
+    { id: 43, name: 'Torrada com Pão de Forma', price: 1.50, image: foodImages.cafe, rating: 4.1 },
+    { id: 44, name: 'Meia Torrada', price: 1.00, image: foodImages.cafe, rating: 4.0 },
+    { id: 45, name: 'Croissant Misto', price: 3.00, image: foodImages.cafe, rating: 4.6 },
+    { id: 46, name: 'Croissant Misto Tostado', price: 3.20, image: foodImages.cafe, rating: 4.7 },
+    { id: 47, name: 'Tosta Mista', price: 3.20, image: foodImages.cafe, rating: 4.5 },
+    { id: 48, name: 'Tosta Mista (Pão de Forma)', price: 2.80, image: foodImages.cafe, rating: 4.4 },
+    { id: 49, name: 'Sandes Mista', price: 2.20, image: foodImages.cafe, rating: 4.2 },
+    { id: 50, name: 'Pão com Ovo', price: 2.20, image: foodImages.cafe, rating: 4.1 },
+    { id: 51, name: 'Ovos com Bacon', price: 4.00, image: foodImages.cafe, rating: 4.7 }
+  ],
+  bebidas: [
+    { id: 52, name: 'Caipirinha', description: 'Cachaça 51 ou Velho Barreiro, lima, açúcar e gelo', price: 6.00, image: foodImages.bebida, rating: 4.8 },
+    { id: 53, name: 'Caipiblack', description: 'Cachaça preta, lima, açúcar e gelo', price: 6.00, image: foodImages.bebida, rating: 4.9 },
+    { id: 54, name: 'Whiskey Jamenson', price: 3.50, image: foodImages.bebida, rating: 4.7 },
+    { id: 55, name: 'Whiskey J&B', price: 3.00, image: foodImages.bebida, rating: 4.5 },
+    { id: 56, name: 'Whiskey Jack Daniels', price: 3.50, image: foodImages.bebida, rating: 4.8 },
+    { id: 57, name: 'Whiskey Black Label', price: 4.00, image: foodImages.bebida, rating: 4.9 },
+    { id: 58, name: 'Vodka', price: 4.00, image: foodImages.bebida, rating: 4.6 },
+    { id: 59, name: 'Somersby', price: 2.50, image: foodImages.bebida, rating: 4.4 },
+    { id: 60, name: 'Imperial Heineken (0.20)', price: 1.50, image: foodImages.bebida, rating: 4.5 },
+    { id: 61, name: 'Caneca Heineken (0.50)', price: 3.00, image: foodImages.bebida, rating: 4.7 },
+    { id: 62, name: 'Cerveja Garrafa (0.33ml)', price: 1.40, image: foodImages.bebida, rating: 4.3 },
+    { id: 63, name: 'Cerveja Mini (0.20ml)', price: 1.10, image: foodImages.bebida, rating: 4.2 },
+    { id: 64, name: 'Taça de Sangria', description: 'Sangria branca, rosé ou tinta', price: 6.00, image: foodImages.bebida, rating: 4.8 },
+    { id: 65, name: 'Refrigerante Lata', price: 1.60, image: foodImages.bebida, rating: 4.1 },
+    { id: 66, name: 'Água 1.5L', price: 1.50, image: foodImages.bebida, rating: 4.0 },
+    { id: 67, name: 'Água 0.5L', price: 1.00, image: foodImages.bebida, rating: 4.0 },
+    { id: 68, name: 'Água 0.33L', price: 0.60, image: foodImages.bebida, rating: 4.0 },
+    { id: 69, name: 'Água Castelo', price: 1.40, image: foodImages.bebida, rating: 4.2 },
+    { id: 70, name: 'Água das Pedras', price: 1.40, image: foodImages.bebida, rating: 4.3 }
+  ],
+  salgados: [
+    { id: 71, name: 'Pão de Queijo', price: 1.60, image: foodImages.salgado, rating: 4.5 },
+    { id: 72, name: 'Pastel de Nata', price: 1.30, image: foodImages.salgado, rating: 4.7 },
+    { id: 73, name: 'Empada de Frango', price: 2.00, image: foodImages.salgado, rating: 4.4 },
+    { id: 74, name: 'Kibe', price: 2.20, image: foodImages.salgado, rating: 4.3 },
+    { id: 75, name: 'Fiambre e Queijo', price: 2.20, image: foodImages.salgado, rating: 4.2 },
+    { id: 76, name: 'Bauru', price: 2.20, image: foodImages.salgado, rating: 4.1 },
+    { id: 77, name: 'Bola de Queijo', price: 2.20, image: foodImages.salgado, rating: 4.3 },
+    { id: 78, name: 'Coxinha de Frango', price: 2.20, image: foodImages.salgado, rating: 4.6 },
+    { id: 79, name: 'Coxinha com Catupiry', price: 3.00, image: foodImages.salgado, rating: 4.8 },
+    { id: 80, name: 'Hamburgão', price: 3.50, image: foodImages.salgado, rating: 4.7 }
+  ],
+  sobremesas: [
+    { id: 81, name: 'Bolo no Pote - Prestígio', description: 'Chocolate com coco', price: 4.00, image: foodImages.sobremesa, rating: 4.8 },
+    { id: 82, name: 'Bolo no Pote - Chocolate', description: 'Massa de chocolate com recheio de chocolate', price: 4.00, image: foodImages.sobremesa, rating: 4.9 },
+    { id: 83, name: 'Bolo no Pote - Ananás', description: 'Creme de ninho com pedaços de ananás', price: 4.00, image: foodImages.sobremesa, rating: 4.7 },
+    { id: 84, name: 'Bolo no Pote - Choco Misto', description: 'Chocolate preto com ninho', price: 4.00, image: foodImages.sobremesa, rating: 4.8 },
+    { id: 85, name: 'Cheesecake - Goiabada', price: 3.50, image: foodImages.sobremesa, rating: 4.7 },
+    { id: 86, name: 'Cheesecake - Frutos Vermelhos', price: 3.50, image: foodImages.sobremesa, rating: 4.8 },
+    { id: 87, name: 'Brigadeiro Tradicional', price: 1.50, image: foodImages.sobremesa, rating: 4.6 },
+    { id: 88, name: 'Brigadeiro Beijinho', price: 1.50, image: foodImages.sobremesa, rating: 4.5 },
+    { id: 89, name: 'Brigadeiro Ninho', price: 2.00, image: foodImages.sobremesa, rating: 4.8 },
+    { id: 90, name: 'Brigadeiro Paçoca', price: 2.00, image: foodImages.sobremesa, rating: 4.7 },
+    { id: 91, name: 'Brigadeiro Morango', price: 2.00, image: foodImages.sobremesa, rating: 4.8 },
+    { id: 92, name: 'Brigadeiro Churros', price: 2.00, image: foodImages.sobremesa, rating: 4.9 },
+    { id: 93, name: 'Tarte de Toblerone', price: 2.20, image: foodImages.sobremesa, rating: 4.7 },
+    { id: 94, name: 'Bolo de Brigadeiro (fatia)', price: 2.20, image: foodImages.sobremesa, rating: 4.8 }
+  ]
+};
 
 const AdminDashboard = () => {
   const [orders, setOrders] = useState([]);
@@ -69,20 +179,39 @@ const AdminDashboard = () => {
     });
   }, []);
 
+  useEffect(() => {
+    loginAnonimo()
+      .then(() => {
+        console.log('Usuário anônimo autenticado');
+      })
+      .catch((error) => {
+        console.error('Erro ao autenticar usuário anônimo:', error);
+      });
+  }, []);
+
+  const db = database;
+  const pedidoRef = push(ref(db, 'orders'));
+
+  set(pedidoRef, {
+    mesa: 5,
+    itens: [{ produto: "Pizza", quantidade: 2 }],
+    criadoEm: Date.now()
+  });
+
   const filteredOrders = orders.filter(order => {
     if (activeTab === 'all' && activeArea === 'all') return true;
     if (activeTab !== 'all' && activeArea === 'all') {
       return order.orderType === activeTab;
     }
     if (activeTab === 'all' && activeArea !== 'all') {
-      if (order.orderType !== 'dine-in' && order.orderType !== 'event') return false;
-      const tableNum = parseInt(order.tableNumber || order.customer?.eventNumber || 0);
+      if (order.orderType !== 'dine-in') return false;
+      const tableNum = parseInt(order.tableNumber || 0);
       return activeArea === 'internal' ? tableNum <= 8 : tableNum > 8;
     }
     if (order.orderType !== activeTab) return false;
-    if (order.orderType !== 'dine-in' && order.orderType !== 'event') return true;
+    if (order.orderType !== 'dine-in') return true;
     
-    const tableNum = parseInt(order.tableNumber || order.customer?.eventNumber || 0);
+    const tableNum = parseInt(order.tableNumber || 0);
     return activeArea === 'internal' ? tableNum <= 8 : tableNum > 8;
   });
 
@@ -138,12 +267,6 @@ const AdminDashboard = () => {
                 No Restaurante
               </button>
               <button
-                onClick={() => { setActiveTab('event'); setActiveArea('all'); }}
-                className={`px-4 py-2 rounded-lg whitespace-nowrap ${activeTab === 'event' ? 'bg-astral text-white' : 'bg-gray-100'}`}
-              >
-                Eventos
-              </button>
-              <button
                 onClick={() => { setActiveTab('takeaway'); setActiveArea('all'); }}
                 className={`px-4 py-2 rounded-lg whitespace-nowrap ${activeTab === 'takeaway' ? 'bg-astral text-white' : 'bg-gray-100'}`}
               >
@@ -157,7 +280,7 @@ const AdminDashboard = () => {
               </button>
             </div>
             
-            {(activeTab === 'dine-in' || activeTab === 'event') && (
+            {activeTab === 'dine-in' && (
               <div className="flex overflow-x-auto space-x-2 pb-2">
                 <button
                   onClick={() => setActiveArea('all')}
@@ -183,8 +306,7 @@ const AdminDashboard = () => {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {/* Lista de Mesas/Áreas */}
-          {(activeTab === 'dine-in' || activeTab === 'event') && (
+          {activeTab === 'dine-in' && (
             <div className="bg-white rounded-xl shadow-md p-4">
               <h2 className="text-xl font-bold mb-4">
                 {activeArea === 'all' ? 'Todas as Mesas' : 
@@ -193,13 +315,12 @@ const AdminDashboard = () => {
               <div className="grid grid-cols-4 gap-3">
                 {[...Array(16)].map((_, i) => {
                   const tableNum = i + 1;
-                  // Filtra apenas mesas da área ativa
                   if (activeArea === 'internal' && tableNum > 8) return null;
                   if (activeArea === 'external' && tableNum <= 8) return null;
                   
                   const tableOrders = orders.filter(
-                    o => (o.orderType === 'dine-in' || o.orderType === 'event') && 
-                         (o.tableNumber == tableNum || o.customer?.eventNumber == tableNum) && 
+                    o => o.orderType === 'dine-in' && 
+                         o.tableNumber == tableNum && 
                          o.status !== 'completed'
                   );
                   
@@ -241,11 +362,9 @@ const AdminDashboard = () => {
             </div>
           )}
 
-          {/* Lista de Pedidos */}
-          <div className={`bg-white rounded-xl shadow-md p-4 ${(activeTab === 'dine-in' || activeTab === 'event') ? 'md:col-span-1' : 'md:col-span-2'}`}>
+          <div className={`bg-white rounded-xl shadow-md p-4 ${activeTab === 'dine-in' ? 'md:col-span-1' : 'md:col-span-2'}`}>
             <h2 className="text-xl font-bold mb-4">
               {activeTab === 'dine-in' ? 'Pedidos no Restaurante' : 
-              activeTab === 'event' ? 'Pedidos de Eventos' :
               activeTab === 'takeaway' ? 'Pedidos para Retirada' : 
               activeTab === 'delivery' ? 'Pedidos para Entrega' : 
               'Todos os Pedidos'}
@@ -259,7 +378,6 @@ const AdminDashboard = () => {
                     whileHover={{ y: -2 }}
                     onClick={() => setSelectedOrder(order)}
                     className={`p-3 border rounded-lg cursor-pointer ${
-                      order.orderType === 'event' ? 'border-purple-300 bg-purple-50' :
                       order.status === 'preparing' ? 'border-yellow-300 bg-yellow-50' : 
                       order.status === 'ready' ? 'border-green-300 bg-green-50' : 
                       order.status === 'completed' ? 'border-gray-300 bg-gray-50' : 
@@ -270,7 +388,6 @@ const AdminDashboard = () => {
                       <div>
                         <h3 className="font-bold">
                           {order.orderType === 'dine-in' ? `Mesa ${order.tableNumber}` : 
-                           order.orderType === 'event' ? `Comanda ${order.customer.eventNumber}` :
                            order.orderType === 'takeaway' ? 'Retirada' : 'Entrega'}
                         </h3>
                         <p className="text-sm">
@@ -294,14 +411,12 @@ const AdminDashboard = () => {
             </div>
           </div>
 
-          {/* Detalhes do Pedido */}
           <div className="bg-white rounded-xl shadow-md p-4">
             {selectedOrder ? (
               <div>
                 <div className="flex justify-between items-center mb-4">
                   <h2 className="text-xl font-bold">
                     {selectedOrder.orderType === 'dine-in' ? `Mesa ${selectedOrder.tableNumber}` : 
-                     selectedOrder.orderType === 'event' ? `Comanda ${selectedOrder.customer.eventNumber}` :
                      selectedOrder.orderType === 'takeaway' ? 'Retirada' : 'Entrega'}
                   </h2>
                   <button 
@@ -336,7 +451,7 @@ const AdminDashboard = () => {
                         </div>
                         <div className="flex items-center">
                           <span className="mr-4">€{(item.price * item.quantity).toFixed(2)}</span>
-                          {selectedOrder.status === 'pending' && (selectedOrder.orderType === 'dine-in' || selectedOrder.orderType === 'event') && (
+                          {selectedOrder.status === 'pending' && selectedOrder.orderType === 'dine-in' && (
                             <button 
                               onClick={() => {
                                 const newItems = selectedOrder.items.filter((_, idx) => idx !== i);
@@ -580,14 +695,12 @@ const Notification = ({ message, type = 'info', onClose }) => {
 const Footer = ({ showAdminButton = true }) => {
   return (
     <footer className="relative bg-[#F5F0E6] text-[#5C4B3A] pt-20 pb-12">
-      {/* Elemento visual em forma de montanha */}
       <div className="absolute top-0 left-0 right-0 h-24 overflow-hidden">
         <svg 
           viewBox="0 0 1200 120" 
           preserveAspectRatio="none" 
           className="absolute top-0 left-0 w-full h-full"
         >
-          {/* Primeira camada da montanha */}
           <path 
             d="M0,80 
                C300,-20 500,120 600,40 
@@ -596,7 +709,6 @@ const Footer = ({ showAdminButton = true }) => {
             fill="#8B7252" 
             fillOpacity="0.1"
           />
-          {/* Segunda camada da montanha (contorno) */}
           <path 
             d="M0,60 
                C300,-40 500,100 600,20 
@@ -613,7 +725,6 @@ const Footer = ({ showAdminButton = true }) => {
       <div className="container mx-auto px-6 mt-16">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
           
-          {/* Informações do restaurante */}
           <div className="text-center md:text-left">
             <h3 className="text-3xl font-bold mb-4">Alto Astral</h3>
             <p className="text-[#8B7D6B] italic mb-6">Snack Bar & Restaurante</p>
@@ -636,7 +747,6 @@ const Footer = ({ showAdminButton = true }) => {
             </div>
           </div>
 
-          {/* Horário de funcionamento */}
           <div className="flex flex-col items-center justify-center">
             <div className="bg-[#F8F4EC] border border-[#D9C7B8] rounded-lg p-6 text-center max-w-xs">
               <FiClock className="mx-auto text-[#8B7252]"/>
@@ -646,7 +756,6 @@ const Footer = ({ showAdminButton = true }) => {
             </div>
           </div>
 
-          {/* Redes sociais e área restrita */}
           <div className="text-center md:text-right">
             <h4 className="text-lg font-semibold mb-5">Siga-nos</h4>
             <div className="flex justify-center md:justify-end space-x-4 mb-6">
@@ -698,15 +807,14 @@ const InterfaceCliente = () => {
     nif: '',
     invoice: false,
     paymentMethod: '',
-    changeFor: '',
-    eventNumber: ''
+    changeFor: ''
   });
   const [notifications, setNotifications] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [favorites, setFavorites] = useState([]);
   const [isAdminLoggedIn, setIsAdminLoggedIn] = useState(false);
   const controls = useAnimation();
-  const [tableNumber, setTableNumber] = useState(null);
+  const [tableNumber, setTableNumber] = useState('');
   const [orderType, setOrderType] = useState(null);
   
   useEffect(() => {
@@ -714,7 +822,7 @@ const InterfaceCliente = () => {
     const table = queryParams.get('table');
     if (table) {
       setTableNumber(table);
-      setOrderType(parseInt(table) > 16 ? 'event' : 'dine-in');
+      setOrderType('dine-in');
     }
   }, []);
 
@@ -722,119 +830,7 @@ const InterfaceCliente = () => {
     const loggedIn = localStorage.getItem('adminLoggedIn') === 'true';
     setIsAdminLoggedIn(loggedIn);
   }, []);
-
-  const menu = {
-    semana: [
-      { id: 1, name: 'Frango Cremoso', description: 'Strogonoff de frango, arroz branco, salada e batata palha', price: 12.90, veg: false, image: foodImages.frangoCremoso, rating: 4.5 },
-      { id: 2, name: 'Picanha Premium', description: 'Picanha grelhada, arroz branco, feijão tropeiro e vinagrete', price: 15.90, veg: false, image: foodImages.picanhaPremium, rating: 4.8 },
-      { id: 3, name: 'Costela Raiz', description: 'Costela de vaca com mandioca, arroz branco, farofa e salada', price: 14.90, veg: false, image: foodImages.costelaRaiz, rating: 4.7 },
-      { id: 4, name: 'Frango Supremo', description: 'Filé de frango à parmegiana, arroz branco, batata frita e salada', price: 13.90, veg: false, image: foodImages.frangoCremoso, rating: 4.3 },
-      { id: 5, name: 'Feijoada Astral', description: 'Feijoada brasileira, arroz branco, couve, farofa, torresmo e laranja', price: 12.90, veg: false, image: foodImages.feijoada, rating: 4.9 },
-      { id: 6, name: 'Opção Vegetariana', description: 'Prato vegetariano sob consulta - acompanha bebida e café', price: 12.90, veg: true, image: foodImages.frangoCremoso, rating: 4.2 }
-    ],
-    lanches: [
-      { id: 7, name: 'Hambúrguer com Fritas', description: 'Carne, alface, tomate, cebola, cheddar, molho da casa', price: 7.00, image: foodImages.hamburguer, rating: 4.4 },
-      { id: 8, name: 'Hambúrguer Alto Astral', description: 'Carne 120g, bacon, queijo, anéis de cebola, alface, tomate, cheddar, molho coquetel e especial', price: 9.90, image: foodImages.hamburguer, rating: 4.7 },
-      { id: 9, name: 'Hambúrguer Neg\'s', description: 'Carne 120g, frango panado, bacon, queijo, anéis de cebola, cebola crispy, alface, tomate, cheddar, molho coquetel e especial', price: 12.90, image: foodImages.hamburguer, rating: 4.9 },
-      { id: 10, name: 'Sandes de Panado', description: 'Frango panado, alface, tomate, cebola, molho da casa', price: 5.50, image: foodImages.hamburguer, rating: 4.1 },
-      { id: 11, name: 'Tostas Premium', description: 'Frango ou atum acompanha queijo, alface, tomate e cebola roxa', price: 6.50, image: foodImages.hamburguer, rating: 4.0 },
-      { id: 12, name: 'Sandes Natural', description: 'Patê de frango, queijo, rúcula, tomate, cebola roxa e cenoura ralada', price: 6.50, image: foodImages.hamburguer, rating: 3.9 }
-    ],
-    porcoes: [
-      { id: 13, name: 'Batata Frita', description: 'Porção com 400g de batata frita', price: 4.00, image: foodImages.batataFrita, rating: 4.2 },
-      { id: 14, name: 'Fritas com Bacon e Queijo', description: 'Porção com 400g de batatas com bacon e queijo cheddar', price: 6.50, image: foodImages.batataFrita, rating: 4.6 },
-      { id: 15, name: 'Chouriça com Cebola', description: 'Porção com 600g de chouriça acebolada e pão fatiado', price: 9.00, image: foodImages.batataFrita, rating: 4.5 },
-      { id: 16, name: 'Asinha de Frango', description: 'Porção com 700g de asinhas de frango e molho barbecue', price: 12.00, image: foodImages.batataFrita, rating: 4.4 },
-      { id: 17, name: 'Costelinha', description: 'Porção com 800g de costelinha e molho barbecue', price: 12.00, image: foodImages.batataFrita, rating: 4.7 },
-      { id: 18, name: 'Picanha com Fritas', description: 'Porção com 600g de tiras de picanha temperada com sal de parrilha e acompanhado de batata frita ou doce', price: 18.00, image: foodImages.batataFrita, rating: 4.8 },
-      { id: 19, name: 'Filé de Tilápia', description: 'Porção com 800g de filé de tilápia e molho tartaro', price: 14.00, image: foodImages.batataFrita, rating: 4.3 }
-    ],
-    pasteis: [
-      { id: 20, name: 'Pastel Simples', description: 'Frango desfiado, carne picada ou queijo', price: 5.00, image: foodImages.pastel, rating: 4.3 },
-      { id: 21, name: 'Pastel de Frango com Queijo', description: 'Frango desfiado com queijo', price: 5.50, image: foodImages.pastel, rating: 4.5 },
-      { id: 22, name: 'Pastel de Frango com Queijo e Bacon', description: 'Frango desfiado com queijo e bacon em cubos', price: 6.50, image: foodImages.pastel, rating: 4.7 },
-      { id: 23, name: 'Pastel de Carne com Queijo', description: 'Carne picada com queijo e azeitona', price: 5.50, image: foodImages.pastel, rating: 4.4 },
-      { id: 24, name: 'Pastel de Carne com Queijo e Bacon', description: 'Carne picada com queijo, azeitona e bacon em cubos', price: 6.50, image: foodImages.pastel, rating: 4.6 },
-      { id: 25, name: 'Pastel de Chouriça', description: 'Queijo, chouriça e milho', price: 5.50, image: foodImages.pastel, rating: 4.2 },
-      { id: 26, name: 'Pastel Misto', description: 'Fiambre, queijo, azeitona e milho', price: 5.50, image: foodImages.pastel, rating: 4.1 },
-      { id: 27, name: 'Pastel de Pizza', description: 'Queijo, fiambre, tomate e orégano', price: 5.50, image: foodImages.pastel, rating: 4.0 },
-      { id: 28, name: 'Pastel Alto Astral', description: 'Queijo, bacon, tomate, azeitona, cheddar e orégano', price: 6.50, image: foodImages.pastel, rating: 4.8 },
-      { id: 29, name: 'Pastel Romeu e Julieta', description: 'Queijo com goiabada', price: 5.50, image: foodImages.pastel, rating: 4.7 },
-      { id: 30, name: 'Pastel de Banana com Nutela', description: 'Queijo, banana e nutella', price: 6.00, image: foodImages.pastel, rating: 4.9 }
-    ],
-    cafe: [
-      { id: 31, name: 'Café Expresso', price: 1.00, image: foodImages.cafe, rating: 4.5 },
-      { id: 32, name: 'Café Descafeinado', price: 1.00, image: foodImages.cafe, rating: 4.3 },
-      { id: 33, name: 'Café Duplo', price: 2.00, image: foodImages.cafe, rating: 4.6 },
-      { id: 34, name: 'Garoto', price: 1.00, image: foodImages.cafe, rating: 4.2 },
-      { id: 35, name: 'Abatanado', price: 1.10, image: foodImages.cafe, rating: 4.1 },
-      { id: 36, name: 'Meia de Leite', price: 1.50, image: foodImages.cafe, rating: 4.4 },
-      { id: 37, name: 'Galão', price: 1.60, image: foodImages.cafe, rating: 4.5 },
-      { id: 38, name: 'Chá', price: 1.60, image: foodImages.cafe, rating: 4.0 },
-      { id: 39, name: 'Cappuccino', price: 3.00, image: foodImages.cafe, rating: 4.7 },
-      { id: 40, name: 'Caricoa de Limão', price: 1.00, image: foodImages.cafe, rating: 3.9 },
-      { id: 41, name: 'Chocolate Quente', price: 3.00, image: foodImages.cafe, rating: 4.8 },
-      { id: 42, name: 'Torrada com Pão Caseiro', price: 2.00, image: foodImages.cafe, rating: 4.3 },
-      { id: 43, name: 'Torrada com Pão de Forma', price: 1.50, image: foodImages.cafe, rating: 4.1 },
-      { id: 44, name: 'Meia Torrada', price: 1.00, image: foodImages.cafe, rating: 4.0 },
-      { id: 45, name: 'Croissant Misto', price: 3.00, image: foodImages.cafe, rating: 4.6 },
-      { id: 46, name: 'Croissant Misto Tostado', price: 3.20, image: foodImages.cafe, rating: 4.7 },
-      { id: 47, name: 'Tosta Mista', price: 3.20, image: foodImages.cafe, rating: 4.5 },
-      { id: 48, name: 'Tosta Mista (Pão de Forma)', price: 2.80, image: foodImages.cafe, rating: 4.4 },
-      { id: 49, name: 'Sandes Mista', price: 2.20, image: foodImages.cafe, rating: 4.2 },
-      { id: 50, name: 'Pão com Ovo', price: 2.20, image: foodImages.cafe, rating: 4.1 },
-      { id: 51, name: 'Ovos com Bacon', price: 4.00, image: foodImages.cafe, rating: 4.7 }
-    ],
-    bebidas: [
-      { id: 52, name: 'Caipirinha', description: 'Cachaça 51 ou Velho Barreiro, lima, açúcar e gelo', price: 6.00, image: foodImages.bebida, rating: 4.8 },
-      { id: 53, name: 'Caipiblack', description: 'Cachaça preta, lima, açúcar e gelo', price: 6.00, image: foodImages.bebida, rating: 4.9 },
-      { id: 54, name: 'Whiskey Jamenson', price: 3.50, image: foodImages.bebida, rating: 4.7 },
-      { id: 55, name: 'Whiskey J&B', price: 3.00, image: foodImages.bebida, rating: 4.5 },
-      { id: 56, name: 'Whiskey Jack Daniels', price: 3.50, image: foodImages.bebida, rating: 4.8 },
-      { id: 57, name: 'Whiskey Black Label', price: 4.00, image: foodImages.bebida, rating: 4.9 },
-      { id: 58, name: 'Vodka', price: 4.00, image: foodImages.bebida, rating: 4.6 },
-      { id: 59, name: 'Somersby', price: 2.50, image: foodImages.bebida, rating: 4.4 },
-      { id: 60, name: 'Imperial Heineken (0.20)', price: 1.50, image: foodImages.bebida, rating: 4.5 },
-      { id: 61, name: 'Caneca Heineken (0.50)', price: 3.00, image: foodImages.bebida, rating: 4.7 },
-      { id: 62, name: 'Cerveja Garrafa (0.33ml)', price: 1.40, image: foodImages.bebida, rating: 4.3 },
-      { id: 63, name: 'Cerveja Mini (0.20ml)', price: 1.10, image: foodImages.bebida, rating: 4.2 },
-      { id: 64, name: 'Taça de Sangria', description: 'Sangria branca, rosé ou tinta', price: 6.00, image: foodImages.bebida, rating: 4.8 },
-      { id: 65, name: 'Refrigerante Lata', price: 1.60, image: foodImages.bebida, rating: 4.1 },
-      { id: 66, name: 'Água 1.5L', price: 1.50, image: foodImages.bebida, rating: 4.0 },
-      { id: 67, name: 'Água 0.5L', price: 1.00, image: foodImages.bebida, rating: 4.0 },
-      { id: 68, name: 'Água 0.33L', price: 0.60, image: foodImages.bebida, rating: 4.0 },
-      { id: 69, name: 'Água Castelo', price: 1.40, image: foodImages.bebida, rating: 4.2 },
-      { id: 70, name: 'Água das Pedras', price: 1.40, image: foodImages.bebida, rating: 4.3 }
-    ],
-    salgados: [
-      { id: 71, name: 'Pão de Queijo', price: 1.60, image: foodImages.salgado, rating: 4.5 },
-      { id: 72, name: 'Pastel de Nata', price: 1.30, image: foodImages.salgado, rating: 4.7 },
-      { id: 73, name: 'Empada de Frango', price: 2.00, image: foodImages.salgado, rating: 4.4 },
-      { id: 74, name: 'Kibe', price: 2.20, image: foodImages.salgado, rating: 4.3 },
-      { id: 75, name: 'Fiambre e Queijo', price: 2.20, image: foodImages.salgado, rating: 4.2 },
-      { id: 76, name: 'Bauru', price: 2.20, image: foodImages.salgado, rating: 4.1 },
-      { id: 77, name: 'Bola de Queijo', price: 2.20, image: foodImages.salgado, rating: 4.3 },
-      { id: 78, name: 'Coxinha de Frango', price: 2.20, image: foodImages.salgado, rating: 4.6 },
-      { id: 79, name: 'Coxinha com Catupiry', price: 3.00, image: foodImages.salgado, rating: 4.8 },
-      { id: 80, name: 'Hamburgão', price: 3.50, image: foodImages.salgado, rating: 4.7 }
-    ],
-    sobremesas: [
-      { id: 81, name: 'Bolo no Pote - Prestígio', description: 'Chocolate com coco', price: 4.00, image: foodImages.sobremesa, rating: 4.8 },
-      { id: 82, name: 'Bolo no Pote - Chocolate', description: 'Massa de chocolate com recheio de chocolate', price: 4.00, image: foodImages.sobremesa, rating: 4.9 },
-      { id: 83, name: 'Bolo no Pote - Ananás', description: 'Creme de ninho com pedaços de ananás', price: 4.00, image: foodImages.sobremesa, rating: 4.7 },
-      { id: 84, name: 'Bolo no Pote - Choco Misto', description: 'Chocolate preto com ninho', price: 4.00, image: foodImages.sobremesa, rating: 4.8 },
-      { id: 85, name: 'Cheesecake - Goiabada', price: 3.50, image: foodImages.sobremesa, rating: 4.7 },
-      { id: 86, name: 'Cheesecake - Frutos Vermelhos', price: 3.50, image: foodImages.sobremesa, rating: 4.8 },
-      { id: 87, name: 'Brigadeiro Tradicional', price: 1.50, image: foodImages.sobremesa, rating: 4.6 },
-      { id: 88, name: 'Brigadeiro Beijinho', price: 1.50, image: foodImages.sobremesa, rating: 4.5 },
-      { id: 89, name: 'Brigadeiro Ninho', price: 2.00, image: foodImages.sobremesa, rating: 4.8 },
-      { id: 90, name: 'Brigadeiro Paçoca', price: 2.00, image: foodImages.sobremesa, rating: 4.7 },
-      { id: 91, name: 'Brigadeiro Morango', price: 2.00, image: foodImages.sobremesa, rating: 4.8 },
-      { id: 92, name: 'Brigadeiro Churros', price: 2.00, image: foodImages.sobremesa, rating: 4.9 },
-      { id: 93, name: 'Tarte de Toblerone', price: 2.20, image: foodImages.sobremesa, rating: 4.7 },
-      { id: 94, name: 'Bolo de Brigadeiro (fatia)', price: 2.20, image: foodImages.sobremesa, rating: 4.8 }
-    ]
-  };
+ 
 
   const addNotification = (message, type = 'info') => {
     const id = Date.now();
@@ -897,22 +893,37 @@ const InterfaceCliente = () => {
   };
 
   const handleCheckout = async () => {
-    const orderRef = ref(database, 'orders');
-    
-    const newOrder = {
-      items: cart,
-      customer: customerInfo,
-      orderType: orderType,
-      tableNumber: (orderType === 'dine-in' || orderType === 'event') ? tableNumber : null,
-      total: calculateTotal(),
-      status: (orderType === 'dine-in' || orderType === 'event') ? 'pending' : 'received',
-      timestamp: Date.now()
-    };
-  
     try {
-      await push(orderRef, newOrder);
+      await loginAnonimo();
       
-      if (orderType === 'takeaway' || orderType === 'delivery') {
+      const orderRef = ref(database, 'orders');
+      const newOrder = {
+        items: cart,
+        customer: customerInfo,
+        orderType: orderType,
+        tableNumber: orderType === 'dine-in' ? tableNumber : null,
+        total: calculateTotal(),
+        status: orderType === 'dine-in' ? 'pending' : 'received',
+        timestamp: Date.now()
+      };
+  
+      // Validação básica antes de enviar
+      if (newOrder.items.length === 0) {
+        throw new Error('O carrinho está vazio');
+      }
+      
+      if (orderType === 'delivery' && (!customerInfo.name || !customerInfo.phone || !customerInfo.address)) {
+        throw new Error('Informações do cliente incompletas para entrega');
+      }
+      
+      if (orderType === 'takeaway' && (!customerInfo.name || !customerInfo.phone)) {
+        throw new Error('Informações do cliente incompletas para retirada');
+      }
+  
+      const newOrderRef = await push(orderRef, newOrder);
+      
+      // Envio para WhatsApp apenas se for takeaway ou delivery
+      if (orderType !== 'dine-in') {
         const phoneNumber = '351933737672';
         const message = `*Novo Pedido Alto Astral*%0A%0A` +
           `*Tipo:* ${orderType === 'takeaway' ? 'Retirada' : 'Entrega'}%0A` +
@@ -931,10 +942,9 @@ const InterfaceCliente = () => {
       setCart([]);
     } catch (error) {
       console.error("Erro ao enviar pedido:", error);
-      addNotification('Erro ao enviar pedido. Tente novamente.', 'error');
+      addNotification(error.message || 'Erro ao enviar pedido. Tente novamente.', 'error');
     }
   };
-
   const filteredMenu = (category) => {
     const items = menu[category];
     if (!searchQuery) return items;
@@ -985,12 +995,6 @@ const InterfaceCliente = () => {
                 <FiHome className="mr-2" /> Mesa {tableNumber}
               </p>
             </div>
-          ) : orderType === 'event' ? (
-            <div className="mb-6 bg-purple-100 text-purple-700 p-3 rounded-lg">
-              <p className="flex items-center justify-center">
-                <FiCalendar className="mr-2" /> Comanda {customerInfo.eventNumber}
-              </p>
-            </div>
           ) : (
             <div className="mb-6 bg-astral/10 text-astral p-3 rounded-lg">
               <p className="flex items-center justify-center">
@@ -1013,7 +1017,7 @@ const InterfaceCliente = () => {
 
   if (checkoutStep === 'order-type') {
     return (
-      <div className="min-h-screen bg-gray-50 p-4">
+      <div className="min-h-screen bg-white-50 p-4">
         <div className="max-w-md mx-auto">
           <div className="flex items-center mb-6">
             <button
@@ -1048,22 +1052,6 @@ const InterfaceCliente = () => {
                   <FiHome size={32} className={orderType === 'dine-in' ? 'text-astral' : 'text-gray-400'} />
                   <span className="text-lg font-medium">Comer no Restaurante</span>
                   <span className="text-sm text-gray-500">O pedido será enviado diretamente ao garçom</span>
-                </div>
-              </motion.button>
-
-              <motion.button
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                onClick={() => {
-                  setOrderType('event');
-                  setCheckoutStep('customer-info');
-                }}
-                className={`p-6 rounded-xl border-2 transition-all ${orderType === 'event' ? 'border-purple-500 bg-purple-50 text-purple-700' : 'border-gray-200 bg-white'}`}
-              >
-                <div className="flex flex-col items-center space-y-3">
-                  <FiCalendar size={32} className={orderType === 'event' ? 'text-purple-500' : 'text-gray-400'} />
-                  <span className="text-lg font-medium">Participante de Evento</span>
-                  <span className="text-sm text-gray-500">Pedido para mesas de eventos especiais</span>
                 </div>
               </motion.button>
               
@@ -1209,11 +1197,9 @@ const InterfaceCliente = () => {
           >
             <h3 className="text-lg font-semibold mb-4 flex items-center">
               {orderType === 'dine-in' ? <FiHome className="mr-2 text-astral" /> : 
-               orderType === 'event' ? <FiCalendar className="mr-2 text-purple-500" /> :
                orderType === 'takeaway' ? <FiShoppingCart className="mr-2 text-astral" /> : 
                <FiTruck className="mr-2 text-astral" />}
               {orderType === 'dine-in' ? 'Informações da Mesa' : 
-               orderType === 'event' ? 'Informações do Evento' :
                orderType === 'takeaway' ? 'Informações para Retirada' : 
                'Informações para Entrega'}
             </h3>
@@ -1227,20 +1213,6 @@ const InterfaceCliente = () => {
                     value={`Mesa ${tableNumber}`}
                     className="w-full p-3 border border-gray-300 rounded-lg bg-gray-100 cursor-not-allowed"
                     disabled
-                  />
-                </div>
-              )}
-
-              {orderType === 'event' && (
-                <div>
-                  <label className="block text-gray-700 mb-1">Número da Comanda *</label>
-                  <input
-                    type="number"
-                    value={customerInfo.eventNumber}
-                    onChange={(e) => setCustomerInfo({...customerInfo, eventNumber: e.target.value})}
-                    className="w-full p-3 border border-gray-300 rounded-lg"
-                    required
-                    placeholder="Digite o número da sua comanda"
                   />
                 </div>
               )}
@@ -1450,7 +1422,6 @@ const InterfaceCliente = () => {
                   !customerInfo.name || 
                   !customerInfo.phone
                 )) ||
-                (orderType === 'event' && !customerInfo.eventNumber) ||
                 cart.length === 0
               }
             >
@@ -1463,7 +1434,7 @@ const InterfaceCliente = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-white-50">
       <div className="fixed top-4 right-4 z-50 space-y-2">
         <AnimatePresence>
           {notifications.map((notification) => (
@@ -1558,34 +1529,36 @@ const InterfaceCliente = () => {
         )}
       </AnimatePresence>
 
-      <header className="bg-gradient-to-r from-astral to-astral-dark text-white p-4 shadow-lg sticky top-0 z-20">
-        <div className="container mx-auto flex justify-between items-center">
-          <div className="flex items-center">
-            <img src={logoWhite} alt="Alto Astral" className="h-10 mr-2" />
-            <h1 className="text-2xl font-bold hidden sm:block">Alto Astral</h1>
-          </div>
-          <div className="flex items-center space-x-4">
-            <motion.button 
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              onClick={proceedToCheckout}
-              className="relative bg-white/20 hover:bg-white/30 px-4 py-2 rounded-lg flex items-center transition backdrop-blur-sm"
-              disabled={cart.length === 0}
-            >
-              <FiShoppingCart className="mr-2" />
-              <span className="hidden sm:inline">Carrinho</span>
-              {cart.length > 0 && (
-                <motion.span 
-                  animate={controls}
-                  className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full h-6 w-6 flex items-center justify-center"
-                >
-                  {cart.reduce((sum, item) => sum + item.quantity, 0)}
-                </motion.span>
-              )}
-            </motion.button>
-          </div>
-        </div>
-      </header>
+      <header className="bg-white text-gray-900 p-4 shadow-lg sticky top-0 z-20">
+  <div className="container mx-auto flex justify-between items-center">
+    <div className="flex items-center">
+      <img src={logoWhite} alt="Alto Astral" className="h-16 mr-2" />
+      <h1 className="text-2xl font-bold hidden sm:block">Alto Astral</h1>
+    </div>
+    <div className="flex items-center space-x-4">
+  <motion.button 
+    whileHover={{ scale: 1.05 }}
+    whileTap={{ scale: 0.95 }}
+    onClick={proceedToCheckout}
+    className="relative bg-white hover:bg-gray-100 px-4 py-2 rounded-lg flex items-center transition backdrop-blur-sm"
+    disabled={cart.length === 0}
+  >
+    <FiShoppingCart className="mr-2" />
+    <span className="hidden sm:inline">Carrinho</span>
+    {cart.length > 0 && (
+      <motion.span 
+        animate={controls}
+        className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full h-6 w-6 flex items-center justify-center"
+      >
+        {cart.reduce((sum, item) => sum + item.quantity, 0)}
+      </motion.span>
+    )}
+  </motion.button>
+</div>
+
+  </div>
+</header>
+
 
       <div className="relative h-64 md:h-80 overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-r from-black/60 to-transparent z-20"></div>
@@ -1641,83 +1614,102 @@ const InterfaceCliente = () => {
       </div>
 
       <div className="bg-white shadow-sm sticky top-16 z-10">
-        <div className="container mx-auto overflow-x-auto">
-          <div className="flex space-x-1 p-2">
-            <motion.button
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              onClick={() => setActiveTab('semana')}
-              className={`px-4 py-2 rounded-lg whitespace-nowrap flex items-center transition ${activeTab === 'semana' ? 'bg-astral text-white' : 'bg-gray-100'}`}
-            >
-              <FiCalendar className="mr-2" />
-              Cardápio da Semana
-            </motion.button>
-            <motion.button
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              onClick={() => setActiveTab('lanches')}
-              className={`px-4 py-2 rounded-lg whitespace-nowrap flex items-center transition ${activeTab === 'lanches' ? 'bg-astral text-white' : 'bg-gray-100'}`}
-            >
-              <FiCoffee className="mr-2" />
-              Lanches
-            </motion.button>
-            <motion.button
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              onClick={() => setActiveTab('porcoes')}
-              className={`px-4 py-2 rounded-lg whitespace-nowrap flex items-center transition ${activeTab === 'porcoes' ? 'bg-astral text-white' : 'bg-gray-100'}`}
-            >
-              <FiPlus className="mr-2" />
-              Porções
-            </motion.button>
-            <motion.button
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              onClick={() => setActiveTab('pasteis')}
-              className={`px-4 py-2 rounded-lg whitespace-nowrap flex items-center transition ${activeTab === 'pasteis' ? 'bg-astral text-white' : 'bg-gray-100'}`}
-            >
-              <FiInfo className="mr-2" />
-              Pasteis
-            </motion.button>
-            <motion.button
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              onClick={() => setActiveTab('cafe')}
-              className={`px-4 py-2 rounded-lg whitespace-nowrap flex items-center transition ${activeTab === 'cafe' ? 'bg-astral text-white' : 'bg-gray-100'}`}
-            >
-              <FiCoffee className="mr-2" />
-              Bom Dia
-            </motion.button>
-            <motion.button
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              onClick={() => setActiveTab('bebidas')}
-              className={`px-4 py-2 rounded-lg whitespace-nowrap flex items-center transition ${activeTab === 'bebidas' ? 'bg-astral text-white' : 'bg-gray-100'}`}
-            >
-              <FiPlus className="mr-2" />
-              Bebidas
-            </motion.button>
-            <motion.button
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              onClick={() => setActiveTab('salgados')}
-              className={`px-4 py-2 rounded-lg whitespace-nowrap flex items-center transition ${activeTab === 'salgados' ? 'bg-astral text-white' : 'bg-gray-100'}`}
-            >
-              <FiInfo className="mr-2" />
-              Salgados
-            </motion.button>
-            <motion.button
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              onClick={() => setActiveTab('sobremesas')}
-              className={`px-4 py-2 rounded-lg whitespace-nowrap flex items-center transition ${activeTab === 'sobremesas' ? 'bg-astral text-white' : 'bg-gray-100'}`}
-            >
-              <FiCoffee className="mr-2" />
-              Sobremesas
-            </motion.button>
-          </div>
-        </div>
-      </div>
+  <div className="container mx-auto overflow-x-auto">
+    <div className="flex space-x-1 p-2">
+      <motion.button
+        whileHover={{ scale: 1.02 }}
+        whileTap={{ scale: 0.98 }}
+        onClick={() => setActiveTab('semana')}
+        className={`px-4 py-2 rounded-lg whitespace-nowrap flex items-center transition border border-[#F6BF43] ${
+          activeTab === 'semana' ? 'bg-[#575449] text-[#F6BF43] font-bold' : 'bg-[#9C9683] text-[#F6BF43] font-bold'
+        }`}
+      >
+        <FiCalendar className="mr-2" />
+        Cardápio da Semana
+      </motion.button>
+      <motion.button
+        whileHover={{ scale: 1.02 }}
+        whileTap={{ scale: 0.98 }}
+        onClick={() => setActiveTab('lanches')}
+        className={`px-4 py-2 rounded-lg whitespace-nowrap flex items-center transition border border-[#F6BF43] ${
+          activeTab === 'lanches' ? 'bg-[#575449] text-[#F6BF43] font-bold' : 'bg-[#9C9683] text-[#F6BF43] font-bold'
+        }`}
+      >
+        <FiCoffee className="mr-2" />
+        Lanches
+      </motion.button>
+      <motion.button
+        whileHover={{ scale: 1.02 }}
+        whileTap={{ scale: 0.98 }}
+        onClick={() => setActiveTab('porcoes')}
+        className={`px-4 py-2 rounded-lg whitespace-nowrap flex items-center transition border border-[#F6BF43] ${
+          activeTab === 'porcoes' ? 'bg-[#575449] text-[#F6BF43] font-bold' : 'bg-[#9C9683] text-[#F6BF43] font-bold'
+        }`}
+      >
+        <FiPlus className="mr-2" />
+        Porções
+      </motion.button>
+      <motion.button
+        whileHover={{ scale: 1.02 }}
+        whileTap={{ scale: 0.98 }}
+        onClick={() => setActiveTab('pasteis')}
+        className={`px-4 py-2 rounded-lg whitespace-nowrap flex items-center transition border border-[#F6BF43] ${
+          activeTab === 'pasteis' ? 'bg-[#575449] text-[#F6BF43] font-bold' : 'bg-[#9C9683] text-[#F6BF43] font-bold'
+        }`}
+      >
+        <FiInfo className="mr-2" />
+        Pasteis
+      </motion.button>
+      <motion.button
+        whileHover={{ scale: 1.02 }}
+        whileTap={{ scale: 0.98 }}
+        onClick={() => setActiveTab('cafe')}
+        className={`px-4 py-2 rounded-lg whitespace-nowrap flex items-center transition border border-[#F6BF43] ${
+          activeTab === 'cafe' ? 'bg-[#575449] text-[#F6BF43] font-bold' : 'bg-[#9C9683] text-[#F6BF43] font-bold'
+        }`}
+      >
+        <FiCoffee className="mr-2" />
+        Bom Dia
+      </motion.button>
+      <motion.button
+        whileHover={{ scale: 1.02 }}
+        whileTap={{ scale: 0.98 }}
+        onClick={() => setActiveTab('bebidas')}
+        className={`px-4 py-2 rounded-lg whitespace-nowrap flex items-center transition border border-[#F6BF43] ${
+          activeTab === 'bebidas' ? 'bg-[#575449] text-[#F6BF43] font-bold' : 'bg-[#9C9683] text-[#F6BF43] font-bold'
+        }`}
+      >
+        <FiPlus className="mr-2" />
+        Bebidas
+      </motion.button>
+      <motion.button
+        whileHover={{ scale: 1.02 }}
+        whileTap={{ scale: 0.98 }}
+        onClick={() => setActiveTab('salgados')}
+        className={`px-4 py-2 rounded-lg whitespace-nowrap flex items-center transition border border-[#F6BF43] ${
+          activeTab === 'salgados' ? 'bg-[#575449] text-[#F6BF43] font-bold' : 'bg-[#9C9683] text-[#F6BF43] font-bold'
+        }`}
+      >
+        <FiInfo className="mr-2" />
+        Salgados
+      </motion.button>
+      <motion.button
+        whileHover={{ scale: 1.02 }}
+        whileTap={{ scale: 0.98 }}
+        onClick={() => setActiveTab('sobremesas')}
+        className={`px-4 py-2 rounded-lg whitespace-nowrap flex items-center transition border border-[#F6BF43] ${
+          activeTab === 'sobremesas' ? 'bg-[#575449] text-[#F6BF43] font-bold' : 'bg-[#9C9683] text-[#F6BF43] font-bold'
+        }`}
+      >
+        <FiCoffee className="mr-2" />
+        Sobremesas
+      </motion.button>
+    </div>
+  </div>
+</div>
+
+
+
 
       <main className="container mx-auto p-4 pb-20">
         <AnimatePresence mode="wait">
@@ -1785,7 +1777,7 @@ const InterfaceCliente = () => {
                             id={`add-${item.id}`}
                             onClick={() => addToCart(item)}
                             size="small"
-                            className="flex-shrink-0"
+                            className="mt-4 w-full bg-[#958D80] text-black hover:bg-[#7a7368]"
                           >
                             <FiPlus className="mr-1" />
                             Adicionar
@@ -2143,95 +2135,6 @@ const InterfaceCliente = () => {
                   <p className="text-sm text-pink-800 font-semibold">Doces feitos com amor para adoçar seu dia!</p>
                 </div>
                 
-                <h3 className="font-bold text-xl mb-4 text-gray-700 flex items-center">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2 text-astral" viewBox="0 0 20 20" fill="currentColor">
-                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                  </svg>
-                  Bolos no Pote (€4.00)
-                </h3>
-                <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-                  {filteredMenu('sobremesas').slice(0, 4).map(item => (
-                    <Card key={item.id}>
-                      <div className="relative h-48 overflow-hidden group">
-                        <img 
-                          src={item.image} 
-                          alt={item.name} 
-                          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-                        />
-                        <button 
-                          onClick={() => toggleFavorite(item.id)}
-                          className="absolute top-2 right-2 p-2 bg-white/80 rounded-full backdrop-blur-sm hover:bg-white transition"
-                        >
-                          <FiHeart 
-                            className={`w-5 h-5 ${favorites.includes(item.id) ? 'text-red-500 fill-red-500' : 'text-gray-400'}`} 
-                          />
-                        </button>
-                      </div>
-                      <div className="p-4">
-                        <div className="flex justify-between items-start">
-                          <h4 className="font-semibold">{item.name}</h4>
-                          <span className="font-bold text-astral bg-astral/10 px-2 py-1 rounded-lg">€{item.price.toFixed(2)}</span>
-                        </div>
-                        <Rating value={Math.round(item.rating)} className="my-1" />
-                        <p className="text-gray-600 text-sm mt-2">{item.description}</p>
-                        <Button
-                          id={`add-${item.id}`}
-                          onClick={() => addToCart(item)}
-                          size="small"
-                          className="mt-4 w-full"
-                        >
-                          <FiPlus className="mr-1" />
-                          Adicionar
-                        </Button>
-                      </div>
-                    </Card>
-                  ))}
-                </div>
-
-                <h3 className="font-bold text-xl mb-4 text-gray-700 flex items-center">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2 text-astral" viewBox="0 0 20 20" fill="currentColor">
-                    <path fillRule="evenodd" d="M6 3a1 1 0 011-1h.01a1 1 0 010 2H7a1 1 0 01-1-1zm2 3a1 1 0 00-2 0v1a2 2 0 00-2 2v1a2 2 0 00-2 2v.683a3.7 3.7 0 011.055.485 1.704 1.704 0 001.89 0 3.704 3.704 0 014.11 0 1.704 1.704 0 001.89 0 3.704 3.704 0 014.11 0 1.704 1.704 0 001.89 0A3.7 3.7 0 0118 12.683V12a2 2 0 00-2-2V9a2 2 0 00-2-2V6a1 1 0 10-2 0v1h-1V6a1 1 0 10-2 0v1H8V6zm10 8.868a3.704 3.704 0 01-4.055-.036 1.704 1.704 0 00-1.89 0 3.704 3.704 0 01-4.11 0 1.704 1.704 0 00-1.89 0A3.704 3.704 0 012 14.868V17a1 1 0 001 1h14a1 1 0 001-1v-2.132zM9 3a1 1 0 011-1h.01a1 1 0 110 2H10a1 1 0 01-1-1zm3 0a1 1 0 011-1h.01a1 1 0 110 2H13a1 1 0 01-1-1z" clipRule="evenodd" />
-                  </svg>
-                  Cheesecake
-                </h3>
-                <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-                  {filteredMenu('sobremesas').slice(4, 6).map(item => (
-                    <Card key={item.id}>
-                      <div className="relative h-48 overflow-hidden group">
-                        <img 
-                          src={item.image} 
-                          alt={item.name} 
-                          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-                        />
-                        <button 
-                          onClick={() => toggleFavorite(item.id)}
-                          className="absolute top-2 right-2 p-2 bg-white/80 rounded-full backdrop-blur-sm hover:bg-white transition"
-                        >
-                          <FiHeart 
-                            className={`w-5 h-5 ${favorites.includes(item.id) ? 'text-red-500 fill-red-500' : 'text-gray-400'}`} 
-                          />
-                        </button>
-                      </div>
-                      <div className="p-4">
-                        <div className="flex justify-between items-start">
-                          <h4 className="font-semibold">{item.name}</h4>
-                          <span className="font-bold text-astral bg-astral/10 px-2 py-1 rounded-lg">€{item.price.toFixed(2)}</span>
-                        </div>
-                        <Rating value={Math.round(item.rating)} className="my-1" />
-                        <Button
-                          id={`add-${item.id}`}
-                          onClick={() => addToCart(item)}
-                          size="small"
-                          className="mt-4 w-full"
-                        >
-                          <FiPlus className="mr-1" />
-                          Adicionar
-                        </Button>
-                      </div>
-                    </Card>
-                  ))}
-                </div>
-
                 <h3 className="font-bold text-xl mb-4 text-gray-700 flex items-center">
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2 text-astral" viewBox="0 0 20 20" fill="currentColor">
                     <path d="M5 4a2 2 0 012-2h6a2 2 0 012 2v14l-5-2.5L5 18V4z" />

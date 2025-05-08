@@ -1,26 +1,31 @@
 import { initializeApp } from "firebase/app";
 import { getDatabase, ref, push, onValue, update, remove } from "firebase/database";
-import { 
-  getAuth, 
-  signInWithEmailAndPassword, 
-  signOut, 
-  sendPasswordResetEmail,
-  onAuthStateChanged
-} from "firebase/auth";
+import { getAuth, signInAnonymously } from "firebase/auth";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyDPGwoIF7ReMQsjXGngZ86vuC1P2X0iV0E",
-  authDomain: "auto-astral-b5295.firebaseapp.com",
-  databaseURL: "https://auto-astral-b5295-default-rtdb.europe-west1.firebasedatabase.app",
-  projectId: "auto-astral-b5295",
-  storageBucket: "auto-astral-b5295.firebasestorage.app",
-  messagingSenderId: "865984431676",
-  appId: "1:865984431676:web:1202dc70df895259c46539"
+  apiKey: "AIzaSyBm6iMm6gMBSqwQrHyWPIt0MpBqvB-Mt5o",
+  authDomain: "auto-astral-frontend.firebaseapp.com",
+  projectId: "auto-astral-frontend",
+  storageBucket: "auto-astral-frontend.appspot.com",
+  messagingSenderId: "827832154065",
+  databaseURL: "https://auto-astral-frontend-default-rtdb.europe-west1.firebasedatabase.app",
+  appId: "1:827832154065:web:564e56d6b7057719fa92f0"
 };
 
 const app = initializeApp(firebaseConfig);
 const database = getDatabase(app);
 const auth = getAuth(app);
+
+// Função para login anônimo
+export const loginAnonimo = async () => {
+  try {
+    const userCredential = await signInAnonymously(auth);
+    return userCredential.user;
+  } catch (error) {
+    console.error("Erro no login anônimo:", error);
+    throw error;
+  }
+};
 
 export { 
   database, 
@@ -29,9 +34,6 @@ export {
   onValue, 
   update, 
   remove, 
-  auth, 
-  signInWithEmailAndPassword, 
-  signOut,
-  sendPasswordResetEmail,
-  onAuthStateChanged
+  auth,
+  getDatabase,
 };

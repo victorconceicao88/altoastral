@@ -11,12 +11,16 @@ const QRCodeGenerator = () => {
     const url = window.location.origin;
     setBaseUrl(url);
     
-    const codes = Array.from({ length: 16 }, (_, i) => ({
-      tableNumber: i + 1,
-      area: i < 8 ? 'Interna' : 'Esplanada',
-      url: `${url}?table=${i + 1}`,
-      qrImage: `https://api.qrserver.com/v1/create-qr-code/?size=200x200&margin=10&data=${encodeURIComponent(`${url}?table=${i + 1}`)}`
-    }));
+    const codes = Array.from({ length: 16 }, (_, i) => {
+      const tableNumber = i + 1;
+      const mesaUrl = `${url}/mesa${tableNumber}?table=${tableNumber}&orderType=dine-in`;
+      return {
+        tableNumber: tableNumber,
+        area: i < 8 ? 'Interna' : 'Esplanada',
+        url: mesaUrl,
+        qrImage: `https://api.qrserver.com/v1/create-qr-code/?size=200x200&margin=10&data=${encodeURIComponent(mesaUrl)}`
+      };
+    });
     
     setQrCodes(codes);
   }, []);

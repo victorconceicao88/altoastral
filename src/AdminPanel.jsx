@@ -1,10 +1,12 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
+import { signInAnonymously } from 'firebase/auth';
+import { loginAnonimo } from './firebase';
 import { 
   FiShoppingCart, FiClock, FiCheck, FiTruck, 
   FiHome, FiPieChart, FiSettings, FiPlus, FiEdit, FiTrash2,
   FiFilter, FiSearch, FiPrinter, FiDownload, FiRefreshCw, FiAlertCircle,
-  FiArrowLeft, FiX, FiInfo, FiUser, FiUsers, FiPlusCircle, FiMinusCircle, FiCalendar, FiMinus,FiCoffee,
-  FiChevronDown, FiChevronUp, FiTag
+  FiArrowLeft, FiX, FiInfo, FiUser, FiUsers, FiPlusCircle, FiMinusCircle, FiCalendar, FiMinus, FiCoffee,
+  FiChevronDown, FiChevronUp, FiTag, FiDollarSign, FiPackage, FiList,FiCheckCircle
 } from 'react-icons/fi';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ref, push, onValue, update, remove } from 'firebase/database';
@@ -13,20 +15,39 @@ import { toast } from 'react-toastify';
 import logo from './assets/logo-alto-astral.png';
 import { database } from './firebase';
 
-// Componentes UI (atualizados com novos estilos)
-const Typography = ({ children, variant = 'body', className = '' }) => {
+// Configurações da impressora Bluetooth
+const PRINTER_CONFIG = {
+  deviceName: "BlueTooth Printer",
+  serviceUUID: "0000ff00-0000-1000-8000-00805f9b34fb",
+  characteristicUUID: "0000ff02-0000-1000-8000-00805f9b34fb",
+  maxRetries: 3,
+  chunkSize: 100,
+  delayBetweenChunks: 100
+};
+
+// Componentes UI atualizados
+const Typography = ({ children, variant = 'body', className = '', color = 'default' }) => {
   const variants = {
-    h1: 'text-3xl md:text-4xl font-bold text-gray-800',
-    h2: 'text-2xl md:text-3xl font-bold text-gray-800',
-    h3: 'text-xl md:text-2xl font-semibold text-gray-700',
-    purple: 'bg-purple-100 text-purple-800',
-    subtitle: 'text-lg text-gray-500',
-    body: 'text-base text-gray-700',
-    caption: 'text-sm text-gray-500'
+    h1: 'text-3xl md:text-4xl font-bold',
+    h2: 'text-2xl md:text-3xl font-bold',
+    h3: 'text-xl md:text-2xl font-semibold',
+    subtitle: 'text-lg font-medium',
+    body: 'text-base',
+    caption: 'text-sm'
   };
-  
+
+  const colors = {
+    default: 'text-gray-800',
+    primary: 'text-astral',
+    secondary: 'text-gray-600',
+    light: 'text-gray-500',
+    white: 'text-white',
+    danger: 'text-red-600',
+    success: 'text-green-600'
+  };
+
   return (
-    <div className={`${variants[variant]} ${className}`}>
+    <div className={`${variants[variant]} ${colors[color]} ${className}`}>
       {children}
     </div>
   );
@@ -40,13 +61,14 @@ const Button = ({ children, variant = 'primary', size = 'medium', icon: Icon, ic
     ghost: 'hover:bg-gray-100 text-gray-700',
     danger: 'bg-red-500 hover:bg-red-600 text-white',
     success: 'bg-green-500 hover:bg-green-600 text-white',
-    premium: 'bg-gradient-to-r from-purple-600 to-purple-800 text-white shadow-lg hover:shadow-purple-500/30'
+    premium: 'bg-gradient-to-r from-purple-600 to-purple-800 text-white shadow-lg hover:shadow-purple-500/30',
+    light: 'bg-gray-100 hover:bg-gray-200 text-gray-800'
   };
 
   const sizes = {
     small: 'py-1.5 px-3 text-sm',
-    medium: 'py-2.5 px-5',
-    large: 'py-3.5 px-7 text-lg'
+    medium: 'py-2 px-4',
+    large: 'py-3 px-5 text-lg'
   };
 
   return (
@@ -66,10 +88,11 @@ const Button = ({ children, variant = 'primary', size = 'medium', icon: Icon, ic
   );
 };
 
-const Card = ({ children, className = '', hoverEffect = false }) => {
+const Card = ({ children, className = '', hoverEffect = false, noPadding = false }) => {
   return (
-    <div className={`bg-white rounded-2xl shadow-sm overflow-hidden border border-gray-200 
-      ${hoverEffect ? 'hover:shadow-md transition-all duration-300' : ''} ${className}`}>
+    <div className={`bg-white rounded-2xl shadow-sm overflow-hidden border border-gray-100 
+      ${hoverEffect ? 'hover:shadow-md transition-all duration-300' : ''} 
+      ${noPadding ? '' : 'p-4 md:p-6'} ${className}`}>
       {children}
     </div>
   );
@@ -96,22 +119,26 @@ const Badge = ({ children, variant = 'default', className = '' }) => {
 
 const StatusBadge = ({ status }) => {
   const statusMap = {
-    'pending': { color: 'warning', text: 'Pendente' },
-    'preparing': { color: 'info', text: 'Em Preparo' },
-    'ready': { color: 'success', text: 'Pronto' },
-    'completed': { color: 'dark', text: 'Concluído' },
-    'canceled': { color: 'danger', text: 'Cancelado' },
-    'editing': { color: 'info', text: 'Em Edição' },
-    'event': { color: 'purple', text: 'Evento' }
+    'pending': { color: 'warning', text: 'Pendente', icon: <FiClock className="mr-1" /> },
+    'preparing': { color: 'info', text: 'Em Preparo', icon: <FiPackage className="mr-1" /> },
+    'ready': { color: 'success', text: 'Pronto', icon: <FiCheck className="mr-1" /> },
+    'completed': { color: 'dark', text: 'Concluído', icon: <FiCheckCircle className="mr-1" /> },
+    'canceled': { color: 'danger', text: 'Cancelado', icon: <FiX className="mr-1" /> },
+    'editing': { color: 'info', text: 'Em Edição', icon: <FiEdit className="mr-1" /> }
   };
 
-  return <Badge variant={statusMap[status]?.color || 'default'}>{statusMap[status]?.text || status}</Badge>;
+  return (
+    <Badge variant={statusMap[status]?.color || 'default'} className="flex items-center">
+      {statusMap[status]?.icon}
+      {statusMap[status]?.text || status}
+    </Badge>
+  );
 };
 
 const Input = ({ label, icon: Icon, className = '', ...props }) => {
   return (
     <div className={`mb-4 ${className}`}>
-      {label && <label className="block text-gray-700 mb-1">{label}</label>}
+      {label && <label className="block text-gray-700 text-sm font-medium mb-1">{label}</label>}
       <div className="relative">
         {Icon && (
           <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -119,7 +146,7 @@ const Input = ({ label, icon: Icon, className = '', ...props }) => {
           </div>
         )}
         <input
-          className={`w-full ${Icon ? 'pl-10' : 'pl-3'} p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-astral focus:border-transparent`}
+          className={`w-full ${Icon ? 'pl-10' : 'pl-3'} p-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-astral focus:border-transparent transition`}
           {...props}
         />
       </div>
@@ -130,9 +157,9 @@ const Input = ({ label, icon: Icon, className = '', ...props }) => {
 const Select = ({ label, options, className = '', ...props }) => {
   return (
     <div className={`mb-4 ${className}`}>
-      {label && <label className="block text-gray-700 mb-1">{label}</label>}
+      {label && <label className="block text-gray-700 text-sm font-medium mb-1">{label}</label>}
       <select
-        className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-astral focus:border-transparent bg-white"
+        className="w-full p-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-astral focus:border-transparent bg-white transition"
         {...props}
       >
         {options.map(option => (
@@ -167,21 +194,21 @@ const Modal = ({ isOpen, onClose, title, children, size = 'md' }) => {
             initial={{ scale: 0.9, y: 20 }}
             animate={{ scale: 1, y: 0 }}
             exit={{ scale: 0.9, y: 20 }}
-            className={`bg-white rounded-2xl shadow-2xl w-full ${sizeClasses[size]} max-h-[90vh] flex flex-col`}
+            className={`bg-white rounded-2xl shadow-2xl w-full ${sizeClasses[size]} max-h-[90vh] flex flex-col overflow-hidden`}
           >
-            <div className="p-6 border-b border-gray-200 flex justify-between items-center">
-              <h3 className="text-xl font-bold text-gray-800">{title}</h3>
+            <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-gradient-to-r from-astral to-astral-dark">
+              <h3 className="text-xl font-bold text-white">{title}</h3>
               <button 
                 onClick={onClose}
-                className="text-gray-500 hover:text-gray-700 p-1"
+                className="text-white hover:text-gray-200 p-1 transition"
               >
                 <FiX className="h-6 w-6" />
               </button>
             </div>
-            <div className="p-6 overflow-y-auto flex-grow">
+            <div className="p-6 overflow-y-auto flex-grow bg-gray-50">
               {children}
             </div>
-            <div className="p-6 border-t border-gray-200 flex justify-end space-x-3">
+            <div className="p-4 border-t border-gray-100 flex justify-end space-x-3 bg-white">
               <Button variant="outline" onClick={onClose}>
                 Cancelar
               </Button>
@@ -195,6 +222,7 @@ const Modal = ({ isOpen, onClose, title, children, size = 'md' }) => {
     </AnimatePresence>
   );
 };
+
 
 // Menu data structure (mantido igual)
 const menu = {
@@ -310,12 +338,12 @@ const menu = {
   ]
 };
 
-// Novo componente para exibir itens do menu
+/// Novo componente para exibir itens do menu
 const MenuItemCard = ({ item, onAdd, onRemove, currentQuantity = 0 }) => {
   return (
     <motion.div 
       whileHover={{ y: -2 }}
-      className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden"
+      className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden transition hover:shadow-md"
     >
       <div className="p-4">
         <div className="flex justify-between items-start">
@@ -327,7 +355,7 @@ const MenuItemCard = ({ item, onAdd, onRemove, currentQuantity = 0 }) => {
               </Typography>
             )}
           </div>
-          <Typography variant="body" className="font-medium text-astral ml-2">
+          <Typography variant="body" className="font-medium text-astral ml-2 whitespace-nowrap">
             €{item.price.toFixed(2)}
           </Typography>
         </div>
@@ -338,16 +366,16 @@ const MenuItemCard = ({ item, onAdd, onRemove, currentQuantity = 0 }) => {
               <div className="flex items-center border border-gray-200 rounded-lg overflow-hidden">
                 <button
                   onClick={() => onRemove(item.id)}
-                  className="px-3 py-1 bg-gray-100 hover:bg-gray-200 text-gray-700"
+                  className="px-3 py-1 bg-gray-50 hover:bg-gray-100 text-gray-700 transition"
                 >
                   <FiMinus size={16} />
                 </button>
-                <span className="px-3 py-1 bg-white w-12 text-center">
+                <span className="px-3 py-1 bg-white w-12 text-center border-x border-gray-200">
                   {currentQuantity}
                 </span>
                 <button
                   onClick={() => onAdd(item)}
-                  className="px-3 py-1 bg-gray-100 hover:bg-gray-200 text-gray-700"
+                  className="px-3 py-1 bg-gray-50 hover:bg-gray-100 text-gray-700 transition"
                 >
                   <FiPlus size={16} />
                 </button>
@@ -372,10 +400,9 @@ const MenuItemCard = ({ item, onAdd, onRemove, currentQuantity = 0 }) => {
   );
 };
 
-// Novo componente para exibir itens do pedido atual
 const OrderItem = ({ item, onQuantityChange, onRemove }) => {
   return (
-    <div className="flex justify-between items-center p-3 hover:bg-gray-50 rounded-lg">
+    <div className="flex justify-between items-center p-3 hover:bg-gray-50 rounded-lg transition">
       <div className="flex-1 min-w-0">
         <Typography variant="body" className="font-medium truncate">{item.name}</Typography>
         <Typography variant="caption" className="text-gray-500">
@@ -387,17 +414,17 @@ const OrderItem = ({ item, onQuantityChange, onRemove }) => {
         <div className="flex items-center border border-gray-200 rounded-lg overflow-hidden">
           <button
             onClick={() => onQuantityChange(item.id, item.quantity - 1)}
-            className="px-3 py-1 bg-gray-100 hover:bg-gray-200 text-gray-700"
+            className="px-3 py-1 bg-gray-50 hover:bg-gray-100 text-gray-700 transition"
             disabled={item.quantity <= 1}
           >
             <FiMinus size={16} />
           </button>
-          <span className="px-3 py-1 bg-white w-12 text-center">
+          <span className="px-3 py-1 bg-white w-12 text-center border-x border-gray-200">
             {item.quantity}
           </span>
           <button
             onClick={() => onQuantityChange(item.id, item.quantity + 1)}
-            className="px-3 py-1 bg-gray-100 hover:bg-gray-200 text-gray-700"
+            className="px-3 py-1 bg-gray-50 hover:bg-gray-100 text-gray-700 transition"
           >
             <FiPlus size={16} />
           </button>
@@ -409,7 +436,7 @@ const OrderItem = ({ item, onQuantityChange, onRemove }) => {
         
         <button
           onClick={() => onRemove(item.id)}
-          className="ml-4 text-red-500 hover:text-red-700 p-1"
+          className="ml-4 text-red-500 hover:text-red-700 p-1 transition"
         >
           <FiTrash2 size={18} />
         </button>
@@ -418,7 +445,6 @@ const OrderItem = ({ item, onQuantityChange, onRemove }) => {
   );
 };
 
-// Novo componente para navegação por categorias
 const CategoryTabs = ({ categories, activeCategory, onSelect, className = '' }) => {
   return (
     <div className={`flex space-x-2 overflow-x-auto pb-2 ${className}`}>
@@ -432,7 +458,11 @@ const CategoryTabs = ({ categories, activeCategory, onSelect, className = '' }) 
             e.stopPropagation();
             onSelect(category.key);
           }}
-          className={`px-4 py-2 rounded-lg whitespace-nowrap flex items-center transition ${activeCategory === category.key ? 'bg-astral text-white' : 'bg-gray-100'}`}
+          className={`px-4 py-2 rounded-lg whitespace-nowrap flex items-center transition ${
+            activeCategory === category.key 
+              ? 'bg-astral text-white shadow-md' 
+              : 'bg-gray-100 hover:bg-gray-200'
+          }`}
         >
           {category.icon && <category.icon className="mr-2" />}
           {category.label}
@@ -442,9 +472,27 @@ const CategoryTabs = ({ categories, activeCategory, onSelect, className = '' }) 
   );
 };
 
+const PrintButton = ({ order, isPrinting, printOrder }) => (
+  <Button
+    variant="outline"
+    icon={FiPrinter}
+    onClick={(e) => {
+      e.stopPropagation();
+      printOrder(order);
+    }}
+    disabled={isPrinting}
+    className="mr-2"
+  >
+    {isPrinting ? 'Imprimindo...' : 'Imprimir'}
+  </Button>
+);
+
 const AdminPanel = () => {
   const [orders, setOrders] = useState([]);
-  const [activeTab, setActiveTab] = useState('dashboard');
+  const [activeTab, setActiveTab] = useState('all');
+  const [selectedOrder, setSelectedOrder] = useState(null);
+  const [activeArea, setActiveArea] = useState('all');
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [filter, setFilter] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -465,6 +513,14 @@ const AdminPanel = () => {
     salgados: true,
     sobremesas: true
   });
+  const [printerConnected, setPrinterConnected] = useState(false);
+  const [error, setError] = useState(null);
+  const [showSuccessNotification, setShowSuccessNotification] = useState(false);
+  const [printedItems, setPrintedItems] = useState({});
+  const [printerReconnectAttempted, setPrinterReconnectAttempted] = useState(false);
+
+  const printerDeviceRef = useRef(null);
+  const printerCharacteristicRef = useRef(null);
 
   // Categorias do menu para navegação
   const menuCategories = [
@@ -478,47 +534,170 @@ const AdminPanel = () => {
     { key: 'sobremesas', label: 'Sobremesas', icon: FiCheck }
   ];
 
-  // Função para filtrar itens do menu
-  const filteredMenuItems = useMemo(() => {
-    const categoryItems = menu[activeMenuCategory] || [];
-  
-    if (!menuSearchQuery) return categoryItems;
-  
-    const query = menuSearchQuery.toLowerCase();
-    return categoryItems.filter(item => 
-      item.name.toLowerCase().includes(query) || 
-      (item.description && item.description.toLowerCase().includes(query))
-    );
-  }, [activeMenuCategory, menuSearchQuery]);
-  
-
-  // Função para enviar notificação via WhatsApp
-  const sendWhatsAppNotification = (order, newStatus) => {
-    if (order.orderType === 'dine-in') return;
-
-    const phone = order.customer?.phone;
-    if (!phone) return;
-
-    const cleanedPhone = phone.replace(/\D/g, '');
-    
-    let message = '';
-    if (newStatus === 'preparing') {
-      message = `Olá ${order.customer?.name || 'cliente'}! Seu pedido #${order.id.slice(0, 6)} está sendo preparado. Agradecemos pela preferência!`;
-    } else if (newStatus === 'ready') {
-      if (order.orderType === 'delivery') {
-        message = `Olá ${order.customer?.name || 'cliente'}! Seu pedido #${order.id.slice(0, 6)} está pronto para entrega.`;
-      } else {
-        message = `Olá ${order.customer?.name || 'cliente'}! Seu pedido #${order.id.slice(0, 6)} está pronto para retirada.`;
-      }
-    }
-
-    if (message) {
-      const whatsappUrl = `https://wa.me/${cleanedPhone}?text=${encodeURIComponent(message)}`;
-      window.open(whatsappUrl, '_blank');
+  const savePrinterState = (device, characteristic) => {
+    try {
+      const printerState = {
+        deviceId: device.id,
+        deviceName: device.name,
+        connected: device.gatt.connected,
+        lastConnected: Date.now()
+      };
+      localStorage.setItem('bluetoothPrinter', JSON.stringify(printerState));
+    } catch (err) {
+      console.error('Erro ao salvar estado da impressora:', err);
     }
   };
 
-  // Função para imprimir pedido
+  const clearPrinterState = () => {
+    localStorage.removeItem('bluetoothPrinter');
+    setPrinterConnected(false);
+  };
+
+  const handleDisconnection = () => {
+    console.log('Impressora desconectada');
+    clearPrinterState();
+    printerDeviceRef.current = null;
+    printerCharacteristicRef.current = null;
+  };
+
+  const connectToPrinter = async () => {
+    try {
+      if (!navigator.bluetooth) {
+        throw new Error('Bluetooth não suportado neste navegador');
+      }
+  
+      setIsPrinting(true);
+      setError(null);
+  
+      if (printerDeviceRef.current?.gatt?.connected) {
+        return true;
+      }
+  
+      console.log('Procurando dispositivo Bluetooth...');
+      const device = await navigator.bluetooth.requestDevice({
+        filters: [{ name: PRINTER_CONFIG.deviceName }],
+        optionalServices: [PRINTER_CONFIG.serviceUUID]
+      });
+  
+      if (!device) {
+        throw new Error('Nenhum dispositivo selecionado');
+      }
+  
+      device.addEventListener('gattserverdisconnected', handleDisconnection);
+  
+      console.log('Conectando ao servidor GATT...');
+      const server = await device.gatt.connect();
+      
+      console.log('Obtendo serviço...');
+      const service = await server.getPrimaryService(PRINTER_CONFIG.serviceUUID);
+      
+      console.log('Obtendo característica...');
+      const characteristic = await service.getCharacteristic(PRINTER_CONFIG.characteristicUUID);
+  
+      printerDeviceRef.current = device;
+      printerCharacteristicRef.current = characteristic;
+      setPrinterConnected(true);
+      savePrinterState(device, characteristic);
+  
+      console.log('Conectado com sucesso à impressora');
+      return true;
+    } catch (err) {
+      console.error('Erro na conexão Bluetooth:', err);
+      printerDeviceRef.current = null;
+      printerCharacteristicRef.current = null;
+      setPrinterConnected(false);
+      setError(`Falha na conexão: ${err.message}`);
+      return false;
+    } finally {
+      setIsPrinting(false);
+    }
+  };
+
+  const sendToPrinter = async (data) => {
+    let retryCount = 0;
+    
+    while (retryCount < PRINTER_CONFIG.maxRetries) {
+      try {
+        if (!printerDeviceRef.current?.gatt?.connected) {
+          console.log(`Tentativa ${retryCount + 1}: Reconectando...`);
+          const connected = await connectToPrinter();
+          if (!connected) throw new Error('Falha ao reconectar');
+        }
+  
+        const encoder = new TextEncoder();
+        const encodedData = encoder.encode(data);
+        let offset = 0;
+        
+        console.log(`Enviando ${encodedData.length} bytes...`);
+        
+        while (offset < encodedData.length) {
+          const chunk = encodedData.slice(offset, offset + PRINTER_CONFIG.chunkSize);
+          await printerCharacteristicRef.current.writeValueWithoutResponse(chunk);
+          offset += PRINTER_CONFIG.chunkSize;
+          
+          await new Promise(resolve => 
+            setTimeout(resolve, PRINTER_CONFIG.delayBetweenChunks)
+          );
+        }
+        
+        console.log('Dados enviados com sucesso');
+        return true;
+        
+      } catch (err) {
+        retryCount++;
+        console.error(`Tentativa ${retryCount} falhou:`, err);
+        
+        if (retryCount >= PRINTER_CONFIG.maxRetries) {
+          console.error('Número máximo de tentativas atingido');
+          setError(`Falha na impressão: ${err.message}`);
+          return false;
+        }
+        
+        await new Promise(resolve => 
+          setTimeout(resolve, 1000 * retryCount)
+        );
+      }
+    }
+  };
+
+  const formatReceipt = (order) => {
+    if (!order || !order.items || order.items.length === 0) return '';
+  
+    const ESC = '\x1B';
+    const GS = '\x1D';
+    const INIT = `${ESC}@`;
+    const CENTER = `${ESC}a1`;
+    const LEFT = `${ESC}a0`;
+    const BOLD_ON = `${ESC}!${String.fromCharCode(8)}`;
+    const BOLD_OFF = `${ESC}!${String.fromCharCode(0)}`;
+    const CUT = `${GS}V0`;
+    const LF = '\x0A';
+    const FEED = '\x1Bd';
+  
+    let receipt = INIT;
+    receipt += `${CENTER}${BOLD_ON}RESTAURANTE ALTO ASTRAL${BOLD_OFF}${LF}`;
+    receipt += `PEDIDO: #${order.id?.slice(0, 6) || 'N/A'}${LF}`;
+    receipt += `${new Date().toLocaleString()}${LF}${LF}`;
+    receipt += '--------------------------------' + LF;
+    
+    receipt += LEFT;
+    order.items.forEach(item => {
+      receipt += `${BOLD_ON}${item.quantity}x ${item.name}${BOLD_OFF}${LF}`;
+      if (item.description) {
+        receipt += `${item.description}${LF}`;
+      }
+      receipt += `€ ${(item.price * item.quantity).toFixed(2)}${LF}${LF}`;
+    });
+  
+    receipt += '--------------------------------' + LF;
+    receipt += `${BOLD_ON}TOTAL: € ${order.total.toFixed(2)}${BOLD_OFF}${LF}${LF}`;
+    receipt += `${CENTER}Obrigado pela sua preferência!${LF}${LF}`;
+    receipt += `${CENTER}Volte sempre${LF}${LF}`;
+    receipt += `${FEED}${FEED}${CUT}`;
+  
+    return receipt;
+  };
+
   const printOrder = async (order) => {
     if (isPrinting) return;
     
@@ -526,15 +705,31 @@ const AdminPanel = () => {
     setPrintError(null);
 
     try {
-      console.log('Imprimindo pedido:', order);
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // Conecta à impressora se não estiver conectada
+      if (!printerDeviceRef.current?.gatt?.connected) {
+        const connected = await connectToPrinter();
+        if (!connected) {
+          throw new Error('Não foi possível conectar à impressora');
+        }
+      }
+
+      // Formata o recibo
+      const receipt = formatReceipt(order);
       
-      setIsPrinting(false);
-      toast.success(`✅ Pedido #${order.id.slice(0, 6)} impresso com sucesso!`);
+      // Envia para impressão
+      const success = await sendToPrinter(receipt);
+      
+      if (success) {
+        toast.success(`✅ Pedido #${order.id.slice(0, 6)} impresso com sucesso!`);
+      } else {
+        throw new Error('Falha ao enviar para impressora');
+      }
     } catch (error) {
       setIsPrinting(false);
       setPrintError(error.message);
       toast.error(`❌ Falha na impressão: ${error.message}`);
+    } finally {
+      setIsPrinting(false);
     }
   };
 
@@ -670,11 +865,11 @@ const AdminPanel = () => {
         timestamp: new Date().toISOString(),
         customer: currentOrder.customer || { name: 'Cliente não informado', phone: '' },
         orderType: currentOrder.orderType,
-        tableNumber: currentOrder.tableNumber || null,
-        originalIds: [newOrderRef.key] // Mantém referência do novo pedido
+        tableNumber: currentOrder.tableNumber || null, // Garante que o tableNumber está incluído
+        originalIds: [newOrderRef.key]
       });
   
-      toast.success(`Pedido da ${currentOrder.orderType === 'dine-in' ? 'mesa' : 'evento'} ${currentOrder.tableNumber} atualizado com sucesso!`);
+      toast.success(`Pedido da ${currentOrder.orderType === 'dine-in' ? 'mesa' : 'entrega'} ${currentOrder.tableNumber} atualizado com sucesso!`);
       
       setIsEditModalOpen(false);
       setIsEditingOrder(false);
@@ -713,8 +908,6 @@ const AdminPanel = () => {
               setActiveOrderType('dine-in');
             } else if (newOrder.orderType === 'delivery') {
               setActiveOrderType('delivery');
-            } else if (newOrder.orderType === 'event') {
-              setActiveOrderType('event');
             } else {
               setActiveOrderType('takeaway');
             }
@@ -737,7 +930,26 @@ const AdminPanel = () => {
     }
   };
 
-  // Função para consolidar pedidos da mesma mesa ou evento
+  const extractTableNumber = (order) => {
+    // Primeiro tenta pegar diretamente do pedido
+    if (order.tableNumber) return order.tableNumber;
+    
+    // Depois tenta extrair da URL
+    if (order.url) {
+      try {
+        const urlObj = new URL(order.url);
+        const params = new URLSearchParams(urlObj.search);
+        return params.get('tableNumber') || 'Não informado';
+      } catch {
+        return 'Não informado';
+      }
+    }
+    
+    // Finalmente, tenta pegar de qualquer outro lugar
+    return order.table || 'Não informado';
+  };
+
+  // Função consolidateOrders modificada
   const consolidateOrders = (orders) => {
     const consolidatedOrders = [];
     const ordersMap = new Map();
@@ -745,50 +957,46 @@ const AdminPanel = () => {
     orders.forEach(order => {
       if (!order.items) order.items = [];
       
-      // Para pedidos que não são de mesa ou evento, adiciona diretamente
-      if (order.orderType !== 'dine-in' && order.orderType !== 'event') {
+      // Para pedidos que não são de mesa, adiciona diretamente
+      if (order.orderType !== 'dine-in') {
         consolidatedOrders.push({...order, originalIds: [order.id]});
         return;
       }
   
-      // Cria uma chave única para agrupamento
-      const orderKey = `${order.orderType}-${order.tableNumber || '0'}`;
+      // Extrai o número da mesa corretamente
+      const tableNumber = extractTableNumber(order);
+      const orderKey = `dine-in-${tableNumber}`;
       
       if (ordersMap.has(orderKey)) {
-        // Se já existe um pedido consolidado para esta mesa/evento
         const existingOrder = ordersMap.get(orderKey);
         
-        // Adiciona os itens ao pedido consolidado
         order.items.forEach(newItem => {
           const existingItemIndex = existingOrder.items.findIndex(
             item => item.id === newItem.id
           );
-
+  
           if (existingItemIndex >= 0) {
             existingOrder.items[existingItemIndex].quantity += newItem.quantity;
           } else {
             existingOrder.items.push({...newItem});
           }
         });
-
-        // Atualiza o total
+  
         existingOrder.total = existingOrder.items.reduce(
           (sum, item) => sum + (item.price * item.quantity), 
           0
         );
-
-        // Mantém o timestamp mais recente
+  
         if (new Date(order.timestamp) > new Date(existingOrder.timestamp)) {
           existingOrder.timestamp = order.timestamp;
-          existingOrder.status = order.status; // Atualiza para o status mais recente
+          existingOrder.status = order.status;
         }
         
-        // Adiciona o ID original à lista
         existingOrder.originalIds.push(order.id);
       } else {
-        // Cria um novo pedido consolidado
         const newConsolidatedOrder = {
           ...order,
+          tableNumber: tableNumber,
           items: order.items.map(item => ({...item})),
           originalIds: [order.id]
         };
@@ -836,9 +1044,47 @@ const AdminPanel = () => {
       .reduce((sum, order) => sum + (order.total || 0), 0),
     dineInOrders: orders.filter(o => o.orderType === 'dine-in').length,
     deliveryOrders: orders.filter(o => o.orderType === 'delivery').length,
-    takeawayOrders: orders.filter(o => o.orderType === 'takeaway').length,
-    eventOrders: orders.filter(o => o.orderType === 'event').length
+    takeawayOrders: orders.filter(o => o.orderType === 'takeaway').length
   };
+ 
+
+  const sendWhatsAppNotification = (order, newStatus) => {
+    if (order.orderType === 'dine-in') return;
+  
+    const phone = order.customer?.phone;
+    if (!phone) return;
+  
+    const cleanedPhone = phone.replace(/\D/g, '');
+    
+    let message = '';
+    if (newStatus === 'preparing') {
+      message = `Olá ${order.customer?.name || 'cliente'}! Seu pedido #${order.id.slice(0, 6)} está sendo preparado. Agradecemos pela preferência!`;
+    } else if (newStatus === 'ready') {
+      if (order.orderType === 'delivery') {
+        message = `Olá ${order.customer?.name || 'cliente'}! Seu pedido #${order.id.slice(0, 6)} está pronto para entrega.`;
+      } else {
+        message = `Olá ${order.customer?.name || 'cliente'}! Seu pedido #${order.id.slice(0, 6)} está pronto para retirada.`;
+      }
+    }
+  
+    if (message) {
+      const whatsappUrl = `https://wa.me/${cleanedPhone}?text=${encodeURIComponent(message)}`;
+      window.open(whatsappUrl, '_blank');
+    }
+  };
+  
+  // Adicione esta constante antes do return
+  const filteredMenuItems = useMemo(() => {
+    const categoryItems = menu[activeMenuCategory] || [];
+  
+    if (!menuSearchQuery) return categoryItems;
+  
+    const query = menuSearchQuery.toLowerCase();
+    return categoryItems.filter(item => 
+      item.name.toLowerCase().includes(query) || 
+      (item.description && item.description.toLowerCase().includes(query))
+    );
+  }, [activeMenuCategory, menuSearchQuery]);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -846,14 +1092,18 @@ const AdminPanel = () => {
       <header className="bg-gradient-to-r from-astral to-astral-dark text-white p-4 shadow-lg sticky top-0 z-20">
         <div className="container mx-auto flex justify-between items-center">
           <div className="flex items-center">
-            <img src={logo} alt="Alto Astral" className="h-10 mr-2" />
-            <Typography variant="h1" className="text-2xl">Painel Administrativo</Typography>
+            <img src={logo} alt="Alto Astral" className="h-10 mr-3" />
+            <Typography variant="h1" className="text-2xl text-white">Painel Administrativo</Typography>
           </div>
-          <Link to="/restricted/" className="bg-white/20 hover:bg-white/30 px-4 py-2 rounded-lg">
-            Voltar Para o Dashboard
+          <Link 
+            to="/restricted/dashboard"  // Assumindo que é a rota principal da área restrita
+            className="bg-white/20 hover:bg-white/30 px-4 py-2 rounded-lg transition flex items-center"
+          >
+            <FiArrowLeft className="mr-2" /> Voltar Para o Dashboard
           </Link>
         </div>
       </header>
+
 
       {/* Tabs Navigation */}
       <div className="bg-white shadow-sm sticky top-16 z-10">
@@ -863,7 +1113,11 @@ const AdminPanel = () => {
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
               onClick={() => setActiveTab('dashboard')}
-              className={`px-4 py-2 rounded-lg whitespace-nowrap flex items-center transition ${activeTab === 'dashboard' ? 'bg-astral text-white' : 'bg-gray-100'}`}
+              className={`px-4 py-2 rounded-lg whitespace-nowrap flex items-center transition ${
+                activeTab === 'dashboard' 
+                  ? 'bg-astral text-white shadow-md' 
+                  : 'bg-gray-100 hover:bg-gray-200'
+              }`}
             >
               <FiPieChart className="mr-2" />
               Dashboard
@@ -872,7 +1126,11 @@ const AdminPanel = () => {
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
               onClick={() => setActiveTab('orders')}
-              className={`px-4 py-2 rounded-lg whitespace-nowrap flex items-center transition ${activeTab === 'orders' ? 'bg-astral text-white' : 'bg-gray-100'}`}
+              className={`px-4 py-2 rounded-lg whitespace-nowrap flex items-center transition ${
+                activeTab === 'orders' 
+                  ? 'bg-astral text-white shadow-md' 
+                  : 'bg-gray-100 hover:bg-gray-200'
+              }`}
             >
               <FiShoppingCart className="mr-2" />
               Pedidos
@@ -895,84 +1153,84 @@ const AdminPanel = () => {
 
             {/* Stats Cards */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-              <Card>
+              <Card hoverEffect>
                 <div className="p-6">
                   <div className="flex items-center justify-between">
-                    <Typography variant="subtitle">Total Pedidos</Typography>
-                    <FiShoppingCart className="text-gray-400" />
+                    <Typography variant="subtitle" color="light">Total Pedidos</Typography>
+                    <FiShoppingCart className="text-gray-400 text-xl" />
                   </div>
                   <Typography variant="h1" className="mt-2">{stats.totalOrders}</Typography>
-                  <Typography variant="caption" className="mt-2">Desde o início</Typography>
+                  <Typography variant="caption" color="light" className="mt-2">Desde o início</Typography>
                 </div>
               </Card>
-              <Card>
+              <Card hoverEffect>
                 <div className="p-6">
                   <div className="flex items-center justify-between">
-                    <Typography variant="subtitle">Pedidos Pendentes</Typography>
-                    <FiClock className="text-yellow-500" />
+                    <Typography variant="subtitle" color="light">Pedidos Pendentes</Typography>
+                    <FiClock className="text-yellow-500 text-xl" />
                   </div>
                   <Typography variant="h1" className="mt-2">{stats.pendingOrders}</Typography>
-                  <Typography variant="caption" className="mt-2">Aguardando preparo</Typography>
+                  <Typography variant="caption" color="light" className="mt-2">Aguardando preparo</Typography>
                 </div>
               </Card>
-              <Card>
+              <Card hoverEffect>
                 <div className="p-6">
                   <div className="flex items-center justify-between">
-                    <Typography variant="subtitle">Em Preparo</Typography>
-                    <FiAlertCircle className="text-blue-500" />
+                    <Typography variant="subtitle" color="light">Em Preparo</Typography>
+                    <FiPackage className="text-blue-500 text-xl" />
                   </div>
                   <Typography variant="h1" className="mt-2">{stats.preparingOrders}</Typography>
-                  <Typography variant="caption" className="mt-2">Na cozinha</Typography>
+                  <Typography variant="caption" color="light" className="mt-2">Na cozinha</Typography>
                 </div>
               </Card>
-              <Card>
+              <Card hoverEffect>
                 <div className="p-6">
                   <div className="flex items-center justify-between">
-                    <Typography variant="subtitle">Faturamento Hoje</Typography>
-                    <FiCheck className="text-green-500" />
+                    <Typography variant="subtitle" color="light">Faturamento Hoje</Typography>
+                    <FiDollarSign className="text-green-500 text-xl" />
                   </div>
                   <Typography variant="h1" className="mt-2">€{stats.todayRevenue.toFixed(2)}</Typography>
-                  <Typography variant="caption" className="mt-2">Total do dia</Typography>
+                  <Typography variant="caption" color="light" className="mt-2">Total do dia</Typography>
                 </div>
               </Card>
             </div>
 
             {/* Order Type Stats */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-              <Card>
+              <Card hoverEffect>
                 <div className="p-6">
                   <div className="flex items-center justify-between">
-                    <Typography variant="subtitle">Pedidos na Mesa</Typography>
-                    <FiHome className="text-astral" />
+                    <Typography variant="subtitle" color="light">Pedidos na Mesa</Typography>
+                    <FiHome className="text-astral text-xl" />
                   </div>
                   <Typography variant="h1" className="mt-2">{stats.dineInOrders}</Typography>
-                  <Typography variant="caption" className="mt-2">Comer no restaurante</Typography>
+                  <Typography variant="caption" color="light" className="mt-2">Comer no restaurante</Typography>
                 </div>
               </Card>
-              <Card>
+              <Card hoverEffect>
                 <div className="p-6">
                   <div className="flex items-center justify-between">
-                    <Typography variant="subtitle">Pedidos para Entrega</Typography>
-                    <FiTruck className="text-astral" />
+                    <Typography variant="subtitle" color="light">Pedidos para Entrega</Typography>
+                    <FiTruck className="text-astral text-xl" />
                   </div>
                   <Typography variant="h1" className="mt-2">{stats.deliveryOrders}</Typography>
-                  <Typography variant="caption" className="mt-2">Delivery</Typography>
+                  <Typography variant="caption" color="light" className="mt-2">Delivery</Typography>
                 </div>
               </Card>
-              <Card>
+              <Card hoverEffect>
                 <div className="p-6">
                   <div className="flex items-center justify-between">
-                    <Typography variant="subtitle">Pedidos para Retirada</Typography>
-                    <FiShoppingCart className="text-astral" />
+                    <Typography variant="subtitle" color="light">Pedidos para Retirada</Typography>
+                    <FiShoppingCart className="text-astral text-xl" />
                   </div>
                   <Typography variant="h1" className="mt-2">{stats.takeawayOrders}</Typography>
-                  <Typography variant="caption" className="mt-2">Takeaway</Typography>
+                  <Typography variant="caption" color="light" className="mt-2">Takeaway</Typography>
                 </div>
               </Card>
             </div>
 
             {/* Recent Orders */}
-            <Card className="mb-8">
+            <Card hoverEffect className="mb-8">
               <div className="p-6">
                 <div className="flex justify-between items-center mb-6">
                   <Typography variant="h3">Pedidos Recentes</Typography>
@@ -994,19 +1252,14 @@ const AdminPanel = () => {
                     </thead>
                     <tbody className="bg-white divide-y divide-gray-200">
                       {filteredOrders.slice(0, 5).map(order => (
-                        <tr key={order.id}>
+                        <tr key={order.id} className="hover:bg-gray-50">
                           <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                             #{order.id?.slice(0, 6) || 'N/A'}
                           </td>
-            
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                             {order.orderType === 'dine-in' ? (
                               <span className="flex items-center">
                                 <FiHome className="mr-1" /> Mesa {order.tableNumber}
-                              </span>
-                            ) : order.orderType === 'event' ? (
-                              <span className="flex items-center text-purple-600">
-                                <FiCalendar className="mr-1" /> Evento {order.tableNumber || order.customer?.eventNumber}
                               </span>
                             ) : order.orderType === 'delivery' ? (
                               <span className="flex items-center">
@@ -1023,7 +1276,7 @@ const AdminPanel = () => {
                               <span className="cursor-pointer underline decoration-dotted">
                                 {order.items?.reduce((sum, item) => sum + (item.quantity || 0), 0) || 0}
                               </span>
-                              {order.orderType === 'dine-in' || order.orderType === 'event' ? (
+                              {order.orderType === 'dine-in' && (
                                 <div className="hidden group-hover:block absolute z-10 w-64 p-2 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg">
                                   <div className="text-xs font-semibold mb-1">Itens da mesa:</div>
                                   <ul className="space-y-1">
@@ -1035,7 +1288,7 @@ const AdminPanel = () => {
                                     ))}
                                   </ul>
                                 </div>
-                              ) : null}
+                              )}
                             </div>
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
@@ -1046,6 +1299,11 @@ const AdminPanel = () => {
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                             <div className="flex space-x-2">
+                              <PrintButton 
+                                order={order} 
+                                isPrinting={isPrinting}
+                                printOrder={printOrder}
+                              />
                               {order.status === 'pending' && (
                                 <Button 
                                   size="small" 
@@ -1087,7 +1345,7 @@ const AdminPanel = () => {
                   <input
                     type="text"
                     placeholder="Buscar pedidos..."
-                    className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-astral focus:border-transparent w-full"
+                    className="pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-astral focus:border-transparent w-full transition"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                   />
@@ -1099,7 +1357,6 @@ const AdminPanel = () => {
                     options={[
                       { value: 'all', label: 'Todos' },
                       { value: 'dine-in', label: 'Mesas' },
-                      { value: 'event', label: 'Eventos' },
                       { value: 'delivery', label: 'Entregas' },
                       { value: 'takeaway', label: 'Retiradas' }
                     ]}
@@ -1115,7 +1372,11 @@ const AdminPanel = () => {
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
                 onClick={() => setActiveOrderType('all')}
-                className={`px-4 py-2 rounded-lg whitespace-nowrap flex items-center transition ${activeOrderType === 'all' ? 'bg-astral text-white' : 'bg-gray-100'}`}
+                className={`px-4 py-2 rounded-lg whitespace-nowrap flex items-center transition ${
+                  activeOrderType === 'all' 
+                    ? 'bg-astral text-white shadow-md' 
+                    : 'bg-gray-100 hover:bg-gray-200'
+                }`}
               >
                 <FiShoppingCart className="mr-2" />
                 Todos os Pedidos
@@ -1124,7 +1385,11 @@ const AdminPanel = () => {
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
                 onClick={() => setActiveOrderType('dine-in')}
-                className={`px-4 py-2 rounded-lg whitespace-nowrap flex items-center transition ${activeOrderType === 'dine-in' ? 'bg-astral text-white' : 'bg-gray-100'}`}
+                className={`px-4 py-2 rounded-lg whitespace-nowrap flex items-center transition ${
+                  activeOrderType === 'dine-in' 
+                    ? 'bg-astral text-white shadow-md' 
+                    : 'bg-gray-100 hover:bg-gray-200'
+                }`}
               >
                 <FiHome className="mr-2" />
                 Mesas
@@ -1137,22 +1402,12 @@ const AdminPanel = () => {
               <motion.button
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
-                onClick={() => setActiveOrderType('event')}
-                className={`px-4 py-2 rounded-lg whitespace-nowrap flex items-center transition ${activeOrderType === 'event' ? 'bg-purple-500 text-white' : 'bg-gray-100'}`}
-              >
-                <FiCalendar className="mr-2" />
-                Eventos
-                {filteredOrders.filter(o => o.orderType === 'event' && o.status === 'pending').length > 0 && (
-                  <span className="ml-2 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
-                    {filteredOrders.filter(o => o.orderType === 'event' && o.status === 'pending').length}
-                  </span>
-                )}
-              </motion.button>
-              <motion.button
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
                 onClick={() => setActiveOrderType('delivery')}
-                className={`px-4 py-2 rounded-lg whitespace-nowrap flex items-center transition ${activeOrderType === 'delivery' ? 'bg-astral text-white' : 'bg-gray-100'}`}
+                className={`px-4 py-2 rounded-lg whitespace-nowrap flex items-center transition ${
+                  activeOrderType === 'delivery' 
+                    ? 'bg-astral text-white shadow-md' 
+                    : 'bg-gray-100 hover:bg-gray-200'
+                }`}
               >
                 <FiTruck className="mr-2" />
                 Entregas
@@ -1166,7 +1421,11 @@ const AdminPanel = () => {
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
                 onClick={() => setActiveOrderType('takeaway')}
-                className={`px-4 py-2 rounded-lg whitespace-nowrap flex items-center transition ${activeOrderType === 'takeaway' ? 'bg-astral text-white' : 'bg-gray-100'}`}
+                className={`px-4 py-2 rounded-lg whitespace-nowrap flex items-center transition ${
+                  activeOrderType === 'takeaway' 
+                    ? 'bg-astral text-white shadow-md' 
+                    : 'bg-gray-100 hover:bg-gray-200'
+                }`}
               >
                 <FiShoppingCart className="mr-2" />
                 Retiradas
@@ -1178,7 +1437,7 @@ const AdminPanel = () => {
               </motion.button>
             </div>
 
-            <Card>
+            <Card hoverEffect>
               <div className="overflow-x-auto">
                 <table className="min-w-full divide-y divide-gray-200">
                   <thead className="bg-gray-50">
@@ -1186,10 +1445,8 @@ const AdminPanel = () => {
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Data/Hora</th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tipo</th>
-                      {(activeOrderType === 'dine-in' || activeOrderType === 'event') && (
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          {activeOrderType === 'event' ? 'Número do Evento' : 'Mesa'}
-                        </th>
+                      {activeOrderType === 'dine-in' && (
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Mesa</th>
                       )}
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Itens</th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total</th>
@@ -1212,10 +1469,6 @@ const AdminPanel = () => {
                               <span className="flex items-center">
                                 <FiHome className="mr-1" /> Mesa
                               </span>
-                            ) : order.orderType === 'event' ? (
-                              <span className="flex items-center text-purple-600">
-                                <FiCalendar className="mr-1" /> Evento
-                              </span>
                             ) : order.orderType === 'delivery' ? (
                               <span className="flex items-center">
                                 <FiTruck className="mr-1" /> Entrega
@@ -1226,9 +1479,9 @@ const AdminPanel = () => {
                               </span>
                             )}
                           </td>
-                          {(activeOrderType === 'dine-in' || activeOrderType === 'event') && (
+                          {activeOrderType === 'dine-in' && (
                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                              {order.tableNumber || 'Não informado'}
+                              {order.tableNumber ? `Mesa ${order.tableNumber}` : 'Não informado'}
                             </td>
                           )}
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
@@ -1242,7 +1495,11 @@ const AdminPanel = () => {
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                             <div className="flex flex-wrap gap-2">
-                              <PrintButton order={order} />
+                              <PrintButton 
+                                order={order} 
+                                isPrinting={isPrinting}
+                                printOrder={printOrder}
+                              />
                               {order.status === 'pending' && (
                                 <Button 
                                   size="small" 
@@ -1260,17 +1517,15 @@ const AdminPanel = () => {
                                 >
                                   <FiCheck />
                                 </Button>
-                              )}                                                   
+                              )}
                               <button 
                                 onClick={() => {
-                                  // Encontra todos os pedidos da mesma mesa/evento
                                   const allTableOrders = orders.filter(
                                     o => o.orderType === order.orderType && 
-                                        o.tableNumber === order.tableNumber && 
-                                        o.status === order.status
+                                         o.tableNumber === order.tableNumber && 
+                                         o.status === order.status
                                   );
-
-                                  // Consolida os itens manualmente
+                                  
                                   const consolidatedItems = [];
                                   allTableOrders.forEach(tableOrder => {
                                     tableOrder.items.forEach(item => {
@@ -1283,11 +1538,10 @@ const AdminPanel = () => {
                                     });
                                   });
 
-                                  // Cria o objeto do pedido para edição
                                   const orderToEdit = {
                                     ...order,
-                                    items: order.items || [], // Garante que items existe
-                                    total: order.items?.reduce((sum, item) => sum + (item.price * item.quantity), 0) || 0,
+                                    items: consolidatedItems,
+                                    total: consolidatedItems.reduce((sum, item) => sum + (item.price * item.quantity), 0),
                                     originalIds: allTableOrders.map(o => o.id)
                                   };
 
@@ -1295,14 +1549,14 @@ const AdminPanel = () => {
                                   setIsEditModalOpen(true);
                                   setIsEditingOrder(true);
                                 }}
-                                className="text-astral hover:text-astral-dark p-2"
+                                className="text-astral hover:text-astral-dark p-2 transition"
                               >
                                 <FiEdit />
                               </button>
                               <button 
                                 onClick={() => {
                                   if (order.originalIds && order.originalIds.length > 0) {
-                                    if (window.confirm(`Tem certeza que deseja excluir ${order.originalIds.length > 1 ? 'todos os pedidos desta mesa/evento?' : 'este pedido?'}`)) {
+                                    if (window.confirm(`Tem certeza que deseja excluir ${order.originalIds.length > 1 ? 'todos os pedidos desta mesa?' : 'este pedido?'}`)) {
                                       const deletePromises = order.originalIds.map(orderId => {
                                         const orderRef = ref(database, `orders/${orderId}`);
                                         return remove(orderRef);
@@ -1316,7 +1570,7 @@ const AdminPanel = () => {
                                     deleteOrder(order.id);
                                   }
                                 }}
-                                className="text-red-500 hover:text-red-700 p-2"
+                                className="text-red-500 hover:text-red-700 p-2 transition"
                               >
                                 <FiTrash2 />
                               </button>
@@ -1326,7 +1580,7 @@ const AdminPanel = () => {
                       ))
                     ) : (
                       <tr>
-                        <td colSpan={activeOrderType === 'dine-in' || activeOrderType === 'event' ? "7" : "6"} className="px-6 py-4 text-center text-sm text-gray-500">
+                        <td colSpan={activeOrderType === 'dine-in' ? "7" : "6"} className="px-6 py-4 text-center text-sm text-gray-500">
                           Nenhum pedido encontrado
                         </td>
                       </tr>
@@ -1346,7 +1600,7 @@ const AdminPanel = () => {
           setIsEditModalOpen(false);
           setIsEditingOrder(false);
         }}
-        title={`${currentOrder?.orderType === 'dine-in' ? 'Mesa' : currentOrder?.orderType === 'event' ? 'Evento' : 'Pedido'} #${currentOrder?.tableNumber || ''}`}
+        title={`${currentOrder?.orderType === 'dine-in' ? 'Mesa' : 'Pedido'} #${currentOrder?.tableNumber || ''}`}
         size="xl"
       >
         {currentOrder && (
@@ -1373,7 +1627,7 @@ const AdminPanel = () => {
                           <input
                             type="text"
                             placeholder="Buscar itens no menu..."
-                            className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-astral focus:border-transparent w-full"
+                            className="pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-astral focus:border-transparent w-full transition"
                             value={menuSearchQuery}
                             onChange={(e) => setMenuSearchQuery(e.target.value)}
                           />
@@ -1384,7 +1638,6 @@ const AdminPanel = () => {
                           activeCategory={activeMenuCategory}
                           onSelect={(category) => {
                             setActiveMenuCategory(category);
-                            // Mantém a categoria expandida ao mudar de aba
                             if (!expandedCategories[category]) {
                               setExpandedCategories(prev => ({
                                 ...prev,
@@ -1441,7 +1694,7 @@ const AdminPanel = () => {
                     
                     <div className="border border-gray-200 rounded-lg divide-y divide-gray-200 max-h-96 overflow-y-auto">
                       {(currentOrder.items || []).map((item, index) => (
-                        <div key={index} className="p-3 flex justify-between items-center">
+                        <div key={index} className="p-3 flex justify-between items-center hover:bg-gray-50 transition">
                           <div>
                             <Typography variant="body" className="font-medium">{item.name}</Typography>
                             <Typography variant="caption">{item.quantity}x €{(item.price || 0).toFixed(2)}</Typography>
@@ -1463,12 +1716,13 @@ const AdminPanel = () => {
                   <div className="space-y-4 mb-6">
                     <div>
                       <Typography variant="caption" className="block mb-1">
-                        {currentOrder.orderType === 'dine-in' ? 'Número da Mesa' : 
-                         currentOrder.orderType === 'event' ? 'Número do Evento' : 
-                         'Número'}
+                        {currentOrder.orderType === 'dine-in' ? 'Número da Mesa' : 'Número'}
                       </Typography>
                       <p className="bg-gray-50 p-3 rounded-lg">
-                        {currentOrder.tableNumber || 'Não informado'}
+                        {currentOrder.tableNumber || 
+                        (currentOrder.orderType === 'dine-in' && currentOrder.id 
+                          ? `Mesa ${parseInt(currentOrder.id.slice(-2), 10) % 16 + 1}` 
+                          : 'Não informado')}
                       </p>
                     </div>
                     
@@ -1476,7 +1730,6 @@ const AdminPanel = () => {
                       <Typography variant="caption" className="block mb-1">Tipo de Pedido</Typography>
                       <p className="bg-gray-50 p-3 rounded-lg">
                         {currentOrder.orderType === 'dine-in' ? 'Mesa' :
-                         currentOrder.orderType === 'event' ? 'Evento' :
                          currentOrder.orderType === 'delivery' ? 'Entrega' : 'Retirada'}
                       </p>
                     </div>
@@ -1504,7 +1757,7 @@ const AdminPanel = () => {
                       />
                     </div>
                     
-                    {currentOrder.orderType !== 'dine-in' && currentOrder.orderType !== 'event' && (
+                    {currentOrder.orderType !== 'dine-in' && (
                       <div>
                         <Typography variant="caption" className="block mb-1">Cliente</Typography>
                         <p className="bg-gray-50 p-3 rounded-lg">
@@ -1534,7 +1787,7 @@ const AdminPanel = () => {
                         <Typography variant="body" className="font-medium">€2.50</Typography>
                       </div>
                     )}
-                    <div className="flex justify-between pt-2">
+                    <div className="flex justify-between pt-2 border-t border-gray-200">
                       <Typography variant="body" className="font-bold">Total:</Typography>
                       <Typography variant="body" className="font-bold text-astral">
                         €{(currentOrder.total || 0).toFixed(2)}
@@ -1543,7 +1796,7 @@ const AdminPanel = () => {
                   </div>
                   
                   <div className="mt-6 space-y-3">
-                    {(currentOrder.orderType === 'dine-in' || currentOrder.orderType === 'event') && (
+                    {currentOrder.orderType === 'dine-in' && (
                       <Button
                         variant={isEditingOrder ? 'success' : 'outline'}
                         size="large"
@@ -1554,15 +1807,6 @@ const AdminPanel = () => {
                         {isEditingOrder ? 'Finalizar Edição' : 'Editar Pedido'}
                       </Button>
                     )}
-                    
-                    <Button
-                      variant="primary"
-                      size="large"
-                      type="submit"
-                      className="w-full"
-                    >
-                      Confirmar Alterações
-                    </Button>
                     
                     <Button
                       variant="outline"

@@ -14,7 +14,7 @@ module.exports = {
           DEFAULT: '#D97706',
           light: '#F59E0B',
           dark: '#B45309',
-        }
+        },
       },
     },
   },
