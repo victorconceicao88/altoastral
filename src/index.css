@@ -42,6 +42,11 @@ svg {
   }
 }
 
+/* Em seu arquivo CSS global */
+.font-alto-astral {
+  font-family: 'SuaFonte', sans-serif;
+}
+
 /* No seu arquivo CSS global */
 .bg-primary { background-color: #3B82F6; }
 .bg-primaryDark { background-color: #2563EB; }

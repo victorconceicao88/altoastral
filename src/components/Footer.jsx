@@ -129,9 +129,9 @@ const UltraFooter = () => {
                   animate={{ y: 0, opacity: 1 }}
                   transition={{ delay: 0.2 }}
                 >
-                  <div className="inline-flex items-center bg-[#f4df86]/20 px-4 py-2 rounded-full border border-[#f4df86]/30 mb-4">
-                    <FiCalendar className="text-xl text-[#f4df86] mr-2" />
-                    <span className="text-[#f4df86] font-medium">Eventos Exclusivos</span>
+                  <div className="inline-flex items-center text-[#d5c8b6] px-4 py-2 rounded-full border border-[#d5c8b6]/50 mb-4">
+                    <FiCalendar className="text-xl text-[#d5c8b6] mr-2" />
+                    <span className="font-sans-serif text-[#d5c8b6] font-medium">Eventos Exclusivos</span>
                   </div>
                 </motion.div>
 
@@ -143,7 +143,7 @@ const UltraFooter = () => {
                     exit={{ y: -20, opacity: 0 }}
                     transition={{ duration: 0.5 }}
                   >
-                    <h3 className="text-2xl md:text-4xl lg:text-5xl font-bold font-serif text-[#f8f5f0] leading-tight">
+                    <h3 className="text-2xl md:text-4xl lg:text-5xl font-bold font-sans-serif text-[#fffaf1] leading-tight">
                       {events[activeEvent].title}
                     </h3>
                   </motion.div>
@@ -157,7 +157,7 @@ const UltraFooter = () => {
                     exit={{ y: -20, opacity: 0 }}
                     transition={{ duration: 0.5, delay: 0.1 }}
                   >
-                    <p className="text-lg md:text-xl text-[#e8e6e3] mt-2 md:mt-4 max-w-2xl">
+                    <p className="text-lg md:text-xl text-[#fffaf1] mt-2 md:mt-4 max-w-2xl">
                       {events[activeEvent].description}
                     </p>
                   </motion.div>
@@ -173,10 +173,10 @@ const UltraFooter = () => {
                         transition={{ delay: 0.2 + (index * 0.1) }}
                         className="flex items-center"
                       >
-                        <div className="bg-[#f4df86]/20 p-1 rounded-full mr-3">
-                          <FiCheck className="text-[#f4df86] text-sm" />
+                        <div className="bg-[#d5c8b6]/40 p-1 rounded-full mr-3">
+                          <FiCheck className="text-[#d5c8b6] text-sm" />
                         </div>
-                        <span className="text-[#e8e6e3] text-sm md:text-base">{feature}</span>
+                        <span className="text-[[#fffaf1]] text-sm md:text-base">{feature}</span>
                       </motion.div>
                     ))}
                   </AnimatePresence>
@@ -191,7 +191,7 @@ const UltraFooter = () => {
                     <button
                       key={index}
                       onClick={() => setActiveEvent(index)}
-                      className={`w-3 h-3 rounded-full transition-all ${activeEvent === index ? 'bg-[#f4df86] w-6' : 'bg-white/30'}`}
+                      className={`w-3 h-3 rounded-full transition-all ${activeEvent === index ? 'bg-[#d5c8b6] w-6' : 'bg-white/30'}`}
                       aria-label={`Mostrar evento ${index + 1}`}
                     />
                   ))}
@@ -207,14 +207,14 @@ const UltraFooter = () => {
                     href="https://wa.me/351282038830"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="bg-[#f4df86] text-[#5a5148] px-8 md:px-10 py-4 md:py-5 rounded-xl font-bold flex items-center hover:bg-[#f8e99e] transition-all duration-300 shadow-lg group"
+                    className="bg-[#d5c8b6] text-  px-8 md:px-10 py-4 md:py-5 rounded-xl font-bold flex items-center transition-all duration-300 shadow-lg group"
                   >
-                    <span className="text-base md:text-lg font-semibold mr-3">Solicitar Proposta</span>
-                    <FiArrowRight className="text-xl transition-transform group-hover:translate-x-1" />
+                    <span className=" font-sans-serif text-black md:text-lg font- mr-3">Saber Mais</span>
+                    <FiArrowRight className="text-black transition-transform group-hover:translate-x-1" />
                   </a>
                 </motion.div>
 
-                <p className="text-[#e8e6e3]/80 text-sm md:text-base text-right hidden lg:block">
+                <p className=" font-sans-serif text-[#fffaf1]/80 text-sm md:text-base text-right hidden lg:block">
                   Entre em contato para orçamentos personalizados
                 </p>
               </div>
@@ -223,12 +223,12 @@ const UltraFooter = () => {
         </div>
 
         {/* Grid responsivo */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 md:gap-10 lg:gap-12 text-[#e8e6e3] px-2 sm:px-0">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 md:gap-10 lg:gap-12 text-[#fffaf1] px-2 sm:px-0">
           {/* Branding e contato */}
           <div className="space-y-6 md:space-y-8">
             <div className="text-center md:text-left">
-              <h3 className="text-3xl md:text-4xl font-bold font-serif tracking-tight text-[#f8f5f0]">Alto Astral</h3>
-              <p className="italic text-[#d1cfcc] text-base md:text-lg mt-1 md:mt-2">Experiências Gastronômicas Memoráveis</p>
+              <h3 className=" font-sans-serif text-3xl md:text-4xl font-bold  tracking-tight text-[[#fffaf1]]">Alto Astral</h3>
+              <p className="font-sans-serif text-[#d1cfcc] text-base md:text-lg mt-1 md:mt-2">Experiências Gastronômicas Memoráveis</p>
             </div>
             
             <div className="space-y-4 md:space-y-5">
@@ -240,7 +240,7 @@ const UltraFooter = () => {
                   href="https://www.google.com/maps?q=Rua+Agostinho+Da+Silva+Lote+20,+Loja+2,+8500-826+Portimão,+Portugal,+Urb.+Horta+De+São+Pedro" 
                   target="_blank" 
                   rel="noopener noreferrer"
-                  className="not-italic text-[#e8e6e3] leading-relaxed hover:text-white transition-colors"
+                  className="font-sans-serif text-[[#fffaf1]] leading-relaxed hover:text-white transition-colors"
                 >
                   Rua Agostinho Da Silva Lote 20, Loja 2<br />
                   8500-826 Portimão, Portugal<br />
@@ -262,18 +262,17 @@ const UltraFooter = () => {
               <div className="bg-[#f4df86]/20 w-16 h-16 md:w-20 md:h-20 rounded-xl md:rounded-2xl flex items-center justify-center mx-auto mb-4 md:mb-6 border border-[#f4df86]/30">
                 <FiClock className="text-2xl md:text-3xl text-[#f4df86]" />
               </div>
-              <h4 className="text-xl md:text-2xl font-semibold mb-3 md:mb-4 text-center text-[#f8f5f0]">Horário</h4>
+              <h4 className="text-xl md:text-2xl font-sans-serif font-semibold mb-3 md:mb-4 text-center text-[#f8f5f0]">Horário</h4>
               <div className="text-center space-y-1 md:space-y-2">
-                <p className="font-medium text-base md:text-lg">8:30 - 20:00</p>
-                <p className="text-[#d1cfcc] text-sm md:text-base">Segunda a Sábado</p>
-                <p className="text-xs md:text-sm mt-2 md:mt-4 text-[#d1cfcc]">Encomendas até 19:30</p>
+                <p className="font-sans-serif font-medium text-base md:text-lg">8:30 - 20:00</p>
+                <p className=" font-sans-serif text-[#d1cfcc] text-sm md:text-base">Segunda a Sábado</p>
               </div>
             </div>
           </div>
 
           {/* Redes sociais */}
           <div className="space-y-6 md:space-y-8">
-            <h4 className="text-lg md:text-xl font-semibold uppercase tracking-wider border-b border-[#b8b4ae]/40 pb-2 md:pb-3 text-center md:text-left text-[#f8f5f0]">Conecte-se</h4>
+            <h4 className="text-lg md:text-xl font-semibold uppercase tracking-wider border-b border-[#b8b4ae]/40 pb-2 md:pb-3 text-center md:text-left text-[#fffaf1]">Conecte-se</h4>
             <div className="flex justify-center md:justify-start gap-4 md:gap-5">
               <motion.a 
                 href="#" 
@@ -309,7 +308,7 @@ const UltraFooter = () => {
         <div className="border-t border-[#b8b4ae]/30 mt-12 md:mt-16 pt-6 md:pt-8">
           <div className="flex flex-col md:flex-row justify-between items-center gap-4">
             <p className="text-[#d1cfcc] text-sm md:text-base text-center md:text-left">
-              © {new Date().getFullYear()} <span className="text-[#f4df86]">Alto Astral</span>. Todos os direitos reservados.
+              © {new Date().getFullYear()} <span className="text-[#fffaf1]">Alto Astral</span>. Todos os direitos reservados.
             </p>
           </div>
         </div>
