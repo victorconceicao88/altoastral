@@ -14,7 +14,16 @@
 
 /* Custom styles */
 body {
-  font-family: 'Inter', sans-serif;
+   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+button {
+  cursor: pointer;
+}
+
+svg {
+  display: inline-block;
+  vertical-align: middle;
 }
 
 /* Print styles */
@@ -32,3 +41,10 @@ body {
     width: 100%;
   }
 }
+
+/* No seu arquivo CSS global */
+.bg-primary { background-color: #3B82F6; }
+.bg-primaryDark { background-color: #2563EB; }
+.text-primary { color: #3B82F6; }
+.bg-secondary { background-color: #10B981; }
+/* Adicione todas as outras cores conforme necessário */

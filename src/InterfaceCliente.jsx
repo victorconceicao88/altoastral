@@ -11,7 +11,7 @@ import {
 import { motion, AnimatePresence, useAnimation } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import logo from './assets/logo-alto-astral.png';
-import logoBackground from './assets/logo-alto-astral.png';
+import logoBackground from './assets/fotodecapa.jpeg';
 import mbwayLogo from './assets/images.png';
 import frangoCremoso from './assets/frango-cremoso.jpg';
 import picanha from './assets/picanha.jpg';
@@ -23,7 +23,7 @@ import chorica from './assets/choriça.jpg';
 import Asinha from './assets/Asinha.jpg';
 import Picanhacomfritas from './assets/picanha-com-fritas.jpg';
 import Filetilapia from './assets/filetilapia.jpg';
-
+import { useLocation, useNavigate } from 'react-router-dom';
 
 const logoWhite = logo;
 
@@ -166,6 +166,11 @@ const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState('all');
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [activeArea, setActiveArea] = useState('all');
+  const [notifications, setNotifications] = useState([]);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [favorites, setFavorites] = useState([]);
+  const controls = useAnimation();
+
 
   useEffect(() => {
     const ordersRef = ref(database, 'orders');
@@ -178,6 +183,8 @@ const AdminDashboard = () => {
       setOrders(ordersList);
     });
   }, []);
+
+  
 
   useEffect(() => {
     loginAnonimo()
@@ -241,10 +248,10 @@ const AdminDashboard = () => {
 
   return (
     <div className="min-h-screen bg-gray-100">
-      <header className="bg-gradient-to-r from-astral to-astral-dark text-white p-4 shadow-lg">
+      <header className="bg-gradient-to-r from-[#b0aca6] to-[#918e89] text-black p-4 shadow-lg">
         <div className="container mx-auto flex justify-between items-center">
           <h1 className="text-2xl font-bold">Painel de Pedidos</h1>
-          <Link to="/" className="bg-white/20 hover:bg-white/30 px-4 py-2 rounded-lg">
+          <Link to="/" className="bg-white/20 hover:bg-white/30 px-4 py-2 rounded-lg text-black">
             Voltar ao Cardápio
           </Link>
         </div>
@@ -256,25 +263,25 @@ const AdminDashboard = () => {
             <div className="flex overflow-x-auto space-x-2 pb-2">
               <button
                 onClick={() => { setActiveTab('all'); setActiveArea('all'); }}
-                className={`px-4 py-2 rounded-lg whitespace-nowrap ${activeTab === 'all' ? 'bg-astral text-white' : 'bg-gray-100'}`}
+                className={`px-4 py-2 rounded-lg whitespace-nowrap ${activeTab === 'all' ? 'bg-[#b0aca6] text-[#e6be44]' : 'bg-gray-100'}`}
               >
                 Todos os Pedidos
               </button>
               <button
                 onClick={() => { setActiveTab('dine-in'); setActiveArea('all'); }}
-                className={`px-4 py-2 rounded-lg whitespace-nowrap ${activeTab === 'dine-in' ? 'bg-astral text-white' : 'bg-gray-100'}`}
+                className={`px-4 py-2 rounded-lg whitespace-nowrap ${activeTab === 'dine-in' ? 'bg-[#b0aca6] text-[#e6be44]' : 'bg-gray-100'}`}
               >
                 No Restaurante
               </button>
               <button
                 onClick={() => { setActiveTab('takeaway'); setActiveArea('all'); }}
-                className={`px-4 py-2 rounded-lg whitespace-nowrap ${activeTab === 'takeaway' ? 'bg-astral text-white' : 'bg-gray-100'}`}
+                className={`px-4 py-2 rounded-lg whitespace-nowrap ${activeTab === 'takeaway' ? 'bg-[#b0aca6] text-[#e6be44]' : 'bg-gray-100'}`}
               >
                 Retirada
               </button>
               <button
                 onClick={() => { setActiveTab('delivery'); setActiveArea('all'); }}
-                className={`px-4 py-2 rounded-lg whitespace-nowrap ${activeTab === 'delivery' ? 'bg-astral text-white' : 'bg-gray-100'}`}
+                className={`px-4 py-2 rounded-lg whitespace-nowrap ${activeTab === 'delivery' ? 'bg-[#b0aca6] text-[#e6be44]' : 'bg-gray-100'}`}
               >
                 Entrega
               </button>
@@ -284,19 +291,19 @@ const AdminDashboard = () => {
               <div className="flex overflow-x-auto space-x-2 pb-2">
                 <button
                   onClick={() => setActiveArea('all')}
-                  className={`px-4 py-2 rounded-lg whitespace-nowrap ${activeArea === 'all' ? 'bg-astral text-white' : 'bg-gray-100'}`}
+                  className={`px-4 py-2 rounded-lg whitespace-nowrap ${activeArea === 'all' ? 'bg-[#b0aca6] text-[#e6be44]' : 'bg-gray-100'}`}
                 >
                   Todas as Mesas
                 </button>
                 <button
                   onClick={() => setActiveArea('internal')}
-                  className={`px-4 py-2 rounded-lg whitespace-nowrap ${activeArea === 'internal' ? 'bg-astral text-white' : 'bg-gray-100'}`}
+                  className={`px-4 py-2 rounded-lg whitespace-nowrap ${activeArea === 'internal' ? 'bg-[#b0aca6] text-[#e6be44]' : 'bg-gray-100'}`}
                 >
                   Sala Interna (1-8)
                 </button>
                 <button
                   onClick={() => setActiveArea('external')}
-                  className={`px-4 py-2 rounded-lg whitespace-nowrap ${activeArea === 'external' ? 'bg-astral text-white' : 'bg-gray-100'}`}
+                  className={`px-4 py-2 rounded-lg whitespace-nowrap ${activeArea === 'external' ? 'bg-[#b0aca6] text-[#e6be44]' : 'bg-gray-100'}`}
                 >
                   Esplanada (9-16)
                 </button>
@@ -592,9 +599,9 @@ const Button = ({
   ...props 
 }) => {
   const variants = {
-    primary: 'bg-gradient-to-r from-astral to-astral-dark text-white shadow-lg hover:shadow-astral/30',
+    primary: 'bg-[#b0aca6] text-[#e6be44] shadow-lg hover:shadow-[#b0aca6]/30',
     secondary: 'bg-secondary-500 hover:bg-secondary-600 text-white',
-    outline: 'border border-astral text-astral hover:bg-astral/10',
+    outline: 'border border-[#b0aca6] text-[#e6be44] hover:bg-[#b0aca6]/10',
     ghost: 'hover:bg-gray-100',
     danger: 'bg-red-500 hover:bg-red-600 text-white',
     glass: 'bg-white/10 backdrop-blur-md border border-white/20 hover:bg-white/20'
@@ -630,7 +637,7 @@ const Card = ({ children, className = '', hoverEffect = true }) => {
     <motion.div 
       whileHover={hoverEffect ? { y: -5 } : {}}
       className={`
-        bg-white rounded-2xl shadow-sm overflow-hidden border border-gray-200 
+        bg-white rounded-2xl shadow-sm overflow-hidden border-2 border-[#e6be44]
         hover:shadow-md transition-all duration-300 ${className}
       `}
     >
@@ -642,7 +649,7 @@ const Card = ({ children, className = '', hoverEffect = true }) => {
 const Badge = ({ children, variant = 'default', className = '' }) => {
   const variants = {
     default: 'bg-gray-100 text-gray-800',
-    primary: 'bg-astral/10 text-astral',
+    primary: 'bg-[#b0aca6]/10 text-[#e6be44]',
     success: 'bg-green-100 text-green-800',
     warning: 'bg-yellow-100 text-yellow-800',
     danger: 'bg-red-100 text-red-800',
@@ -662,7 +669,7 @@ const Rating = ({ value, max = 5, className = '' }) => {
       {[...Array(max)].map((_, i) => (
         <FiStar 
           key={i} 
-          className={`w-4 h-4 ${i < value ? 'text-yellow-400 fill-yellow-400' : 'text-gray-300'}`} 
+          className={`w-4 h-4 ${i < value ? 'text-[#e6be44] fill-[#e6be44]' : 'text-gray-300'}`} 
         />
       ))}
     </div>
@@ -692,145 +699,100 @@ const Notification = ({ message, type = 'info', onClose }) => {
   );
 };
 
-const Footer = ({ showAdminButton = true }) => {
+const WelcomeModal = ({ onClose }) => {
   return (
-    <footer className="relative bg-[#F5F0E6] text-[#5C4B3A] pt-20 pb-12">
-      <div className="absolute top-0 left-0 right-0 h-24 overflow-hidden">
-        <svg 
-          viewBox="0 0 1200 120" 
-          preserveAspectRatio="none" 
-          className="absolute top-0 left-0 w-full h-full"
-        >
-          <path 
-            d="M0,80 
-               C300,-20 500,120 600,40 
-               C700,-40 900,120 1200,40
-               L1200,120 L0,120 Z" 
-            fill="#8B7252" 
-            fillOpacity="0.1"
-          />
-          <path 
-            d="M0,60 
-               C300,-40 500,100 600,20 
-               C700,-60 900,100 1200,20
-               L1200,120 L0,120 Z" 
-            fill="none" 
-            stroke="#8B7252" 
-            strokeWidth="2"
-            strokeLinecap="round"
-          />
-        </svg>
-      </div>
-
-      <div className="container mx-auto px-6 mt-16">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
-          
-          <div className="text-center md:text-left">
-            <h3 className="text-3xl font-bold mb-4">Alto Astral</h3>
-            <p className="text-[#8B7D6B] italic mb-6">Snack Bar & Restaurante</p>
+    <motion.div 
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4"
+    >
+      <motion.div
+        initial={{ scale: 0.9, y: 20 }}
+        animate={{ scale: 1, y: 0 }}
+        className="bg-white rounded-2xl shadow-2xl max-w-md w-full overflow-hidden"
+      >
+        <div className="bg-[#e6be44] p-6 text-center">
+          <h2 className="text-2xl font-bold text-black">Bem-vindo ao Alto Astral</h2>
+        </div>
+        
+        <div className="p-6">
+          <div className="space-y-4 text-center">
+            <div className="flex items-center justify-center text-[#e6be44]">
+              <FiCalendar className="mr-2" size={24} />
+              <span className="font-semibold text-black">Pastéis servidos diariamente a partir das 15h</span>
+            </div>
             
-            <div className="space-y-3">
-              <p className="flex items-center justify-center md:justify-start">
-                <FiMapPin className="mr-3 text-[#8B7252]"/>
-                Rua Agostinho Da Silva Lote 20, Loja 2<br />
-                8500-826 Portimão, Pt<br />
-                Urb. Horta De São Pedro
-              </p>
-              <p className="flex items-center justify-center md:justify-start">
-                <FiPhone className="mr-3 text-[#8B7252]"/>
-                (+351) 282 038 830
-              </p>
-              <p className="flex items-center justify-center md:justify-start">
-                <FiClock className="mr-3 text-[#8B7252]"/>
-                8:30 - 20h • Seg-Sáb
-              </p>
+            <div className="flex items-center justify-center text-[#e6be44]">
+              <FiCoffee className="mr-2" size={24} />
+              <span className="font-semibold text-black">Pastéis disponíveis o dia inteiro aos sábados</span>
+            </div>
+            
+            <div className="flex items-center justify-center text-[#e6be44]">
+              <FiMeh className="mr-2" size={24} />
+              <span className="font-semibold text-black">Feijoada servida exclusivamente aos sábados</span>
             </div>
           </div>
-
-          <div className="flex flex-col items-center justify-center">
-            <div className="bg-[#F8F4EC] border border-[#D9C7B8] rounded-lg p-6 text-center max-w-xs">
-              <FiClock className="mx-auto text-[#8B7252]"/>
-              <h4 className="text-xl font-semibold mt-3 mb-2">Horário</h4>
-              <p className="font-medium">8:30 - 20:00</p>
-              <p className="text-sm text-[#8B7D6B] mt-2">Encomendas até 19:30</p>
-            </div>
-          </div>
-
-          <div className="text-center md:text-right">
-            <h4 className="text-lg font-semibold mb-5">Siga-nos</h4>
-            <div className="flex justify-center md:justify-end space-x-4 mb-6">
-              <a href="#" className="p-3 border border-[#D9C7B8] rounded-full hover:border-[#8B7252] transition-colors">
-                <svg className="w-5 h-5 text-[#5C4B3A]" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M22 12c0-5.523-4.477-10-10-10S2 6.477 2 12c0 4.991 3.657 9.128 8.438 9.878v-6.987h-2.54V12h2.54V9.797c0-2.506 1.492-3.89 3.777-3.89 1.094 0 2.238.195 2.238.195v2.46h-1.26c-1.243 0-1.63.771-1.63 1.562V12h2.773l-.443 2.89h-2.33v6.988C18.343 21.128 22 16.991 22 12z"/>
-                </svg>
-              </a>
-              <a href="#" className="p-3 border border-[#D9C7B8] rounded-full hover:border-[#8B7252] transition-colors">
-                <svg className="w-5 h-5 text-[#5C4B3A]" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M12.315 2c2.43 0 2.784.013 3.808.06 1.064.049 1.791.218 2.427.465a4.902 4.902 0 011.772 1.153 4.902 4.902 0 011.153 1.772c.247.636.416 1.363.465 2.427.048 1.067.06 1.407.06 4.123v.08c0 2.643-.012 2.987-.06 4.043-.049 1.064-.218 1.791-.465 2.427a4.902 4.902 0 01-1.153 1.772 4.902 4.902 0 01-1.772 1.153c-.636.247-1.363.416-2.427.465-1.067.048-1.407.06-4.123.06h-.08c-2.597 0 2.917-.01 3.96-.058.976-.045 1.505-.207 1.858-.344.466-.182.8-.398 1.15-.748.35-.35.566-.683.748-1.15.137-.353.3-.882.344-1.857.048-1.055.058-1.37.058-4.041v-.08c0-2.597-.01-2.917-.058-3.96-.045-.976-.207-1.505-.344-1.858a3.097 3.097 0 00-.748-1.15 3.098 3.098 0 00-1.15-.748c-.353-.137-.882-.3-1.857-.344-1.023-.047-1.351-.058-3.807-.058zM12 6.865a5.135 5.135 0 110 10.27 5.135 5.135 0 010-10.27zm0 1.802a3.333 3.333 0 100 6.666 3.333 3.333 0 000-6.666zm5.338-3.205a1.2 1.2 0 110 2.4 1.2 1.2 0 010-2.4z"/>
-                </svg>
-              </a>
-            </div>
-
-            {showAdminButton && (
-              <div className="mt-8">
-                <Link 
-                  to="/login/" 
-                  className="inline-flex items-center text-[#5C4B3A] hover:text-[#8B7252] transition-colors border border-[#D9C7B8] px-4 py-2 rounded-lg hover:bg-white/20"
-                >
-                  <FiLock className="mr-2"/> Área Restrita
-                </Link>
-              </div>
-            )}
+          
+          <div className="mt-8">
+            <Button 
+              onClick={onClose}
+              className="w-full bg-[#b0aca6] text-[#e6be44] hover:bg-[#a09c96]"
+            >
+              Explorar Cardápio
+            </Button>
           </div>
         </div>
-
-        <div className="border-t border-[#D9C7B8] mt-12 pt-6 text-center text-sm text-[#8B7D6B]">
-          © {new Date().getFullYear()} Alto Astral • Todos os direitos reservados
-        </div>
-      </div>
-    </footer>
+      </motion.div>
+    </motion.div>
   );
 };
 
+
+
 const InterfaceCliente = () => {
-  const [showModal, setShowModal] = useState(true);
   const [activeTab, setActiveTab] = useState('semana');
   const [cart, setCart] = useState([]);
   const [checkoutStep, setCheckoutStep] = useState('menu');
-  const [deliveryOption, setDeliveryOption] = useState('takeaway');
   const [customerInfo, setCustomerInfo] = useState({
     name: '',
-    surname: '', 
+    surname: '',
     phone: '',
     address: '',
+    reference: '',
     notes: '',
-    nif: '',
-    invoice: false,
     paymentMethod: '',
-    changeFor: ''
+    changeFor: '',
+    tableNumber: ''
   });
   const [notifications, setNotifications] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [favorites, setFavorites] = useState([]);
-  const [isAdminLoggedIn, setIsAdminLoggedIn] = useState(false);
   const controls = useAnimation();
-  const [tableNumber, setTableNumber] = useState('');
-  const [orderType, setOrderType] = useState(null);
+  const location = useLocation();
+  const navigate = useNavigate();
+  const [userIsLoggedIn, setUserIsLoggedIn] = useState(false);
+  const [showWelcomeModal, setShowWelcomeModal] = useState(true);
+  const [showWhatsAppModal, setShowWhatsAppModal] = useState(false);
+  const [whatsAppLink, setWhatsAppLink] = useState('');
+  const [countdown, setCountdown] = useState(40);
+
   
-  useEffect(() => {
-    const queryParams = new URLSearchParams(window.location.search);
-    const table = queryParams.get('table');
-    if (table) {
-      setTableNumber(table);
-      setOrderType('dine-in');
-    }
-  }, []);
+  const queryParams = new URLSearchParams(location.search);
+  const tableNumberFromQR = queryParams.get('table') || '';
+
+  const [orderType, setOrderType] = useState('dine-in');
+  
+  const handleSuccessfulLogin = () => {
+    setUserIsLoggedIn(true);
+  };
 
   useEffect(() => {
-    const loggedIn = localStorage.getItem('adminLoggedIn') === 'true';
-    setIsAdminLoggedIn(loggedIn);
-  }, []);
- 
+    if (tableNumberFromQR) {
+      setOrderType('dine-in');
+      setCustomerInfo(prev => ({ ...prev, tableNumber: tableNumberFromQR }));
+    }
+  }, [tableNumberFromQR]);
 
   const addNotification = (message, type = 'info') => {
     const id = Date.now();
@@ -845,10 +807,12 @@ const InterfaceCliente = () => {
       ...item, 
       id: Date.now() + item.id,
       quantity: 1,
-      notes: '' // Adiciona campo para observações específicas do item
+      notes: ''
     };
     setCart([...cart, newItem]);
-    addNotification(`${item.name} adicionado ao carrinho`, 'success');
+    
+    // Notificação corrigida
+    addNotification(`${item.name} adicionado ao carrinho com sucesso`, 'success');
     
     controls.start({
       scale: [1, 1.2, 1],
@@ -885,11 +849,10 @@ const InterfaceCliente = () => {
   };
 
   const toggleFavorite = (id) => {
-    if (favorites.includes(id)) {
-      setFavorites(favorites.filter(favId => favId !== id));
-    } else {
-      setFavorites([...favorites, id]);
-    }
+    setFavorites(favorites.includes(id) 
+      ? favorites.filter(favId => favId !== id) 
+      : [...favorites, id]
+    );
   };
 
   const handleCheckout = async () => {
@@ -899,15 +862,20 @@ const InterfaceCliente = () => {
       const orderRef = ref(database, 'orders');
       const newOrder = {
         items: cart,
-        customer: customerInfo,
+        customer: {
+          name: customerInfo.name || (customerInfo.tableNumber ? `Mesa ${customerInfo.tableNumber}` : 'Cliente não identificado'),
+          phone: customerInfo.phone || '',
+          address: customerInfo.address || '',
+          notes: customerInfo.notes || ''
+        },
         orderType: orderType,
-        tableNumber: orderType === 'dine-in' ? tableNumber : null,
+        tableNumber: customerInfo.tableNumber || '',
         total: calculateTotal(),
-        status: orderType === 'dine-in' ? 'pending' : 'received',
-        timestamp: Date.now()
+        status: 'pending',
+        timestamp: Date.now(),
+        paymentMethod: customerInfo.paymentMethod || ''
       };
-  
-      // Validação básica antes de enviar
+
       if (newOrder.items.length === 0) {
         throw new Error('O carrinho está vazio');
       }
@@ -919,32 +887,55 @@ const InterfaceCliente = () => {
       if (orderType === 'takeaway' && (!customerInfo.name || !customerInfo.phone)) {
         throw new Error('Informações do cliente incompletas para retirada');
       }
-  
-      const newOrderRef = await push(orderRef, newOrder);
+
+      if (orderType === 'dine-in' && !customerInfo.tableNumber) {
+        throw new Error('Número da mesa não informado');
+      }
+
+      await push(orderRef, newOrder);
       
-      // Envio para WhatsApp apenas se for takeaway ou delivery
-      if (orderType !== 'dine-in') {
+      if (orderType === 'dine-in') {
+        setCheckoutStep('confirmation');
+        setCart([]);
+      } else {
         const phoneNumber = '351933737672';
         const message = `*Novo Pedido Alto Astral*%0A%0A` +
           `*Tipo:* ${orderType === 'takeaway' ? 'Retirada' : 'Entrega'}%0A` +
-          `*Cliente:* ${customerInfo.name}%0A` +
+          `*Cliente:* ${customerInfo.name} ${customerInfo.surname}%0A` +
           `*Telefone:* ${customerInfo.phone}%0A` +
-          `*Endereço:* ${orderType === 'delivery' ? customerInfo.address : 'Retirada no local'}%0A` +
-          `*Itens:*%0A${cart.map(item => `- ${item.quantity}x ${item.name} (€${(item.price * item.quantity).toFixed(2)})`).join('%0A')}%0A` +
+          (orderType === 'delivery' ? `*Endereço:* ${customerInfo.address}%0A*Referência:* ${customerInfo.reference || 'Nenhuma'}%0A` : '') +
+          `*Itens:*%0A${cart.map(item => `- ${item.quantity}x ${item.name} (€${(item.price * item.quantity).toFixed(2)})${item.notes ? ` - Obs: ${item.notes}` : ''}`).join('%0A')}%0A` +
           `*Taxa de Entrega:* €${orderType === 'delivery' ? '2.50' : '0.00'}%0A` +
           `*Total:* €${calculateTotal().toFixed(2)}%0A` +
+          `*Método de Pagamento:* ${customerInfo.paymentMethod || 'Não especificado'}%0A` +
+          (customerInfo.paymentMethod === 'cash' && customerInfo.changeFor ? `*Troco para:* €${customerInfo.changeFor}%0A` : '') +
           `*Observações:* ${customerInfo.notes || 'Nenhuma'}`;
         
-        window.open(`https://wa.me/${phoneNumber}?text=${message}`, '_blank');
+        setWhatsAppLink(`https://wa.me/${phoneNumber}?text=${message}`);
+        setShowWhatsAppModal(true);
+        setCountdown(40); // Reinicia o contador
       }
-      
-      setCheckoutStep('confirmation');
-      setCart([]);
     } catch (error) {
       console.error("Erro ao enviar pedido:", error);
       addNotification(error.message || 'Erro ao enviar pedido. Tente novamente.', 'error');
     }
   };
+
+  // Adicione este useEffect para o contador:
+  useEffect(() => {
+    let timer;
+    if (showWhatsAppModal && countdown > 0) {
+      timer = setInterval(() => {
+        setCountdown(prev => prev - 1);
+      }, 1000);
+    } else if (countdown === 0) {
+      setShowWhatsAppModal(false);
+      setCheckoutStep('confirmation');
+      setCart([]);
+    }
+    return () => clearInterval(timer);
+  }, [showWhatsAppModal, countdown]);
+
   const filteredMenu = (category) => {
     const items = menu[category];
     if (!searchQuery) return items;
@@ -956,17 +947,16 @@ const InterfaceCliente = () => {
   };
 
   const proceedToCheckout = () => {
-    if (tableNumber) {
-      setOrderType('dine-in');
-      setCheckoutStep('customer-info');
-    } else {
-      setCheckoutStep('order-type');
+    if (cart.length === 0) {
+      addNotification('Adicione itens ao carrinho antes de prosseguir', 'error');
+      return;
     }
+    setCheckoutStep('cart-summary');
   };
 
   if (checkoutStep === 'confirmation') {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-astral to-astral-dark flex flex-col items-center justify-center p-4">
+      <div className="min-h-screen bg-gradient-to-br from-[#b0aca6] to-[#918e89] flex flex-col items-center justify-center p-4">
         <motion.div 
           initial={{ scale: 0.8, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
@@ -979,34 +969,37 @@ const InterfaceCliente = () => {
               scale: [1, 1.1, 1]
             }}
             transition={{ duration: 1 }}
-            className="text-green-500 text-6xl mb-4 flex justify-center"
+            className="text-[#84a66d] text-6xl mb-4 flex justify-center"
           >
             <FiCheck className="p-2 bg-green-100 rounded-full" />
           </motion.div>
-          <h2 className="text-2xl font-bold text-gray-800 mb-2">Pedido Confirmado!</h2>
-          <p className="text-gray-600 mb-6">
+          <h2 className="text-2xl font-bold text-black mb-2">Pedido Confirmado!</h2>
+          <p className="text-black mb-6">
             {orderType === 'dine-in' ? 
               'Seu pedido foi recebido e será atendido em breve.' : 
               'Seu pedido foi recebido e está sendo preparado.'}
           </p>
           {orderType === 'dine-in' ? (
-            <div className="mb-6 bg-astral/10 text-astral p-3 rounded-lg">
+            <div className="mb-6 bg-[#b0aca6]/10 text-[#e6be44] p-3 rounded-lg">
               <p className="flex items-center justify-center">
-                <FiHome className="mr-2" /> Mesa {tableNumber}
+                <FiHome className="mr-2" /> Mesa {customerInfo.tableNumber}
               </p>
             </div>
           ) : (
-            <div className="mb-6 bg-astral/10 text-astral p-3 rounded-lg">
+            <div className="mb-6 bg-[#b0aca6]/10 text-[#e6be44] p-3 rounded-lg">
               <p className="flex items-center justify-center">
-                <FiClock className="mr-2" /> Tempo estimado: 30-45 minutos
+                <FiClock className="mr-2" /> Tempo estimado: {orderType === 'delivery' ? '30-45 minutos' : '15-20 minutos'}
               </p>
             </div>
           )}
           <motion.button 
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
-            onClick={() => setCheckoutStep('menu')}
-            className="bg-astral text-white px-6 py-3 rounded-lg hover:bg-astral-dark transition w-full"
+            onClick={() => {
+              setCheckoutStep('menu');
+              navigate('/');
+            }}
+            className="bg-[#b0aca6] text-[#e6be44] px-6 py-3 rounded-lg hover:bg-[#a09c96] transition w-full"
           >
             Voltar ao Menu
           </motion.button>
@@ -1015,20 +1008,111 @@ const InterfaceCliente = () => {
     );
   }
 
+  if (checkoutStep === 'cart-summary') {
+  return (
+    <div className="min-h-screen bg-white p-4">
+      <div className="max-w-md mx-auto">
+        <div className="flex items-center mb-6">
+          <button
+            onClick={() => setCheckoutStep('menu')}
+            className="mr-4 text-[#e6be44] hover:text-[#d8b23d]"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            </svg>
+          </button>
+          <h2 className="text-2xl font-bold text-black">Seu Pedido</h2>
+        </div>
+        
+        <motion.div 
+          initial={{ y: 20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          className="bg-white rounded-2xl shadow-md p-6 mb-6"
+        >
+          <h3 className="text-lg font-semibold mb-4 flex items-center text-black">
+            <FiShoppingCart className="mr-2 text-[#e6be44]" />
+            Resumo do Pedido
+          </h3>
+          
+          <div className="space-y-3 mb-4 max-h-64 overflow-y-auto pr-2">
+            {cart.map(item => (
+              <div key={item.id} className="flex justify-between items-center p-2 border-b border-gray-100">
+                <div className="flex-1">
+                  <div className="flex justify-between">
+                    <span className="font-medium text-black">{item.quantity}x {item.name}</span>
+                    <span className="font-medium text-black">€{(item.price * item.quantity).toFixed(2)}</span>
+                  </div>
+                  {item.notes && <p className="text-xs text-gray-500 mt-1">Obs: {item.notes}</p>}
+                </div>
+                <div className="flex items-center space-x-2 ml-4">
+                  <button
+                    onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                    className="p-1 rounded-full bg-gray-200 text-gray-700 hover:bg-gray-300"
+                  >
+                    <FiMinus size={14} />
+                  </button>
+                  <span className="text-sm font-medium">{item.quantity}</span>
+                  <button
+                    onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                    className="p-1 rounded-full bg-gray-200 text-gray-700 hover:bg-gray-300"
+                  >
+                    <FiPlus size={14} />
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div className="border-t pt-3 mb-4">
+            <div className="flex justify-between font-bold text-black">
+              <span>Total:</span>
+              <span>€{calculateTotal().toFixed(2)}</span>
+            </div>
+          </div>
+        </motion.div>
+
+        <div className="flex justify-between sticky bottom-0 bg-white p-4 -mx-4 border-t">
+          <motion.button
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            onClick={() => setCheckoutStep('menu')}
+            className="bg-gray-200 text-black px-6 py-3 rounded-lg hover:bg-gray-300 transition"
+          >
+            Voltar
+          </motion.button>
+          <motion.button
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            onClick={() => setCheckoutStep('order-type')}
+            disabled={cart.length === 0}
+            className={`px-6 py-3 rounded-lg transition ${
+              cart.length === 0
+                ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                : 'bg-[#b0aca6] text-[#e6be44] hover:bg-[#a09c96]'
+            }`}
+          >
+            Continuar
+          </motion.button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
   if (checkoutStep === 'order-type') {
     return (
-      <div className="min-h-screen bg-white-50 p-4">
+      <div className="min-h-screen bg-white p-4">
         <div className="max-w-md mx-auto">
           <div className="flex items-center mb-6">
             <button
               onClick={() => setCheckoutStep('menu')}
-              className="mr-4 text-astral hover:text-astral-dark"
+              className="mr-4 text-[#e6be44] hover:text-[#d8b23d]"
             >
               <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
               </svg>
             </button>
-            <h2 className="text-2xl font-bold text-gray-800">Tipo de Pedido</h2>
+            <h2 className="text-2xl font-bold text-black">Tipo de Pedido</h2>
           </div>
           
           <motion.div 
@@ -1036,7 +1120,7 @@ const InterfaceCliente = () => {
             animate={{ y: 0, opacity: 1 }}
             className="bg-white rounded-2xl shadow-md p-6 mb-6"
           >
-            <h3 className="text-lg font-semibold mb-6 text-center">Como deseja receber seu pedido?</h3>
+            <h3 className="text-lg font-semibold mb-6 text-center text-black">Como deseja receber seu pedido?</h3>
             
             <div className="grid grid-cols-1 gap-4">
               <motion.button
@@ -1044,14 +1128,14 @@ const InterfaceCliente = () => {
                 whileTap={{ scale: 0.98 }}
                 onClick={() => {
                   setOrderType('dine-in');
-                  setCheckoutStep('customer-info');
+                  setCheckoutStep('table-number');
                 }}
-                className={`p-6 rounded-xl border-2 transition-all ${orderType === 'dine-in' ? 'border-astral bg-astral/10 text-astral' : 'border-gray-200 bg-white'}`}
+                className={`p-6 rounded-xl border-2 transition-all ${orderType === 'dine-in' ? 'border-[#e6be44] bg-[#e6be44]/10 text-black' : 'border-gray-200 bg-white'}`}
               >
                 <div className="flex flex-col items-center space-y-3">
-                  <FiHome size={32} className={orderType === 'dine-in' ? 'text-astral' : 'text-gray-400'} />
-                  <span className="text-lg font-medium">Comer no Restaurante</span>
-                  <span className="text-sm text-gray-500">O pedido será enviado diretamente ao garçom</span>
+                  <FiHome size={32} className={orderType === 'dine-in' ? 'text-[#e6be44]' : 'text-gray-400'} />
+                  <span className="text-lg font-medium text-black">Comer no Restaurante</span>
+                  <span className="text-sm text-gray-500">Servido diretamente na sua mesa</span>
                 </div>
               </motion.button>
               
@@ -1062,12 +1146,12 @@ const InterfaceCliente = () => {
                   setOrderType('takeaway');
                   setCheckoutStep('customer-info');
                 }}
-                className={`p-6 rounded-xl border-2 transition-all ${orderType === 'takeaway' ? 'border-astral bg-astral/10 text-astral' : 'border-gray-200 bg-white'}`}
+                className={`p-6 rounded-xl border-2 transition-all ${orderType === 'takeaway' ? 'border-[#e6be44] bg-[#e6be44]/10 text-black' : 'border-gray-200 bg-white'}`}
               >
                 <div className="flex flex-col items-center space-y-3">
-                  <FiShoppingCart size={32} className={orderType === 'takeaway' ? 'text-astral' : 'text-gray-400'} />
-                  <span className="text-lg font-medium">Retirar no Balcão</span>
-                  <span className="text-sm text-gray-500">Será enviado por WhatsApp e ao painel</span>
+                  <FiShoppingCart size={32} className={orderType === 'takeaway' ? 'text-[#e6be44]' : 'text-gray-400'} />
+                  <span className="text-lg font-medium text-black">Retirar no Balcão</span>
+                  <span className="text-sm text-gray-500">Pronto em 15-20 minutos</span>
                 </div>
               </motion.button>
               
@@ -1078,12 +1162,12 @@ const InterfaceCliente = () => {
                   setOrderType('delivery');
                   setCheckoutStep('customer-info');
                 }}
-                className={`p-6 rounded-xl border-2 transition-all ${orderType === 'delivery' ? 'border-astral bg-astral/10 text-astral' : 'border-gray-200 bg-white'}`}
+                className={`p-6 rounded-xl border-2 transition-all ${orderType === 'delivery' ? 'border-[#e6be44] bg-[#e6be44]/10 text-black' : 'border-gray-200 bg-white'}`}
               >
                 <div className="flex flex-col items-center space-y-3">
-                  <FiTruck size={32} className={orderType === 'delivery' ? 'text-astral' : 'text-gray-400'} />
-                  <span className="text-lg font-medium">Entrega (+€2.50)</span>
-                  <span className="text-sm text-gray-500">Será enviado por WhatsApp e ao painel</span>
+                  <FiTruck size={32} className={orderType === 'delivery' ? 'text-[#e6be44]' : 'text-gray-400'} />
+                  <span className="text-lg font-medium text-black">Entrega (+€2.50)</span>
+                  <span className="text-sm text-gray-500">Entrega em 30-45 minutos</span>
                 </div>
               </motion.button>
             </div>
@@ -1093,20 +1177,20 @@ const InterfaceCliente = () => {
     );
   }
 
-  if (checkoutStep === 'customer-info') {
+  if (checkoutStep === 'table-number') {
     return (
-      <div className="min-h-screen bg-gray-50 p-4">
-        <div className="max-w-4xl mx-auto">
+      <div className="min-h-screen bg-white p-4">
+        <div className="max-w-md mx-auto">
           <div className="flex items-center mb-6">
             <button
-              onClick={() => setCheckoutStep(tableNumber ? 'menu' : 'order-type')}
-              className="mr-4 text-astral hover:text-astral-dark"
+              onClick={() => setCheckoutStep('order-type')}
+              className="mr-4 text-[#e6be44] hover:text-[#d8b23d]"
             >
               <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
               </svg>
             </button>
-            <h2 className="text-2xl font-bold text-gray-800">Finalizar Pedido</h2>
+            <h2 className="text-2xl font-bold text-black">Número da Mesa</h2>
           </div>
           
           <motion.div 
@@ -1114,78 +1198,126 @@ const InterfaceCliente = () => {
             animate={{ y: 0, opacity: 1 }}
             className="bg-white rounded-2xl shadow-md p-6 mb-6"
           >
-            <h3 className="text-lg font-semibold mb-4 flex items-center">
-              <FiShoppingCart className="mr-2 text-astral" />
-              Resumo do Pedido
+            <h3 className="text-lg font-semibold mb-4 flex items-center text-black">
+              <FiHome className="mr-2 text-[#e6be44]" />
+              Informe o número da sua mesa
             </h3>
+            
+            <div className="space-y-4">
+              <div>
+                <label className="block text-black mb-1">Número da Mesa *</label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <FiHome className="text-gray-400" />
+                  </div>
+                  <input
+                    type="text"
+                    value={customerInfo.tableNumber}
+                    onChange={(e) => setCustomerInfo({...customerInfo, tableNumber: e.target.value})}
+                    className="w-full pl-10 p-3 border border-gray-300 rounded-lg"
+                    required
+                    placeholder="Ex: 5"
+                  />
+                </div>
+                <p className="text-xs text-gray-500 mt-1">Verifique o número no QR Code da sua mesa</p>
+              </div>
+            </div>
+          </motion.div>
+
+          <div className="flex justify-between sticky bottom-0 bg-white p-4 -mx-4 border-t">
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              onClick={() => setCheckoutStep('order-type')}
+              className="bg-gray-200 text-black px-6 py-3 rounded-lg hover:bg-gray-300 transition"
+            >
+              Voltar
+            </motion.button>
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              onClick={() => setCheckoutStep('customer-info')}
+              disabled={!customerInfo.tableNumber}
+              className={`px-6 py-3 rounded-lg transition ${
+                !customerInfo.tableNumber
+                  ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                  : 'bg-[#b0aca6] text-[#e6be44] hover:bg-[#a09c96]'
+              }`}
+            >
+              Continuar
+            </motion.button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (checkoutStep === 'customer-info') {
+    return (
+      <div className="min-h-screen bg-white p-4">
+        <div className="max-w-4xl mx-auto">
+          <div className="flex items-center mb-6">
+            <button
+              onClick={() => orderType === 'dine-in' ? setCheckoutStep('table-number') : setCheckoutStep('order-type')}
+              className="mr-4 text-[#e6be44] hover:text-[#d8b23d]"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              </svg>
+            </button>
+            <h2 className="text-2xl font-bold text-black">Confirmar Pedido</h2>
+          </div>
+          
+          <motion.div 
+            initial={{ y: 20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            className="bg-white rounded-2xl shadow-md p-6 mb-6"
+          >
+            <h3 className="text-lg font-semibold mb-4 flex items-center text-black">
+              <FiShoppingCart className="mr-2 text-[#e6be44]" />
+              Resumo do Pedido {orderType === 'dine-in' && `- Mesa ${customerInfo.tableNumber}`}
+            </h3>
+            
             <div className="space-y-3 mb-4 max-h-64 overflow-y-auto pr-2">
               {cart.map(item => (
-                <motion.div 
-                  key={item.id}
-                  layout
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  className="flex justify-between items-center p-2 hover:bg-gray-50 rounded-lg transition"
-                >
-                  <div className="flex items-center">
-                    <div className="relative w-12 h-12 rounded-lg overflow-hidden mr-3">
-                      <img 
-                        src={item.image} 
-                        alt={item.name} 
-                        className="w-full h-full object-cover"
-                      />
-                      <span className="absolute top-0 right-0 bg-astral text-white text-xs px-1 rounded-bl-lg">
-                        {item.quantity}x
-                      </span>
+                <div key={item.id} className="flex justify-between items-center p-2 border-b border-gray-100">
+                  <div className="flex-1">
+                    <div className="flex justify-between">
+                      <span className="font-medium text-black">{item.quantity}x {item.name}</span>
+                      <span className="font-medium text-black">€{(item.price * item.quantity).toFixed(2)}</span>
                     </div>
-                    <div>
-                      <h4 className="font-medium">{item.name}</h4>
-                      <p className="text-sm text-gray-500">€{item.price.toFixed(2)}</p>
-                      <div className="mt-1">
-                        <input
-                          type="text"
-                          placeholder="Observações (ex: sem cebola)"
-                          value={item.notes}
-                          onChange={(e) => updateItemNotes(item.id, e.target.value)}
-                          className="text-xs p-1 border border-gray-200 rounded w-full"
-                        />
-                      </div>
-                    </div>
+                    {item.notes && <p className="text-xs text-gray-500 mt-1">Obs: {item.notes}</p>}
                   </div>
-                  <div className="flex items-center">
-                    <button 
+                  <div className="flex items-center space-x-2 ml-4">
+                    <button
                       onClick={() => updateQuantity(item.id, item.quantity - 1)}
-                      className="text-gray-500 hover:text-astral p-1"
+                      className="p-1 rounded-full bg-gray-200 text-gray-700 hover:bg-gray-300"
                     >
-                      <FiMinus size={16} />
+                      <FiMinus size={14} />
                     </button>
-                    <span className="mx-2 w-6 text-center">{item.quantity}</span>
-                    <button 
+                    <span className="text-sm font-medium">{item.quantity}</span>
+                    <button
                       onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                      className="text-gray-500 hover:text-astral p-1"
+                      className="p-1 rounded-full bg-gray-200 text-gray-700 hover:bg-gray-300"
                     >
-                      <FiPlus size={16} />
+                      <FiPlus size={14} />
                     </button>
                   </div>
-                </motion.div>
+                </div>
               ))}
             </div>
-            <div className="border-t pt-4 space-y-2">
-              <div className="flex justify-between font-semibold">
-                <span>Subtotal:</span>
-                <span>€{(calculateTotal() - (orderType === 'delivery' ? 2.50 : 0)).toFixed(2)}</span>
+
+            <div className="border-t pt-3 mb-4">
+              <div className="flex justify-between font-bold text-black">
+                <span>Total:</span>
+                <span>€{calculateTotal().toFixed(2)}</span>
               </div>
               {orderType === 'delivery' && (
-                <div className="flex justify-between">
-                  <span>Taxa de Entrega:</span>
+                <div className="flex justify-between text-sm text-gray-600 mt-1">
+                  <span>Taxa de entrega:</span>
                   <span>€2.50</span>
                 </div>
               )}
-              <div className="flex justify-between font-bold text-lg mt-2 pt-2 border-t">
-                <span>Total:</span>
-                <span className="text-astral">€{calculateTotal().toFixed(2)}</span>
-              </div>
             </div>
           </motion.div>
 
@@ -1195,43 +1327,71 @@ const InterfaceCliente = () => {
             transition={{ delay: 0.1 }}
             className="bg-white rounded-2xl shadow-md p-6 mb-6"
           >
-            <h3 className="text-lg font-semibold mb-4 flex items-center">
-              {orderType === 'dine-in' ? <FiHome className="mr-2 text-astral" /> : 
-               orderType === 'takeaway' ? <FiShoppingCart className="mr-2 text-astral" /> : 
-               <FiTruck className="mr-2 text-astral" />}
+            <h3 className="text-lg font-semibold mb-4 flex items-center text-black">
+              {orderType === 'dine-in' ? <FiHome className="mr-2 text-[#e6be44]" /> : 
+               orderType === 'takeaway' ? <FiShoppingCart className="mr-2 text-[#e6be44]" /> : 
+               <FiTruck className="mr-2 text-[#e6be44]" />}
               {orderType === 'dine-in' ? 'Informações da Mesa' : 
                orderType === 'takeaway' ? 'Informações para Retirada' : 
                'Informações para Entrega'}
             </h3>
  
             <div className="space-y-4">
-              {orderType === 'dine-in' && tableNumber && (
+              {orderType === 'dine-in' ? (
                 <div>
-                  <label className="block text-gray-700 mb-1">Mesa</label>
+                  <label className="block text-black mb-1">Mesa</label>
                   <input
                     type="text"
-                    value={`Mesa ${tableNumber}`}
+                    value={`Mesa ${customerInfo.tableNumber}`}
                     className="w-full p-3 border border-gray-300 rounded-lg bg-gray-100 cursor-not-allowed"
                     disabled
                   />
                 </div>
-              )}
-
-              {(orderType === 'takeaway' || orderType === 'delivery') && (
+              ) : (
                 <>
-                  <div>
-                    <label className="block text-gray-700 mb-1">Nome *</label>
-                    <div className="relative">
-                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                        <FiUser className="text-gray-400" />
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-black mb-1">Nome *</label>
+                      <div className="relative">
+                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                          <FiUser className="text-gray-400" />
+                        </div>
+                        <input
+                          type="text"
+                          value={customerInfo.name}
+                          onChange={(e) => setCustomerInfo({...customerInfo, name: e.target.value})}
+                          className="w-full pl-10 p-3 border border-gray-300 rounded-lg"
+                          required
+                          placeholder="Seu nome"
+                        />
                       </div>
+                    </div>
+                    <div>
+                      <label className="block text-black mb-1">Sobrenome *</label>
                       <input
                         type="text"
-                        value={customerInfo.name}
-                        onChange={(e) => setCustomerInfo({...customerInfo, name: e.target.value})}
-                        className="w-full pl-10 p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-astral focus:border-transparent"
+                        value={customerInfo.surname}
+                        onChange={(e) => setCustomerInfo({...customerInfo, surname: e.target.value})}
+                        className="w-full p-3 border border-gray-300 rounded-lg"
                         required
-                        placeholder="Seu nome completo"
+                        placeholder="Seu sobrenome"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-black mb-1">Telemóvel *</label>
+                    <div className="relative">
+                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <FiPhone className="text-gray-400" />
+                      </div>
+                      <input
+                        type="tel"
+                        value={customerInfo.phone}
+                        onChange={(e) => setCustomerInfo({...customerInfo, phone: e.target.value})}
+                        className="w-full pl-10 p-3 border border-gray-300 rounded-lg"
+                        required
+                        placeholder="Seu número de telefone"
                       />
                     </div>
                   </div>
@@ -1239,19 +1399,7 @@ const InterfaceCliente = () => {
                   {orderType === 'delivery' && (
                     <>
                       <div>
-                        <label className="block text-gray-700 mb-1">Apelido *</label>
-                        <input
-                          type="text"
-                          value={customerInfo.surname}
-                          onChange={(e) => setCustomerInfo({...customerInfo, surname: e.target.value})}
-                          className="w-full p-3 border border-gray-300 rounded-lg"
-                          required
-                          placeholder="Como prefere ser chamado"
-                        />
-                      </div>
-                      
-                      <div>
-                        <label className="block text-gray-700 mb-1">Morada Completa *</label>
+                        <label className="block text-black mb-1">Endereço Completo *</label>
                         <div className="relative">
                           <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                             <FiMapPin className="text-gray-400" />
@@ -1262,63 +1410,30 @@ const InterfaceCliente = () => {
                             onChange={(e) => setCustomerInfo({...customerInfo, address: e.target.value})}
                             className="w-full pl-10 p-3 border border-gray-300 rounded-lg"
                             required
-                            placeholder="Rua, número, bairro, complemento"
+                            placeholder="Rua, número, bairro, apartamento"
                           />
                         </div>
                       </div>
+                      
+                      <div>
+                        <label className="block text-black mb-1">Ponto de Referência</label>
+                        <input
+                          type="text"
+                          value={customerInfo.reference}
+                          onChange={(e) => setCustomerInfo({...customerInfo, reference: e.target.value})}
+                          className="w-full p-3 border border-gray-300 rounded-lg"
+                          placeholder="Ex: Próximo ao mercado X, prédio com cor Y"
+                        />
+                      </div>
                     </>
                   )}
-
-                  <div>
-                    <label className="block text-gray-700 mb-1">Telemóvel *</label>
-                    <div className="relative">
-                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                        <FiPhone className="text-gray-400" />
-                      </div>
-                      <input
-                        type="tel"
-                        value={customerInfo.phone}
-                        onChange={(e) => setCustomerInfo({...customerInfo, phone: e.target.value})}
-                        className="w-full pl-10 p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-astral focus:border-transparent"
-                        required
-                        placeholder="Seu número de telefone"
-                      />
-                    </div>
-                  </div>
                 </>
               )}
 
-              {orderType === 'delivery' && (
+              {orderType !== 'dine-in' && (
                 <>
-                  <div className="flex items-center mb-4">
-                    <input
-                      type="checkbox"
-                      id="invoice"
-                      checked={customerInfo.invoice}
-                      onChange={(e) => setCustomerInfo({...customerInfo, invoice: e.target.checked})}
-                      className="mr-2"
-                    />
-                    <label htmlFor="invoice">Pretende factura com NIF?</label>
-                  </div>
-                  
-                  {customerInfo.invoice && (
-                    <div>
-                      <label className="block text-gray-700 mb-1">NIF (9 dígitos) *</label>
-                      <input
-                        type="text"
-                        pattern="[0-9]{9}"
-                        maxLength="9"
-                        value={customerInfo.nif}
-                        onChange={(e) => setCustomerInfo({...customerInfo, nif: e.target.value})}
-                        className="w-full p-3 border border-gray-300 rounded-lg"
-                        required
-                        placeholder="Digite seu NIF"
-                      />
-                    </div>
-                  )}
-                  
                   <div>
-                    <label className="block text-gray-700 mb-1">Método de Pagamento *</label>
+                    <label className="block text-black mb-1">Método de Pagamento *</label>
                     <div className="grid grid-cols-3 gap-2">
                       <motion.button
                         whileHover={{ scale: 1.02 }}
@@ -1328,18 +1443,18 @@ const InterfaceCliente = () => {
                         className={`p-3 rounded-lg border-2 flex flex-col items-center ${customerInfo.paymentMethod === 'mbway' ? 'border-green-500 bg-green-50' : 'border-gray-200'}`}
                       >
                         <img src={mbwayLogo} alt="MBWay" className="h-6 mb-1" />
-                        <span className="text-xs">MBWay</span>
+                        <span className="text-xs text-black">MBWay</span>
                       </motion.button>
                       
                       <motion.button
                         whileHover={{ scale: 1.02 }}
                         whileTap={{ scale: 0.98 }}
                         type="button"
-                        onClick={() => setCustomerInfo({...customerInfo, paymentMethod: 'tpa'})}
-                        className={`p-3 rounded-lg border-2 flex flex-col items-center ${customerInfo.paymentMethod === 'tpa' ? 'border-blue-500 bg-blue-50' : 'border-gray-200'}`}
+                        onClick={() => setCustomerInfo({...customerInfo, paymentMethod: 'card'})}
+                        className={`p-3 rounded-lg border-2 flex flex-col items-center ${customerInfo.paymentMethod === 'card' ? 'border-blue-500 bg-blue-50' : 'border-gray-200'}`}
                       >
                         <FiCreditCard className="text-blue-500 text-xl mb-1" />
-                        <span className="text-xs">Levar TPA</span>
+                        <span className="text-xs text-black">Cartão</span>
                       </motion.button>
                       
                       <motion.button
@@ -1353,14 +1468,14 @@ const InterfaceCliente = () => {
                           <path d="M8.433 7.418c.155-.103.346-.196.567-.267v1.698a2.305 2.305 0 01-.567-.267C8.07 8.34 8 8.114 8 8c0-.114.07-.34.433-.582zM11 12.849v-1.698c.22.071.412.164.567.267.364.243.433.468.433.582 0 .114-.07.34-.433.582a2.305 2.305 0 01-.567.267z" />
                           <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-13a1 1 0 10-2 0v.092a4.535 4.535 0 00-1.676.662C6.602 6.234 6 7.009 6 8c0 .99.602 1.765 1.324 2.246.48.32 1.054.545 1.676.662v1.941c-.391-.127-.68-.317-.843-.504a1 1 0 10-1.51 1.31c.562.649 1.413 1.076 2.353 1.253V15a1 1 0 102 0v-.092a4.535 4.535 0 001.676-.662C13.398 13.766 14 12.991 14 12c0-.99-.602-1.765-1.324-2.246A4.535 4.535 0 0011 9.092V7.151c.391.127.68.317.843.504a1 1 0 101.511-1.31c-.563-.649-1.413-1.076-2.354-1.253V5z" clipRule="evenodd" />
                         </svg>
-                        <span className="text-xs">Dinheiro</span>
+                        <span className="text-xs text-black">Dinheiro</span>
                       </motion.button>
                     </div>
                   </div>
                   
                   {customerInfo.paymentMethod === 'cash' && (
                     <div>
-                      <label className="block text-gray-700 mb-1">Troco para quanto?</label>
+                      <label className="block text-black mb-1">Troco para quanto?</label>
                       <div className="relative">
                         <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                           <span className="text-gray-500">€</span>
@@ -1381,7 +1496,7 @@ const InterfaceCliente = () => {
               )}
 
               <div>
-                <label className="block text-gray-700 mb-1">Observações Gerais</label>
+                <label className="block text-black mb-1">Observações</label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 pt-3 pointer-events-none">
                     <FiEdit2 className="text-gray-400" />
@@ -1389,7 +1504,7 @@ const InterfaceCliente = () => {
                   <textarea
                     value={customerInfo.notes}
                     onChange={(e) => setCustomerInfo({...customerInfo, notes: e.target.value})}
-                    className="w-full pl-10 p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-astral focus:border-transparent"
+                    className="w-full pl-10 p-3 border border-gray-300 rounded-lg"
                     rows="3"
                     placeholder="Alguma observação sobre seu pedido?"
                   />
@@ -1402,31 +1517,50 @@ const InterfaceCliente = () => {
             <motion.button
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
-              onClick={() => setCheckoutStep(tableNumber ? 'menu' : 'order-type')}
-              className="bg-gray-200 text-gray-800 px-6 py-3 rounded-lg hover:bg-gray-300 transition"
+              onClick={() => orderType === 'dine-in' ? setCheckoutStep('table-number') : setCheckoutStep('order-type')}
+              className="bg-gray-200 text-black px-6 py-3 rounded-lg hover:bg-gray-300 transition"
             >
               Voltar
             </motion.button>
-            <Button 
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
               onClick={handleCheckout}
               disabled={
                 (orderType === 'delivery' && (
                   !customerInfo.name || 
                   !customerInfo.surname || 
-                  !customerInfo.address || 
                   !customerInfo.phone || 
-                  !customerInfo.paymentMethod ||
-                  (customerInfo.invoice && customerInfo.nif.length !== 9)
+                  !customerInfo.address
                 )) ||
                 (orderType === 'takeaway' && (
                   !customerInfo.name || 
+                  !customerInfo.surname || 
                   !customerInfo.phone
                 )) ||
+                (orderType === 'dine-in' && !customerInfo.tableNumber) ||
                 cart.length === 0
               }
+              className={`px-6 py-3 rounded-lg transition ${
+                ((orderType === 'delivery' && (
+                  !customerInfo.name || 
+                  !customerInfo.surname || 
+                  !customerInfo.phone || 
+                  !customerInfo.address
+                )) ||
+                (orderType === 'takeaway' && (
+                  !customerInfo.name || 
+                  !customerInfo.surname || 
+                  !customerInfo.phone
+                )) ||
+                (orderType === 'dine-in' && !customerInfo.tableNumber) ||
+                cart.length === 0)
+                  ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                  : 'bg-[#b0aca6] text-[#e6be44] hover:bg-[#a09c96]'
+              }`}
             >
               Finalizar Pedido
-            </Button>
+            </motion.button>
           </div>
         </div>
       </div>
@@ -1434,159 +1568,156 @@ const InterfaceCliente = () => {
   }
 
   return (
-    <div className="min-h-screen bg-white-50">
+    <div className="min-h-screen bg-white">
+      {showWelcomeModal && (
+        <WelcomeModal onClose={() => setShowWelcomeModal(false)} />
+      )}
+
+    {showWhatsAppModal && (
+      <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 p-4">
+        <motion.div 
+          initial={{ scale: 0.9, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          className="bg-white rounded-xl shadow-xl max-w-md w-full overflow-hidden"
+        >
+          <div className="p-6">
+            <div className="text-center mb-4">
+              <h3 className="text-2xl font-bold text-gray-800">Pedido Confirmado!</h3>
+              <p className="text-gray-600 mt-2">Agora é só enviar pelo WhatsApp para confirmar</p>
+            </div>
+
+            <div className="mb-6">
+              <div className="flex justify-between text-sm text-gray-600 mb-1">
+                <span>Tempo restante:</span>
+                <span>{countdown}s</span>
+              </div>
+              <div className="w-full bg-gray-200 rounded-full h-2">
+                <div 
+                  className="bg-[#e6be44] h-2 rounded-full" 
+                  style={{ width: `${(countdown/40)*100}%` }}
+                ></div>
+              </div>
+            </div>
+
+            <div className="space-y-3">
+              <motion.button
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                onClick={() => {
+                  window.open(whatsAppLink, '_blank');
+                  setShowWhatsAppModal(false);
+                  setCheckoutStep('confirmation');
+                  setCart([]);
+                }}
+                className="w-full bg-green-500 text-white py-3 rounded-lg flex items-center justify-center"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+                </svg>
+                Enviar pelo WhatsApp
+              </motion.button>
+
+              <motion.button
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                onClick={() => {
+                  setShowWhatsAppModal(false);
+                  setCheckoutStep('confirmation');
+                  setCart([]);
+                }}
+                className="w-full border border-gray-300 py-3 rounded-lg text-gray-700"
+              >
+                Cancelar
+              </motion.button>
+            </div>
+          </div>
+        </motion.div>
+      </div>
+    )}
+
+      {/* Notificações */}
       <div className="fixed top-4 right-4 z-50 space-y-2">
         <AnimatePresence>
           {notifications.map((notification) => (
-            <Notification 
+            <motion.div
               key={notification.id}
-              message={notification.message}
-              type={notification.type}
-              onClose={() => setNotifications(notifications.filter(n => n.id !== notification.id))}
-            />
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, x: 20 }}
+              className={`px-4 py-3 rounded-lg shadow-lg flex justify-between items-center ${
+                notification.type === 'error' ? 'bg-red-500' :
+                notification.type === 'success' ? 'bg-green-500' : 'bg-blue-500'
+              } text-white`}
+            >
+              <span>{notification.message}</span>
+              <button 
+                onClick={() => setNotifications(notifications.filter(n => n.id !== notification.id))}
+                className="ml-4"
+              >
+                <FiX />
+              </button>
+            </motion.div>
           ))}
         </AnimatePresence>
       </div>
 
-      <AnimatePresence>
-        {showModal && (
-          <motion.div 
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4"
-          >
-            <motion.div 
-              initial={{ scale: 0.9, y: 20 }}
-              animate={{ scale: 1, y: 0 }}
-              className="bg-white p-6 rounded-2xl max-w-md w-full shadow-2xl"
+      <header className="bg-white text-black p-4 shadow-lg sticky top-0 z-20">
+        <div className="container mx-auto flex justify-between items-center">
+          <div className="flex items-center">
+            <img src={logo} alt="Alto Astral" className="h-20 mr-2" />
+            <h1 className="text-2xl font-bold hidden sm:block">Alto Astral</h1>
+          </div>
+          <div className="flex items-center space-x-4">
+            <motion.button 
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={proceedToCheckout}
+              className="relative bg-white hover:bg-gray-100 px-4 py-2 rounded-lg flex items-center transition"
+              disabled={cart.length === 0}
             >
-              <div className="flex justify-between items-center mb-4">
-                <div className="flex items-center">
-                  <img src={logo} alt="Alto Astral" className="h-10 mr-2" />
-                  <h2 className="text-2xl font-bold text-astral">Especialidades</h2>
-                </div>
-                <button 
-                  onClick={() => setShowModal(false)}
-                  className="text-gray-500 hover:text-gray-700"
+              <FiShoppingCart className="mr-2 text-2xl text-black" />
+              <span className="hidden sm:inline text-black">Carrinho</span>
+              {cart.length > 0 && (
+                <motion.span 
+                  animate={controls}
+                  className="absolute -top-2 -right-2 bg-black text-white text-xs rounded-full h-6 w-6 flex items-center justify-center"
                 >
-                  <FiX size={24} />
-                </button>
-              </div>
-              <div className="space-y-4">
-                <motion.div 
-                  whileHover={{ x: 5 }}
-                  className="flex items-start bg-yellow-50 p-3 rounded-lg border border-yellow-100"
-                >
-                  <div className="bg-yellow-100 p-2 rounded-full mr-3">
-                    <FiCalendar className="text-yellow-600" />
-                  </div>
-                  <div>
-                    <h3 className="font-semibold">Pastel</h3>
-                    <p className="text-sm text-yellow-800">Todos os dias a partir das 15h</p>
-                  </div>
-                </motion.div>
-                <motion.div 
-                  whileHover={{ x: 5 }}
-                  className="flex items-start bg-green-50 p-3 rounded-lg border border-green-100"
-                >
-                  <div className="bg-green-100 p-2 rounded-full mr-3">
-                    <FiCalendar className="text-green-600" />
-                  </div>
-                  <div>
-                    <h3 className="font-semibold">Feijoada</h3>
-                    <p className="text-sm text-green-800">Toda sexta-feira</p>
-                  </div>
-                </motion.div>
-                <motion.div 
-                  whileHover={{ x: 5 }}
-                  className="flex items-start bg-blue-50 p-3 rounded-lg border border-blue-100"
-                >
-                  <div className="bg-blue-100 p-2 rounded-full mr-3">
-                    <FiCoffee className="text-blue-600" />
-                  </div>
-                  <div>
-                    <h3 className="font-semibold">Café da Manhã na Sua Casa</h3>
-                    <p className="text-sm text-blue-800">Encomende até às 22h do dia anterior</p>
-                  </div>
-                </motion.div>
-              </div>
-              <div className="mt-6 bg-astral/10 p-3 rounded-lg border border-astral/20">
-                <p className="text-sm text-astral flex items-center">
-                  <FiInfo className="mr-2" /> Não encontrou o que procura? Consulte nosso cardápio completo abaixo!
-                </p>
-              </div>
-              <motion.button
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                onClick={() => setShowModal(false)}
-                className="mt-4 w-full bg-astral text-white py-3 rounded-lg hover:bg-astral-dark transition"
-              >
-                Ver Cardápio
-              </motion.button>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      <header className="bg-white text-gray-900 p-4 shadow-lg sticky top-0 z-20">
-  <div className="container mx-auto flex justify-between items-center">
-    <div className="flex items-center">
-      <img src={logoWhite} alt="Alto Astral" className="h-16 mr-2" />
-      <h1 className="text-2xl font-bold hidden sm:block">Alto Astral</h1>
-    </div>
-    <div className="flex items-center space-x-4">
-  <motion.button 
-    whileHover={{ scale: 1.05 }}
-    whileTap={{ scale: 0.95 }}
-    onClick={proceedToCheckout}
-    className="relative bg-white hover:bg-gray-100 px-4 py-2 rounded-lg flex items-center transition backdrop-blur-sm"
-    disabled={cart.length === 0}
-  >
-    <FiShoppingCart className="mr-2" />
-    <span className="hidden sm:inline">Carrinho</span>
-    {cart.length > 0 && (
-      <motion.span 
-        animate={controls}
-        className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full h-6 w-6 flex items-center justify-center"
-      >
-        {cart.reduce((sum, item) => sum + item.quantity, 0)}
-      </motion.span>
-    )}
-  </motion.button>
-</div>
-
-  </div>
-</header>
-
+                  {cart.reduce((sum, item) => sum + item.quantity, 0)}
+                </motion.span>
+              )}
+            </motion.button>
+          </div>
+        </div>
+      </header>
 
       <div className="relative h-64 md:h-80 overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-r from-black/60 to-transparent z-20"></div>
-
         <img 
           src={foodImages.background} 
           alt="Background" 
           className="absolute inset-0 w-full h-full object-cover object-center z-10"
         />
+            <div className="absolute inset-0 z-30 flex flex-col justify-center p-6 md:p-10">
+            <motion.h1 
+              initial={{ x: -20, opacity: 0 }}
+              animate={{ x: 0, opacity: 1 }}
+              transition={{ delay: 0.2 }}
+              className="text-3xl md:text-5xl font-bold mb-2"
+              style={{ color: '#FFFAF1' }}
+            >
+              Sabores que Elevam o Seu Astral.
+            </motion.h1>
+            <motion.p 
+              initial={{ x: -20, opacity: 0 }}
+              animate={{ x: 0, opacity: 1 }}
+              transition={{ delay: 0.4 }}
+              className="text-lg md:text-xl max-w-lg"
+              style={{ color: '#FFFAF1' }}
+            >
+              "Aqui, cada prato é um convite para ficar mais um pouco."
+            </motion.p>
+          </div>
 
-        <div className="absolute inset-0 z-30 flex flex-col justify-center p-6 md:p-10">
-          <motion.h1 
-            initial={{ x: -20, opacity: 0 }}
-            animate={{ x: 0, opacity: 1 }}
-            transition={{ delay: 0.2 }}
-            className="text-3xl md:text-5xl font-bold text-white mb-2"
-          >
-            Sabor que Eleva seu Astral
-          </motion.h1>
-          <motion.p 
-            initial={{ x: -20, opacity: 0 }}
-            animate={{ x: 0, opacity: 1 }}
-            transition={{ delay: 0.4 }}
-            className="text-white/90 text-lg md:text-xl max-w-lg"
-          >
-            Experimente nossos pratos especiais preparados com ingredientes frescos e muito amor.
-          </motion.p>
-        </div>
       </div>
 
       <div className="container mx-auto px-4 -mt-8 z-30 relative">
@@ -1605,7 +1736,7 @@ const InterfaceCliente = () => {
             <input
               type="text"
               placeholder="Buscar pratos, bebidas..."
-              className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-astral focus:border-transparent"
+              className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#e6be44] focus:border-transparent"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
@@ -1614,102 +1745,39 @@ const InterfaceCliente = () => {
       </div>
 
       <div className="bg-white shadow-sm sticky top-16 z-10">
-  <div className="container mx-auto overflow-x-auto">
-    <div className="flex space-x-1 p-2">
-      <motion.button
-        whileHover={{ scale: 1.02 }}
-        whileTap={{ scale: 0.98 }}
-        onClick={() => setActiveTab('semana')}
-        className={`px-4 py-2 rounded-lg whitespace-nowrap flex items-center transition border border-[#F6BF43] ${
-          activeTab === 'semana' ? 'bg-[#575449] text-[#F6BF43] font-bold' : 'bg-[#9C9683] text-[#F6BF43] font-bold'
-        }`}
-      >
-        <FiCalendar className="mr-2" />
-        Cardápio da Semana
-      </motion.button>
-      <motion.button
-        whileHover={{ scale: 1.02 }}
-        whileTap={{ scale: 0.98 }}
-        onClick={() => setActiveTab('lanches')}
-        className={`px-4 py-2 rounded-lg whitespace-nowrap flex items-center transition border border-[#F6BF43] ${
-          activeTab === 'lanches' ? 'bg-[#575449] text-[#F6BF43] font-bold' : 'bg-[#9C9683] text-[#F6BF43] font-bold'
-        }`}
-      >
-        <FiCoffee className="mr-2" />
-        Lanches
-      </motion.button>
-      <motion.button
-        whileHover={{ scale: 1.02 }}
-        whileTap={{ scale: 0.98 }}
-        onClick={() => setActiveTab('porcoes')}
-        className={`px-4 py-2 rounded-lg whitespace-nowrap flex items-center transition border border-[#F6BF43] ${
-          activeTab === 'porcoes' ? 'bg-[#575449] text-[#F6BF43] font-bold' : 'bg-[#9C9683] text-[#F6BF43] font-bold'
-        }`}
-      >
-        <FiPlus className="mr-2" />
-        Porções
-      </motion.button>
-      <motion.button
-        whileHover={{ scale: 1.02 }}
-        whileTap={{ scale: 0.98 }}
-        onClick={() => setActiveTab('pasteis')}
-        className={`px-4 py-2 rounded-lg whitespace-nowrap flex items-center transition border border-[#F6BF43] ${
-          activeTab === 'pasteis' ? 'bg-[#575449] text-[#F6BF43] font-bold' : 'bg-[#9C9683] text-[#F6BF43] font-bold'
-        }`}
-      >
-        <FiInfo className="mr-2" />
-        Pasteis
-      </motion.button>
-      <motion.button
-        whileHover={{ scale: 1.02 }}
-        whileTap={{ scale: 0.98 }}
-        onClick={() => setActiveTab('cafe')}
-        className={`px-4 py-2 rounded-lg whitespace-nowrap flex items-center transition border border-[#F6BF43] ${
-          activeTab === 'cafe' ? 'bg-[#575449] text-[#F6BF43] font-bold' : 'bg-[#9C9683] text-[#F6BF43] font-bold'
-        }`}
-      >
-        <FiCoffee className="mr-2" />
-        Bom Dia
-      </motion.button>
-      <motion.button
-        whileHover={{ scale: 1.02 }}
-        whileTap={{ scale: 0.98 }}
-        onClick={() => setActiveTab('bebidas')}
-        className={`px-4 py-2 rounded-lg whitespace-nowrap flex items-center transition border border-[#F6BF43] ${
-          activeTab === 'bebidas' ? 'bg-[#575449] text-[#F6BF43] font-bold' : 'bg-[#9C9683] text-[#F6BF43] font-bold'
-        }`}
-      >
-        <FiPlus className="mr-2" />
-        Bebidas
-      </motion.button>
-      <motion.button
-        whileHover={{ scale: 1.02 }}
-        whileTap={{ scale: 0.98 }}
-        onClick={() => setActiveTab('salgados')}
-        className={`px-4 py-2 rounded-lg whitespace-nowrap flex items-center transition border border-[#F6BF43] ${
-          activeTab === 'salgados' ? 'bg-[#575449] text-[#F6BF43] font-bold' : 'bg-[#9C9683] text-[#F6BF43] font-bold'
-        }`}
-      >
-        <FiInfo className="mr-2" />
-        Salgados
-      </motion.button>
-      <motion.button
-        whileHover={{ scale: 1.02 }}
-        whileTap={{ scale: 0.98 }}
-        onClick={() => setActiveTab('sobremesas')}
-        className={`px-4 py-2 rounded-lg whitespace-nowrap flex items-center transition border border-[#F6BF43] ${
-          activeTab === 'sobremesas' ? 'bg-[#575449] text-[#F6BF43] font-bold' : 'bg-[#9C9683] text-[#F6BF43] font-bold'
-        }`}
-      >
-        <FiCoffee className="mr-2" />
-        Sobremesas
-      </motion.button>
-    </div>
-  </div>
-</div>
-
-
-
+        <div className="container mx-auto overflow-x-auto">
+          <div className="flex space-x-1 p-2">
+            {['semana', 'lanches', 'porcoes', 'pasteis', 'cafe', 'bebidas', 'salgados', 'sobremesas'].map((tab) => (
+              <motion.button
+                key={tab}
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                onClick={() => setActiveTab(tab)}
+                className={`px-4 py-2 rounded-lg whitespace-nowrap flex items-center transition border ${
+                  activeTab === tab ? 'border-[#e6be44] bg-[#b0aca6] text-[#e6be44]' : 'border-gray-200 bg-white text-gray-700'
+                }`}
+              >
+                {tab === 'semana' && <FiCalendar className="mr-2" />}
+                {tab === 'lanches' && <FiCoffee className="mr-2" />}
+                {tab === 'porcoes' && <FiPlus className="mr-2" />}
+                {tab === 'pasteis' && <FiInfo className="mr-2" />}
+                {tab === 'cafe' && <FiCoffee className="mr-2" />}
+                {tab === 'bebidas' && <FiPlus className="mr-2" />}
+                {tab === 'salgados' && <FiInfo className="mr-2" />}
+                {tab === 'sobremesas' && <FiCoffee className="mr-2" />}
+                {tab === 'semana' && 'Cardápio'}
+                {tab === 'lanches' && 'Lanches'}
+                {tab === 'porcoes' && 'Porções'}
+                {tab === 'pasteis' && 'Pasteis'}
+                {tab === 'cafe' && 'Bom Dia'}
+                {tab === 'bebidas' && 'Bebidas'}
+                {tab === 'salgados' && 'Salgados'}
+                {tab === 'sobremesas' && 'Sobremesas'}
+              </motion.button>
+            ))}
+          </div>
+        </div>
+      </div>
 
       <main className="container mx-auto p-4 pb-20">
         <AnimatePresence mode="wait">
@@ -1720,510 +1788,91 @@ const InterfaceCliente = () => {
             exit={{ opacity: 0, y: -10 }}
             transition={{ duration: 0.3 }}
           >
-            {activeTab === 'semana' && (
-              <div>
-                <div className="flex items-center justify-between mb-6">
-                  <h2 className="text-2xl font-bold text-gray-800 flex items-center">
-                    <FiCalendar className="mr-2 text-astral" />
-                    Cardápio da Semana
-                  </h2>
-                  <Badge variant="primary">
-                    Pratos principais
-                  </Badge>
-                </div>
-                <div className="mb-6 bg-yellow-50 p-4 rounded-xl border border-yellow-200 flex items-start">
-                  <FiInfo className="text-yellow-500 mr-2 mt-0.5 flex-shrink-0" />
-                  <p className="text-sm text-yellow-800">Opção vegetariana sob consulta. Todos os pratos acompanham bebida e café.</p>
-                </div>
-                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {filteredMenu('semana').map(item => (
-                    <Card key={item.id}>
-                      <div className="relative h-48 overflow-hidden group">
-                        <img 
-                          src={item.image} 
-                          alt={item.name} 
-                          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-                        />
-                        <button 
-                          onClick={() => toggleFavorite(item.id)}
-                          className="absolute top-2 right-2 p-2 bg-white/80 rounded-full backdrop-blur-sm hover:bg-white transition"
-                        >
-                          <FiHeart 
-                            className={`w-5 h-5 ${favorites.includes(item.id) ? 'text-red-500 fill-red-500' : 'text-gray-400'}`} 
+            {['semana', 'lanches', 'porcoes', 'pasteis', 'cafe', 'bebidas', 'salgados', 'sobremesas'].map((category) => (
+              activeTab === category && (
+                <div key={category}>
+                  <div className="flex items-center justify-between mb-6">
+                    <h2 className="text-2xl font-bold text-black flex items-center">
+                      {category === 'semana' && <FiCalendar className="mr-2 text-[#e6be44]" />}
+                      {category === 'lanches' && <FiCoffee className="mr-2 text-[#e6be44]" />}
+                      {category === 'porcoes' && <FiPlus className="mr-2 text-[#e6be44]" />}
+                      {category === 'pasteis' && <FiInfo className="mr-2 text-[#e6be44]" />}
+                      {category === 'cafe' && <FiCoffee className="mr-2 text-[#e6be44]" />}
+                      {category === 'bebidas' && <FiPlus className="mr-2 text-[#e6be44]" />}
+                      {category === 'salgados' && <FiInfo className="mr-2 text-[#e6be44]" />}
+                      {category === 'sobremesas' && <FiCoffee className="mr-2 text-[#e6be44]" />}
+                      {category === 'semana' && 'Cardápio da Semana'}
+                      {category === 'lanches' && 'Lanches'}
+                      {category === 'porcoes' && 'Porções'}
+                      {category === 'pasteis' && 'Pasteis'}
+                      {category === 'cafe' && 'Bom Dia'}
+                      {category === 'bebidas' && 'Bebidas'}
+                      {category === 'salgados' && 'Salgados'}
+                      {category === 'sobremesas' && 'Sobremesas'}
+                    </h2>
+                  </div>
+                  
+                  <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {filteredMenu(category).map(item => (
+                      <Card key={item.id}>
+                        <div className="relative h-48 overflow-hidden group">
+                          <img 
+                            src={item.image} 
+                            alt={item.name} 
+                            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                           />
-                        </button>
-                        {item.veg && (
-                          <Badge className="absolute top-2 left-2 flex items-center">
-                            <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 mr-1" viewBox="0 0 20 20" fill="currentColor">
-                              <path fillRule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                            </svg>
-                            Vegetariano
-                          </Badge>
-                        )}
-                      </div>
-                      <div className="p-4">
-                        <div className="flex justify-between items-start">
-                          <h3 className="font-bold text-lg">{item.name}</h3>
-                          <span className="font-bold text-astral bg-astral/10 px-2 py-1 rounded-lg">€{item.price.toFixed(2)}</span>
-                        </div>
-                        <Rating value={Math.round(item.rating)} className="my-1" />
-                        <p className="text-gray-600 text-sm mt-2">{item.description}</p>
-                        <div className="mt-4 flex justify-between items-center">
-                          <div className="text-xs text-gray-500 flex items-center">
-                            <FiInfo className="mr-1" />
-                            Adicionais: Feijão carioca, ovo, batata frita (+€1.50)
-                          </div>
-                          <Button
-                            id={`add-${item.id}`}
-                            onClick={() => addToCart(item)}
-                            size="small"
-                            className="mt-4 w-full bg-[#958D80] text-black hover:bg-[#7a7368]"
+                          <button 
+                            onClick={() => toggleFavorite(item.id)}
+                            className="absolute top-2 right-2 p-2 bg-white/80 rounded-full backdrop-blur-sm hover:bg-white transition"
                           >
-                            <FiPlus className="mr-1" />
-                            Adicionar
-                          </Button>
+                            <FiHeart 
+                              className={`w-5 h-5 ${favorites.includes(item.id) ? 'text-red-500 fill-red-500' : 'text-gray-400'}`} 
+                            />
+                          </button>
+                          {item.veg && (
+                            <span className="absolute top-2 left-2 text-xs font-medium px-2.5 py-0.5 rounded-full bg-green-100 text-green-800 flex items-center">
+                              <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                                <path fillRule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                              </svg>
+                              Vegetariano
+                            </span>
+                          )}
                         </div>
-                      </div>
-                    </Card>
-                  ))}
-                </div>
-              </div>
-            )}
+                        <div className="p-4">
+                          <div className="flex justify-between items-start">
+                            <h3 className="font-bold text-lg text-black">{item.name}</h3>
+                            <span className="font-bold text-black bg- white px-2 py-1 rounded-lg">€{item.price.toFixed(2)}</span>
+                          </div>
+                          <div className="flex items-center my-1">
+                            {[...Array(5)].map((_, i) => (
+                              <svg 
+                                key={i} 
+                                className={`w-4 h-4 ${i < Math.round(item.rating) ? 'text-[#e6be44] fill-[#e6be44]' : 'text-gray-300'}`} 
+                                fill="currentColor" 
+                                viewBox="0 0 20 20"
+                              >
+                                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                              </svg>
+                            ))}
+                          </div>
+                          {item.description && <p className="text-gray-600 text-sm mt-2">{item.description}</p>}
+                          <motion.button
+                              whileHover={{ scale: 1.02 }}
+                              whileTap={{ scale: 0.98 }}
+                              onClick={() => addToCart(item)}
+                              className="mt-4 w-full bg-[#b0aca6] text-[#e6be44] font-bold px-4 py-2 rounded-lg hover:bg-[#a09c96] transition flex items-center justify-center"
+                            >
+                              <FiPlus className="mr-1" />
+                              Adicionar
+                            </motion.button>
 
-            {activeTab === 'lanches' && (
-              <div>
-                <div className="flex items-center justify-between mb-6">
-                  <h2 className="text-2xl font-bold text-gray-800 flex items-center">
-                    <FiCoffee className="mr-2 text-astral" />
-                    Lanches
-                  </h2>
-                  <Badge variant="primary">
-                    Variedade de sanduíches
-                  </Badge>
-                </div>
-                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {filteredMenu('lanches').map(item => (
-                    <Card key={item.id}>
-                      <div className="relative h-48 overflow-hidden group">
-                        <img 
-                          src={item.image} 
-                          alt={item.name} 
-                          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-                        />
-                        <button 
-                          onClick={() => toggleFavorite(item.id)}
-                          className="absolute top-2 right-2 p-2 bg-white/80 rounded-full backdrop-blur-sm hover:bg-white transition"
-                        >
-                          <FiHeart 
-                            className={`w-5 h-5 ${favorites.includes(item.id) ? 'text-red-500 fill-red-500' : 'text-gray-400'}`} 
-                          />
-                        </button>
-                      </div>
-                      <div className="p-4">
-                        <div className="flex justify-between items-start">
-                          <h3 className="font-bold text-lg">{item.name}</h3>
-                          <span className="font-bold text-astral bg-astral/10 px-2 py-1 rounded-lg">€{item.price.toFixed(2)}</span>
                         </div>
-                        <Rating value={Math.round(item.rating)} className="my-1" />
-                        <p className="text-gray-600 text-sm mt-2">{item.description}</p>
-                        <Button
-                          id={`add-${item.id}`}
-                          onClick={() => addToCart(item)}
-                          size="small"
-                          className="mt-4 w-full"
-                        >
-                          <FiPlus className="mr-1" />
-                          Adicionar
-                        </Button>
-                      </div>
-                    </Card>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {activeTab === 'porcoes' && (
-              <div>
-                <div className="flex items-center justify-between mb-6">
-                  <h2 className="text-2xl font-bold text-gray-800 flex items-center">
-                    <FiPlus className="mr-2 text-astral" />
-                    Porções
-                  </h2>
-                  <Badge variant="primary">
-                    Para compartilhar
-                  </Badge>
-                </div>
-                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {filteredMenu('porcoes').map(item => (
-                    <Card key={item.id}>
-                      <div className="relative h-48 overflow-hidden group">
-                        <img 
-                          src={item.image} 
-                          alt={item.name} 
-                          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-                        />
-                        <button 
-                          onClick={() => toggleFavorite(item.id)}
-                          className="absolute top-2 right-2 p-2 bg-white/80 rounded-full backdrop-blur-sm hover:bg-white transition"
-                        >
-                          <FiHeart 
-                            className={`w-5 h-5 ${favorites.includes(item.id) ? 'text-red-500 fill-red-500' : 'text-gray-400'}`} 
-                          />
-                        </button>
-                      </div>
-                      <div className="p-4">
-                        <div className="flex justify-between items-start">
-                          <h3 className="font-bold text-lg">{item.name}</h3>
-                          <span className="font-bold text-astral bg-astral/10 px-2 py-1 rounded-lg">€{item.price.toFixed(2)}</span>
-                        </div>
-                        <Rating value={Math.round(item.rating)} className="my-1" />
-                        <p className="text-gray-600 text-sm mt-2">{item.description}</p>
-                        <Button
-                          id={`add-${item.id}`}
-                          onClick={() => addToCart(item)}
-                          size="small"
-                          className="mt-4 w-full"
-                        >
-                          <FiPlus className="mr-1" />
-                          Adicionar
-                        </Button>
-                      </div>
-                    </Card>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {activeTab === 'pasteis' && (
-              <div>
-                <div className="flex items-center justify-between mb-6">
-                  <h2 className="text-2xl font-bold text-gray-800 flex items-center">
-                    <FiInfo className="mr-2 text-astral" />
-                    Pasteis
-                  </h2>
-                  <Badge variant="primary">
-                    Especialidade da casa
-                  </Badge>
-                </div>
-                <div className="mb-6 bg-blue-50 p-4 rounded-xl border border-blue-200 flex items-start">
-                  <FiInfo className="text-blue-500 mr-2 mt-0.5 flex-shrink-0" />
-                  <div>
-                    <p className="text-sm text-blue-800">Segunda a Sexta a partir das 15h | Sábado o dia todo</p>
-                    <p className="text-sm text-blue-800 mt-1 font-semibold">Pasteis fritos na hora - saem quentinhos!</p>
+                      </Card>
+                    ))}
                   </div>
                 </div>
-                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {filteredMenu('pasteis').map(item => (
-                    <Card key={item.id}>
-                      <div className="relative h-48 overflow-hidden group">
-                        <img 
-                          src={item.image} 
-                          alt={item.name} 
-                          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-                        />
-                        <button 
-                          onClick={() => toggleFavorite(item.id)}
-                          className="absolute top-2 right-2 p-2 bg-white/80 rounded-full backdrop-blur-sm hover:bg-white transition"
-                        >
-                          <FiHeart 
-                            className={`w-5 h-5 ${favorites.includes(item.id) ? 'text-red-500 fill-red-500' : 'text-gray-400'}`} 
-                          />
-                        </button>
-                      </div>
-                      <div className="p-4">
-                        <div className="flex justify-between items-start">
-                          <h3 className="font-bold text-lg">{item.name}</h3>
-                          <span className="font-bold text-astral bg-astral/10 px-2 py-1 rounded-lg">€{item.price.toFixed(2)}</span>
-                        </div>
-                        <Rating value={Math.round(item.rating)} className="my-1" />
-                        {item.description && <p className="text-gray-600 text-sm mt-2">{item.description}</p>}
-                        <div className="mt-4 flex justify-between items-center">
-                          <div className="text-xs text-gray-500 flex items-center">
-                            <FiInfo className="mr-1" />
-                            Adicionais: Catupiry, cheddar, bacon ou milho (+€1.00)
-                          </div>
-                          <Button
-                            id={`add-${item.id}`}
-                            onClick={() => addToCart(item)}
-                            size="small"
-                            className="flex-shrink-0"
-                          >
-                            <FiPlus className="mr-1" />
-                            Adicionar
-                          </Button>
-                        </div>
-                      </div>
-                    </Card>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {activeTab === 'cafe' && (
-              <div>
-                <div className="flex items-center justify-between mb-6">
-                  <h2 className="text-2xl font-bold text-gray-800 flex items-center">
-                    <FiCoffee className="mr-2 text-astral" />
-                    Bom Dia
-                  </h2>
-                  <Badge variant="primary">
-                    Café da manhã
-                  </Badge>
-                </div>
-                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {filteredMenu('cafe').map(item => (
-                    <Card key={item.id}>
-                      <div className="relative h-48 overflow-hidden group">
-                        <img 
-                          src={item.image} 
-                          alt={item.name} 
-                          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-                        />
-                        <button 
-                          onClick={() => toggleFavorite(item.id)}
-                          className="absolute top-2 right-2 p-2 bg-white/80 rounded-full backdrop-blur-sm hover:bg-white transition"
-                        >
-                          <FiHeart 
-                            className={`w-5 h-5 ${favorites.includes(item.id) ? 'text-red-500 fill-red-500' : 'text-gray-400'}`} 
-                          />
-                        </button>
-                      </div>
-                      <div className="p-4">
-                        <div className="flex justify-between items-start">
-                          <h3 className="font-bold text-lg">{item.name}</h3>
-                          <span className="font-bold text-astral bg-astral/10 px-2 py-1 rounded-lg">€{item.price.toFixed(2)}</span>
-                        </div>
-                        <Rating value={Math.round(item.rating)} className="my-1" />
-                        {item.description && <p className="text-gray-600 text-sm mt-2">{item.description}</p>}
-                        <Button
-                          id={`add-${item.id}`}
-                          onClick={() => addToCart(item)}
-                          size="small"
-                          className="mt-4 w-full"
-                        >
-                          <FiPlus className="mr-1" />
-                          Adicionar
-                        </Button>
-                      </div>
-                    </Card>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {activeTab === 'bebidas' && (
-              <div>
-                <div className="flex items-center justify-between mb-6">
-                  <h2 className="text-2xl font-bold text-gray-800 flex items-center">
-                    <FiPlus className="mr-2 text-astral" />
-                    Bebidas
-                  </h2>
-                  <Badge variant="primary">
-                    Refresque-se
-                  </Badge>
-                </div>
-                <div className="mb-6 bg-gray-100 p-4 rounded-xl flex items-start">
-                  <FiInfo className="text-gray-500 mr-2 mt-0.5 flex-shrink-0" />
-                  <p className="text-sm text-gray-800">Todos os whiskeys e vodkas podem vir com ou sem gelo</p>
-                </div>
-                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {filteredMenu('bebidas').map(item => (
-                    <Card key={item.id}>
-                      <div className="relative h-48 overflow-hidden group">
-                        <img 
-                          src={item.image} 
-                          alt={item.name} 
-                          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-                        />
-                        <button 
-                          onClick={() => toggleFavorite(item.id)}
-                          className="absolute top-2 right-2 p-2 bg-white/80 rounded-full backdrop-blur-sm hover:bg-white transition"
-                        >
-                          <FiHeart 
-                            className={`w-5 h-5 ${favorites.includes(item.id) ? 'text-red-500 fill-red-500' : 'text-gray-400'}`} 
-                          />
-                        </button>
-                      </div>
-                      <div className="p-4">
-                        <div className="flex justify-between items-start">
-                          <h3 className="font-bold text-lg">{item.name}</h3>
-                          <span className="font-bold text-astral bg-astral/10 px-2 py-1 rounded-lg">€{item.price.toFixed(2)}</span>
-                        </div>
-                        <Rating value={Math.round(item.rating)} className="my-1" />
-                        {item.description && <p className="text-gray-600 text-sm mt-2">{item.description}</p>}
-                        <Button
-                          id={`add-${item.id}`}
-                          onClick={() => addToCart(item)}
-                          size="small"
-                          className="mt-4 w-full"
-                        >
-                          <FiPlus className="mr-1" />
-                          Adicionar
-                        </Button>
-                      </div>
-                    </Card>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {activeTab === 'salgados' && (
-              <div>
-                <div className="flex items-center justify-between mb-6">
-                  <h2 className="text-2xl font-bold text-gray-800 flex items-center">
-                    <FiInfo className="mr-2 text-astral" />
-                    Salgados
-                  </h2>
-                  <Badge variant="primary">
-                    Para lanches rápidos
-                  </Badge>
-                </div>
-                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {filteredMenu('salgados').map(item => (
-                    <Card key={item.id}>
-                      <div className="relative h-48 overflow-hidden group">
-                        <img 
-                          src={item.image} 
-                          alt={item.name} 
-                          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-                        />
-                        <button 
-                          onClick={() => toggleFavorite(item.id)}
-                          className="absolute top-2 right-2 p-2 bg-white/80 rounded-full backdrop-blur-sm hover:bg-white transition"
-                        >
-                          <FiHeart 
-                            className={`w-5 h-5 ${favorites.includes(item.id) ? 'text-red-500 fill-red-500' : 'text-gray-400'}`} 
-                          />
-                        </button>
-                      </div>
-                      <div className="p-4">
-                        <div className="flex justify-between items-start">
-                          <h3 className="font-bold text-lg">{item.name}</h3>
-                          <span className="font-bold text-astral bg-astral/10 px-2 py-1 rounded-lg">€{item.price.toFixed(2)}</span>
-                        </div>
-                        <Rating value={Math.round(item.rating)} className="my-1" />
-                        {item.description && <p className="text-gray-600 text-sm mt-2">{item.description}</p>}
-                        <Button
-                          id={`add-${item.id}`}
-                          onClick={() => addToCart(item)}
-                          size="small"
-                          className="mt-4 w-full"
-                        >
-                          <FiPlus className="mr-1" />
-                          Adicionar
-                        </Button>
-                      </div>
-                    </Card>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {activeTab === 'sobremesas' && (
-              <div>
-                <div className="flex items-center justify-between mb-6">
-                  <h2 className="text-2xl font-bold text-gray-800 flex items-center">
-                    <FiCoffee className="mr-2 text-astral" />
-                    Sobremesas
-                  </h2>
-                  <Badge variant="primary">
-                    Doces deliciosos
-                  </Badge>
-                </div>
-                <div className="mb-6 bg-pink-50 p-4 rounded-xl border border-pink-200 flex items-start">
-                  <FiInfo className="text-pink-500 mr-2 mt-0.5 flex-shrink-0" />
-                  <p className="text-sm text-pink-800 font-semibold">Doces feitos com amor para adoçar seu dia!</p>
-                </div>
-                
-                <h3 className="font-bold text-xl mb-4 text-gray-700 flex items-center">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2 text-astral" viewBox="0 0 20 20" fill="currentColor">
-                    <path d="M5 4a2 2 0 012-2h6a2 2 0 012 2v14l-5-2.5L5 18V4z" />
-                  </svg>
-                  Brigadeiros
-                </h3>
-                <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-                  {filteredMenu('sobremesas').slice(6, 12).map(item => (
-                    <Card key={item.id}>
-                      <div className="relative h-32 overflow-hidden group">
-                        <img 
-                          src={item.image} 
-                          alt={item.name} 
-                          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-                        />
-                        <button 
-                          onClick={() => toggleFavorite(item.id)}
-                          className="absolute top-2 right-2 p-2 bg-white/80 rounded-full backdrop-blur-sm hover:bg-white transition"
-                        >
-                          <FiHeart 
-                            className={`w-5 h-5 ${favorites.includes(item.id) ? 'text-red-500 fill-red-500' : 'text-gray-400'}`} 
-                          />
-                        </button>
-                      </div>
-                      <div className="p-4">
-                        <div className="flex justify-between items-center">
-                          <h4 className="font-semibold text-sm">{item.name}</h4>
-                          <span className="font-bold text-astral text-sm">€{item.price.toFixed(2)}</span>
-                        </div>
-                        <Rating value={Math.round(item.rating)} className="my-1" />
-                        <Button
-                          id={`add-${item.id}`}
-                          onClick={() => addToCart(item)}
-                          size="small"
-                          className="mt-3 w-full"
-                        >
-                          <FiPlus className="mr-1" />
-                          Adicionar
-                        </Button>
-                      </div>
-                    </Card>
-                  ))}
-                </div>
-
-                <h3 className="font-bold text-xl mb-4 text-gray-700 flex items-center">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2 text-astral" viewBox="0 0 20 20" fill="currentColor">
-                    <path fillRule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                  </svg>
-                  Outras Sobremesas
-                </h3>
-                <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-                  {filteredMenu('sobremesas').slice(12).map(item => (
-                    <Card key={item.id}>
-                      <div className="relative h-48 overflow-hidden group">
-                        <img 
-                          src={item.image} 
-                          alt={item.name} 
-                          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-                        />
-                        <button 
-                          onClick={() => toggleFavorite(item.id)}
-                          className="absolute top-2 right-2 p-2 bg-white/80 rounded-full backdrop-blur-sm hover:bg-white transition"
-                        >
-                          <FiHeart 
-                            className={`w-5 h-5 ${favorites.includes(item.id) ? 'text-red-500 fill-red-500' : 'text-gray-400'}`} 
-                          />
-                        </button>
-                      </div>
-                      <div className="p-4">
-                        <div className="flex justify-between items-start">
-                          <h4 className="font-semibold">{item.name}</h4>
-                          <span className="font-bold text-astral bg-astral/10 px-2 py-1 rounded-lg">€{item.price.toFixed(2)}</span>
-                        </div>
-                        <Rating value={Math.round(item.rating)} className="my-1" />
-                        <Button
-                          id={`add-${item.id}`}
-                          onClick={() => addToCart(item)}
-                          size="small"
-                          className="mt-4 w-full"
-                        >
-                          <FiPlus className="mr-1" />
-                          Adicionar
-                        </Button>
-                      </div>
-                    </Card>
-                  ))}
-                </div>
-              </div>
-            )}
+              )
+            ))}
           </motion.div>
         </AnimatePresence>
       </main>
@@ -2238,7 +1887,7 @@ const InterfaceCliente = () => {
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
             onClick={proceedToCheckout}
-            className="w-full bg-astral text-white py-3 rounded-lg flex items-center justify-center"
+            className="w-full bg-[#b0aca6] text-[#e6be44] py-3 rounded-lg flex items-center justify-center"
           >
             <FiShoppingCart className="mr-2" />
             Ver Carrinho ({cart.reduce((sum, item) => sum + item.quantity, 0)})
@@ -2246,7 +1895,6 @@ const InterfaceCliente = () => {
           </motion.button>
         </motion.div>
       )}
-      <Footer showAdminButton={!isAdminLoggedIn} />
     </div>
   );
 };

@@ -103,7 +103,7 @@ const AdminLayout = ({ children }) => {
           <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
             <DesktopSidebarButton 
               icon={<FiHome />} 
-              onClick={() => navigate('/')} 
+              onClick={() => navigate('/restricted')} 
               active
             >
               Dashboard

@@ -1,165 +1,384 @@
-import React, { useState, useEffect, useMemo, useRef } from 'react';
+import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { signInAnonymously } from 'firebase/auth';
 import { loginAnonimo } from './firebase';
 import { 
   FiShoppingCart, FiClock, FiCheck, FiTruck, 
   FiHome, FiPieChart, FiSettings, FiPlus, FiEdit, FiTrash2,
   FiFilter, FiSearch, FiPrinter, FiDownload, FiRefreshCw, FiAlertCircle,
-  FiArrowLeft, FiX, FiInfo, FiUser, FiUsers, FiPlusCircle, FiMinusCircle, FiCalendar, FiMinus, FiCoffee,
-  FiChevronDown, FiChevronUp, FiTag, FiDollarSign, FiPackage, FiList,FiCheckCircle
+  FiArrowLeft, FiX, FiInfo, FiUser, FiUsers, FiPlusCircle, FiMinusCircle, 
+  FiCalendar, FiMinus, FiCoffee, FiChevronDown, FiChevronUp, FiTag, 
+  FiDollarSign, FiPackage, FiList, FiCheckCircle, FiUserCheck,
+  FiMessageSquare, FiBell, FiStar, FiCreditCard, FiBarChart2, FiLock, FiSave,
+  FiExternalLink, FiEye, FiEyeOff, FiArchive, FiSend, FiCornerUpRight, FiGrid
 } from 'react-icons/fi';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ref, push, onValue, update, remove } from 'firebase/database';
-import { Link } from 'react-router-dom';
+import { Link,useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import logo from './assets/logo-alto-astral.png';
 import { database } from './firebase';
+import { useForm } from 'react-hook-form';
+import { z } from 'zod';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { Chart } from 'react-google-charts';
+import { v4 as uuidv4 } from 'uuid';
 
-// Configurações da impressora Bluetooth
+// Configurações avançadas da impressora Bluetooth
 const PRINTER_CONFIG = {
   deviceName: "BlueTooth Printer",
+  deviceId: "27A0A417-4342-A5B4-3199-702B5E923859",
   serviceUUID: "0000ff00-0000-1000-8000-00805f9b34fb",
   characteristicUUID: "0000ff02-0000-1000-8000-00805f9b34fb",
   maxRetries: 3,
   chunkSize: 100,
-  delayBetweenChunks: 100
+  delayBetweenChunks: 50,
+  printQuality: "high",
+  paperWidth: 80,
+  headerText: "RESTAURANTE ALTO ASTRAL",
+  footerText: "Obrigado pela preferência! Volte sempre!"
 };
 
-// Componentes UI atualizados
-const Typography = ({ children, variant = 'body', className = '', color = 'default' }) => {
+// Esquema de validação para pedidos
+const orderSchema = z.object({
+  customerName: z.string().min(1, "Nome é obrigatório"),
+  customerPhone: z.string().optional(),
+  notes: z.string().optional(),
+  tableNumber: z.number().min(1, "Número da mesa é obrigatório").max(50, "Número inválido")
+});
+
+// Cores personalizadas premium
+const colors = {
+  primary: '#3B82F6',
+  primaryLight: '#93C5FD',
+  primaryDark: '#1D4ED8',
+  secondary: '#F59E0B',
+  secondaryLight: '#FCD34D',
+  secondaryDark: '#D97706',
+  success: '#10B981',
+  successLight: '#6EE7B7',
+  successDark: '#059669',
+  danger: '#EF4444',
+  dangerLight: '#FCA5A5',
+  dangerDark: '#DC2626',
+  warning: '#F59E0B',
+  warningLight: '#FCD34D',
+  warningDark: '#D97706',
+  info: '#3B82F6',
+  infoLight: '#93C5FD',
+  infoDark: '#1D4ED8',
+  light: '#F8FAFC',
+  lighter: '#F1F5F9',
+  dark: '#1E293B',
+  darker: '#0F172A',
+  white: '#FFFFFF',
+  premium: '#8B5CF6',
+  premiumLight: '#C4B5FD',
+  premiumDark: '#7C3AED'
+};
+
+// Gradientes premium
+const gradients = {
+  primary: `linear-gradient(135deg, ${colors.primary} 0%, ${colors.primaryDark} 100%)`,
+  secondary: `linear-gradient(135deg, ${colors.secondary} 0%, ${colors.secondaryDark} 100%)`,
+  success: `linear-gradient(135deg, ${colors.success} 0%, ${colors.successDark} 100%)`,
+  danger: `linear-gradient(135deg, ${colors.danger} 0%, ${colors.dangerDark} 100%)`,
+  premium: `linear-gradient(135deg, ${colors.premium} 0%, ${colors.premiumDark} 100%)`,
+  light: `linear-gradient(135deg, ${colors.light} 0%, ${colors.lighter} 100%)`
+};
+
+// Componente de Tipografia Premium
+const Typography = ({ children, variant = 'body', className = '', color = 'dark', weight = 'normal', gradient, ...props }) => {
   const variants = {
-    h1: 'text-3xl md:text-4xl font-bold',
-    h2: 'text-2xl md:text-3xl font-bold',
-    h3: 'text-xl md:text-2xl font-semibold',
-    subtitle: 'text-lg font-medium',
+    h1: 'text-4xl md:text-5xl font-extrabold tracking-tight',
+    h2: 'text-3xl md:text-4xl font-bold tracking-tight',
+    h3: 'text-2xl md:text-3xl font-semibold',
+    subtitle: 'text-lg font-medium tracking-wide',
     body: 'text-base',
-    caption: 'text-sm'
+    caption: 'text-sm tracking-wide',
+    tiny: 'text-xs tracking-wider'
   };
 
-  const colors = {
+  const colorClasses = {
     default: 'text-gray-800',
-    primary: 'text-astral',
-    secondary: 'text-gray-600',
+    primary: 'text-primary',
+    secondary: 'text-secondary',
     light: 'text-gray-500',
     white: 'text-white',
-    danger: 'text-red-600',
-    success: 'text-green-600'
+    danger: 'text-danger',
+    success: 'text-success',
+    warning: 'text-warning',
+    info: 'text-info',
+    premium: 'text-premium',
+    dark: 'text-dark',
+    darker: 'text-darker'
   };
 
+  const weights = {
+    normal: 'font-normal',
+    medium: 'font-medium',
+    semibold: 'font-semibold',
+    bold: 'font-bold',
+    extrabold: 'font-extrabold'
+  };
+
+  const gradientClass = gradient ? `bg-clip-text text-transparent bg-gradient-to-r ${gradient}` : '';
+
   return (
-    <div className={`${variants[variant]} ${colors[color]} ${className}`}>
+    <div 
+      className={`${variants[variant]} ${colorClasses[color]} ${weights[weight]} ${gradientClass} ${className}`}
+      {...props}
+    >
       {children}
     </div>
   );
 };
 
-const Button = ({ children, variant = 'primary', size = 'medium', icon: Icon, iconPosition = 'left', className = '', disabled = false, ...props }) => {
+// Componente de Botão Premium Avançado
+const Button = ({ 
+  children, 
+  variant = 'primary', 
+  size = 'medium', 
+  icon: Icon, 
+  iconPosition = 'left', 
+  className = '', 
+  disabled = false, 
+  loading = false,
+  fullWidth = false,
+  pulse = false,
+  rounded = 'xl',
+  shadow = true,
+  gradient = false,
+  ...props 
+}) => {
   const variants = {
-    primary: 'bg-gradient-to-r from-astral to-astral-dark text-white shadow-lg hover:shadow-astral/30',
-    secondary: 'bg-gray-800 hover:bg-gray-900 text-white',
-    outline: 'border border-astral text-astral hover:bg-astral/10',
-    ghost: 'hover:bg-gray-100 text-gray-700',
-    danger: 'bg-red-500 hover:bg-red-600 text-white',
-    success: 'bg-green-500 hover:bg-green-600 text-white',
-    premium: 'bg-gradient-to-r from-purple-600 to-purple-800 text-white shadow-lg hover:shadow-purple-500/30',
-    light: 'bg-gray-100 hover:bg-gray-200 text-gray-800'
+    primary: gradient 
+      ? `bg-gradient-to-r from-primary to-primary-dark text-white hover:from-primary-dark hover:to-primary active:shadow-inner` 
+      : `bg-primary text-white hover:bg-primary-dark active:bg-primary-darker`,
+    secondary: gradient
+      ? `bg-gradient-to-r from-secondary to-secondary-dark text-white hover:from-secondary-dark hover:to-secondary active:shadow-inner`
+      : `bg-secondary text-white hover:bg-secondary-dark active:bg-secondary-darker`,
+    outline: `border-2 border-primary text-primary hover:bg-primary/10 active:bg-primary/20`,
+    ghost: `hover:bg-gray-100 text-gray-700 active:bg-gray-200`,
+    danger: gradient
+      ? `bg-gradient-to-r from-danger to-danger-dark text-white hover:from-danger-dark hover:to-danger`
+      : `bg-danger text-white hover:bg-danger-dark active:bg-danger-darker`,
+    success: gradient
+      ? `bg-gradient-to-r from-success to-success-dark text-white hover:from-success-dark hover:to-success`
+      : `bg-success text-white hover:bg-success-dark active:bg-success-darker`,
+    premium: gradient
+      ? `bg-gradient-to-r from-premium to-premium-dark text-white hover:from-premium-dark hover:to-premium`
+      : `bg-premium text-white hover:bg-premium-dark active:bg-premium-darker`,
+    light: `bg-gray-100 hover:bg-gray-200 text-gray-800 active:bg-gray-300`,
+    warning: gradient
+      ? `bg-gradient-to-r from-warning to-warning-dark text-white hover:from-warning-dark hover:to-warning`
+      : `bg-warning text-white hover:bg-warning-dark active:bg-warning-darker`,
+    dark: `bg-dark text-white hover:bg-darker active:bg-gray-900`
   };
 
   const sizes = {
     small: 'py-1.5 px-3 text-sm',
-    medium: 'py-2 px-4',
-    large: 'py-3 px-5 text-lg'
+    medium: 'py-2.5 px-5',
+    large: 'py-3 px-6 text-lg'
+  };
+
+  const roundedClasses = {
+    none: 'rounded-none',
+    sm: 'rounded-sm',
+    md: 'rounded-md',
+    lg: 'rounded-lg',
+    xl: 'rounded-xl',
+    full: 'rounded-full'
   };
 
   return (
     <motion.button
-      whileHover={!disabled ? { y: -2 } : {}}
-      whileTap={!disabled ? { scale: 0.98 } : {}}
-      className={`rounded-xl transition-all duration-200 flex items-center justify-center gap-2 font-medium
+      whileHover={!disabled && !loading ? { y: -2, scale: 1.02, boxShadow: '0 4px 12px rgba(59, 130, 246, 0.25)' } : {}}
+      whileTap={!disabled && !loading ? { scale: 0.98 } : {}}
+      className={`transition-all duration-200 flex items-center justify-center gap-2 font-medium
         ${variants[variant]} ${sizes[size]} ${className}
-        ${disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
-      disabled={disabled}
+        ${disabled || loading ? 'opacity-70 cursor-not-allowed' : 'cursor-pointer'}
+        ${fullWidth ? 'w-full' : ''}
+        ${pulse && !disabled && !loading ? 'animate-pulse' : ''}
+        ${roundedClasses[rounded]}
+        ${shadow ? 'shadow-lg hover:shadow-md' : 'shadow-none'}`}
+      disabled={disabled || loading}
       {...props}
     >
-      {Icon && iconPosition === 'left' && <Icon className="flex-shrink-0" />}
+      {loading ? (
+        <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg>
+      ) : (
+        Icon && iconPosition === 'left' && <Icon className="flex-shrink-0" />
+      )}
       {children}
-      {Icon && iconPosition === 'right' && <Icon className="flex-shrink-0" />}
+      {Icon && !loading && iconPosition === 'right' && <Icon className="flex-shrink-0" />}
     </motion.button>
   );
 };
 
-const Card = ({ children, className = '', hoverEffect = false, noPadding = false }) => {
+// Componente de Card Premium com Efeitos Visuais
+const Card = ({ 
+  children, 
+  className = '', 
+  hoverEffect = false, 
+  noPadding = false, 
+  shadow = 'md', 
+  border = false,
+  gradient = false,
+  title = null,
+  headerAction = null,
+  footer = null,
+  glassEffect = false,
+  ...props
+}) => {
+  const shadows = {
+    none: 'shadow-none',
+    sm: 'shadow-sm',
+    md: 'shadow-md',
+    lg: 'shadow-lg',
+    xl: 'shadow-xl',
+    '2xl': 'shadow-2xl'
+  };
+
   return (
-    <div className={`bg-white rounded-2xl shadow-sm overflow-hidden border border-gray-100 
-      ${hoverEffect ? 'hover:shadow-md transition-all duration-300' : ''} 
-      ${noPadding ? '' : 'p-4 md:p-6'} ${className}`}>
-      {children}
-    </div>
+    <motion.div 
+      whileHover={hoverEffect ? { 
+        y: -3, 
+        boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1)',
+        scale: 1.01
+      } : {}}
+      className={`bg-white rounded-2xl overflow-hidden ${border ? 'border border-gray-200' : ''}
+        ${noPadding ? '' : 'p-6'} 
+        ${shadows[shadow]} ${className}
+        ${gradient ? gradients.primary : ''}
+        ${glassEffect ? 'backdrop-blur-sm bg-white/80 border border-white/20' : ''}`}
+      {...props}
+    >
+      {title && (
+        <div className="flex justify-between items-center mb-4 border-b border-gray-100 pb-3">
+          <Typography variant="h3" className="!text-lg">{title}</Typography>
+          {headerAction}
+        </div>
+      )}
+      
+      <div className={noPadding ? '' : title ? '' : 'p-6'}>
+        {children}
+      </div>
+      
+      {footer && (
+        <div className="border-t border-gray-100 p-4">
+          {footer}
+        </div>
+      )}
+    </motion.div>
   );
 };
 
-const Badge = ({ children, variant = 'default', className = '' }) => {
+// Componente de Badge Premium
+const Badge = ({ children, variant = 'default', className = '', size = 'normal', icon: Icon, pulse = false }) => {
   const variants = {
     default: 'bg-gray-100 text-gray-800',
-    primary: 'bg-astral/10 text-astral',
-    success: 'bg-green-100 text-green-800',
-    warning: 'bg-yellow-100 text-yellow-800',
-    danger: 'bg-red-100 text-red-800',
-    info: 'bg-blue-100 text-blue-800',
-    dark: 'bg-gray-800 text-white',
-    premium: 'bg-purple-100 text-purple-800'
+    primary: 'bg-primary/10 text-primary',
+    success: 'bg-success/10 text-success',
+    warning: 'bg-warning/10 text-warning',
+    danger: 'bg-danger/10 text-danger',
+    info: 'bg-info/10 text-info',
+    dark: 'bg-dark text-white',
+    premium: 'bg-premium/10 text-premium',
+    new: 'bg-blue-100 text-blue-800',
+    sent: 'bg-green-100 text-green-800'
+  };
+
+  const sizes = {
+    small: 'text-xs px-2 py-0.5',
+    normal: 'text-xs px-2.5 py-1',
+    large: 'text-sm px-3 py-1'
   };
 
   return (
-    <span className={`text-xs font-medium px-2.5 py-0.5 rounded-full ${variants[variant]} ${className}`}>
+    <motion.span 
+      whileHover={{ scale: 1.05 }}
+      className={`font-medium rounded-full inline-flex items-center ${variants[variant]} ${sizes[size]} ${className} ${pulse ? 'animate-pulse' : ''}`}
+    >
+      {Icon && <Icon className="mr-1.5 flex-shrink-0" size={14} />}
       {children}
-    </span>
+    </motion.span>
   );
 };
 
+// Componente de Status Badge Avançado
 const StatusBadge = ({ status }) => {
   const statusMap = {
-    'pending': { color: 'warning', text: 'Pendente', icon: <FiClock className="mr-1" /> },
-    'preparing': { color: 'info', text: 'Em Preparo', icon: <FiPackage className="mr-1" /> },
-    'ready': { color: 'success', text: 'Pronto', icon: <FiCheck className="mr-1" /> },
-    'completed': { color: 'dark', text: 'Concluído', icon: <FiCheckCircle className="mr-1" /> },
-    'canceled': { color: 'danger', text: 'Cancelado', icon: <FiX className="mr-1" /> },
-    'editing': { color: 'info', text: 'Em Edição', icon: <FiEdit className="mr-1" /> }
+    'pending': { color: 'warning', text: 'Pendente', icon: FiClock },
+    'preparing': { color: 'info', text: 'Em Preparo', icon: FiPackage },
+    'ready': { color: 'success', text: 'Pronto', icon: FiCheck },
+    'completed': { color: 'dark', text: 'Concluído', icon: FiCheckCircle },
+    'canceled': { color: 'danger', text: 'Cancelado', icon: FiX },
+    'editing': { color: 'info', text: 'Em Edição', icon: FiEdit }
   };
 
+  const statusInfo = statusMap[status] || { color: 'default', text: status, icon: null };
+
   return (
-    <Badge variant={statusMap[status]?.color || 'default'} className="flex items-center">
-      {statusMap[status]?.icon}
-      {statusMap[status]?.text || status}
+    <Badge variant={statusInfo.color} size="large" icon={statusInfo.icon} className="transition-all hover:scale-105">
+      {statusInfo.text}
     </Badge>
   );
 };
 
-const Input = ({ label, icon: Icon, className = '', ...props }) => {
+// Componente de Input Premium
+const Input = ({ label, icon: Icon, className = '', error, success, ...props }) => {
   return (
     <div className={`mb-4 ${className}`}>
-      {label && <label className="block text-gray-700 text-sm font-medium mb-1">{label}</label>}
+      {label && (
+        <label className="block text-gray-700 text-sm font-medium mb-1.5">
+          {label}
+          {props.required && <span className="text-danger ml-1">*</span>}
+        </label>
+      )}
       <div className="relative">
         {Icon && (
           <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-            <Icon className="text-gray-400" />
+            <Icon className={`text-gray-400 ${error ? 'text-danger' : ''} ${success ? 'text-success' : ''}`} />
           </div>
         )}
         <input
-          className={`w-full ${Icon ? 'pl-10' : 'pl-3'} p-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-astral focus:border-transparent transition`}
+          className={`w-full ${Icon ? 'pl-10' : 'pl-3'} p-3 border-2 ${
+            error 
+              ? 'border-danger focus:border-danger focus:ring-danger/30' 
+              : success 
+                ? 'border-success focus:border-success focus:ring-success/30' 
+                : 'border-gray-200 focus:border-primary focus:ring-primary/30'
+          } rounded-xl focus:ring-2 focus:outline-none transition`}
           {...props}
         />
       </div>
+      {error && <p className="mt-1 text-sm text-danger">{error}</p>}
+      {success && <p className="mt-1 text-sm text-success">{success}</p>}
     </div>
   );
 };
 
-const Select = ({ label, options, className = '', ...props }) => {
+// Componente de Select Premium
+const Select = ({ label, options, className = '', error, success, ...props }) => {
   return (
     <div className={`mb-4 ${className}`}>
-      {label && <label className="block text-gray-700 text-sm font-medium mb-1">{label}</label>}
+      {label && (
+        <label className="block text-gray-700 text-sm font-medium mb-1.5">
+          {label}
+          {props.required && <span className="text-danger ml-1">*</span>}
+        </label>
+      )}
       <select
-        className="w-full p-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-astral focus:border-transparent bg-white transition"
+        className={`w-full p-3 border-2 ${
+          error 
+            ? 'border-danger focus:border-danger focus:ring-danger/30' 
+            : success 
+              ? 'border-success focus:border-success focus:ring-success/30' 
+              : 'border-gray-200 focus:border-primary focus:ring-primary/30'
+        } rounded-xl focus:ring-2 focus:outline-none bg-white transition appearance-none`}
         {...props}
       >
         {options.map(option => (
@@ -168,11 +387,31 @@ const Select = ({ label, options, className = '', ...props }) => {
           </option>
         ))}
       </select>
+      {error && <p className="mt-1 text-sm text-danger">{error}</p>}
+      {success && <p className="mt-1 text-sm text-success">{success}</p>}
     </div>
   );
 };
 
-const Modal = ({ isOpen, onClose, title, children, size = 'md' }) => {
+// Componente de Modal Premium Avançado
+const Modal = ({ 
+  isOpen, 
+  onClose, 
+  title, 
+  children, 
+  size = 'md', 
+  footer = true,
+  onConfirm,
+  confirmText = 'Confirmar',
+  confirmLoading = false,
+  confirmDisabled = false,
+  cancelText = 'Cancelar',
+  hideCancel = false,
+  customFooter,
+  preventClose = false,
+  fullHeight = false,
+  ...props
+}) => {
   const sizeClasses = {
     sm: 'max-w-md',
     md: 'max-w-xl',
@@ -189,33 +428,53 @@ const Modal = ({ isOpen, onClose, title, children, size = 'md' }) => {
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+          onClick={!preventClose ? onClose : null}
         >
           <motion.div 
-            initial={{ scale: 0.9, y: 20 }}
-            animate={{ scale: 1, y: 0 }}
-            exit={{ scale: 0.9, y: 20 }}
-            className={`bg-white rounded-2xl shadow-2xl w-full ${sizeClasses[size]} max-h-[90vh] flex flex-col overflow-hidden`}
+            initial={{ scale: 0.95, y: 20, opacity: 0 }}
+            animate={{ scale: 1, y: 0, opacity: 1 }}
+            exit={{ scale: 0.95, y: 20, opacity: 0 }}
+            className={`bg-white rounded-2xl shadow-2xl w-full ${sizeClasses[size]} ${fullHeight ? 'h-[90vh]' : 'max-h-[90vh]'} flex flex-col overflow-hidden`}
+            onClick={e => e.stopPropagation()}
+            {...props}
           >
-            <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-gradient-to-r from-astral to-astral-dark">
+            <div className={`p-6 border-b bg-gradient-to-r from-primary to-primary-dark flex justify-between items-center`}>
               <h3 className="text-xl font-bold text-white">{title}</h3>
-              <button 
-                onClick={onClose}
-                className="text-white hover:text-gray-200 p-1 transition"
-              >
-                <FiX className="h-6 w-6" />
-              </button>
+              {!preventClose && (
+                <button 
+                  onClick={onClose}
+                  className="text-white hover:text-gray-200 p-1 transition rounded-full hover:bg-white/10"
+                >
+                  <FiX className="h-6 w-6" />
+                </button>
+              )}
             </div>
-            <div className="p-6 overflow-y-auto flex-grow bg-gray-50">
+            <div className={`p-6 overflow-y-auto ${fullHeight ? 'flex-grow' : ''} bg-gray-50`}>
               {children}
             </div>
-            <div className="p-4 border-t border-gray-100 flex justify-end space-x-3 bg-white">
-              <Button variant="outline" onClick={onClose}>
-                Cancelar
-              </Button>
-              <Button type="submit" form="modal-form">
-                Confirmar
-              </Button>
-            </div>
+            {footer && (
+              <div className={`p-4 border-t border-gray-100 bg-white flex justify-end space-x-3`}>
+                {customFooter ? (
+                  customFooter
+                ) : (
+                  <>
+                    {!hideCancel && (
+                      <Button variant="outline" onClick={onClose}>
+                        {cancelText}
+                      </Button>
+                    )}
+                    <Button 
+                      onClick={onConfirm} 
+                      loading={confirmLoading}
+                      disabled={confirmDisabled}
+                      gradient
+                    >
+                      {confirmText}
+                    </Button>
+                  </>
+                )}
+              </div>
+            )}
           </motion.div>
         </motion.div>
       )}
@@ -223,127 +482,13 @@ const Modal = ({ isOpen, onClose, title, children, size = 'md' }) => {
   );
 };
 
-
-// Menu data structure (mantido igual)
-const menu = {
-  semana: [
-    { id: 1, name: 'Frango Cremoso', description: 'Strogonoff de frango, arroz branco, salada e batata palha', price: 12.90, veg: false, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.5 },
-    { id: 2, name: 'Picanha Premium', description: 'Picanha grelhada, arroz branco, feijão tropeiro e vinagrete', price: 15.90, veg: false, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.8 },
-    { id: 3, name: 'Costela Raiz', description: 'Costela de vaca com mandioca, arroz branco, farofa e salada', price: 14.90, veg: false, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.7 },
-    { id: 4, name: 'Frango Supremo', description: 'Filé de frango à parmegiana, arroz branco, batata frita e salada', price: 13.90, veg: false, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.3 },
-    { id: 5, name: 'Feijoada Astral', description: 'Feijoada brasileira, arroz branco, couve, farofa, torresmo e laranja', price: 12.90, veg: false, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.9 },
-    { id: 6, name: 'Opção Vegetariana', description: 'Prato vegetariano sob consulta - acompanha bebida e café', price: 12.90, veg: true, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.2 }
-  ],
-  lanches: [
-    { id: 7, name: 'Hambúrguer com Fritas', description: 'Carne, alface, tomate, cebola, cheddar, molho da casa', price: 7.00, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.4 },
-    { id: 8, name: 'Hambúrguer Alto Astral', description: 'Carne 120g, bacon, queijo, anéis de cebola, alface, tomate, cheddar, molho coquetel e especial', price: 9.90, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.7 },
-    { id: 9, name: 'Hambúrguer Neg\'s', description: 'Carne 120g, frango panado, bacon, queijo, anéis de cebola, cebola crispy, alface, tomate, cheddar, molho coquetel e especial', price: 12.90, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.9 },
-    { id: 10, name: 'Sandes de Panado', description: 'Frango panado, alface, tomate, cebola, molho da casa', price: 5.50, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.1 },
-    { id: 11, name: 'Tostas Premium', description: 'Frango ou atum acompanha queijo, alface, tomate e cebola roxa', price: 6.50, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.0 },
-    { id: 12, name: 'Sandes Natural', description: 'Patê de frango, queijo, rúcula, tomate, cebola roxa e cenoura ralada', price: 6.50, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 3.9 }
-  ],
-  porcoes: [
-    { id: 13, name: 'Batata Frita', description: 'Porção com 400g de batata frita', price: 4.00, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.2 },
-    { id: 14, name: 'Fritas com Bacon e Queijo', description: 'Porção com 400g de batatas com bacon e queijo cheddar', price: 6.50, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.6 },
-    { id: 15, name: 'Chouriça com Cebola', description: 'Porção com 600g de chouriça acebolada e pão fatiado', price: 9.00, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.5 },
-    { id: 16, name: 'Asinha de Frango', description: 'Porção com 700g de asinhas de frango e molho barbecue', price: 12.00, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.4 },
-    { id: 17, name: 'Costelinha', description: 'Porção com 800g de costelinha e molho barbecue', price: 12.00, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.7 },
-    { id: 18, name: 'Picanha com Fritas', description: 'Porção com 600g de tiras de picanha temperada com sal de parrilha e acompanhado de batata frita ou doce', price: 18.00, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.8 },
-    { id: 19, name: 'Filé de Tilápia', description: 'Porção com 800g de filé de tilápia e molho tartaro', price: 14.00, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.3 }
-  ],
-  pasteis: [
-    { id: 20, name: 'Pastel Simples', description: 'Frango desfiado, carne picada ou queijo', price: 5.00, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.3 },
-    { id: 21, name: 'Pastel de Frango com Queijo', description: 'Frango desfiado com queijo', price: 5.50, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.5 },
-    { id: 22, name: 'Pastel de Frango com Queijo e Bacon', description: 'Frango desfiado com queijo e bacon em cubos', price: 6.50, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.7 },
-    { id: 23, name: 'Pastel de Carne com Queijo', description: 'Carne picada com queijo e azeitona', price: 5.50, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.4 },
-    { id: 24, name: 'Pastel de Carne com Queijo e Bacon', description: 'Carne picada com queijo, azeitona e bacon em cubos', price: 6.50, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.6 },
-    { id: 25, name: 'Pastel de Chouriça', description: 'Queijo, chouriça e milho', price: 5.50, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.2 },
-    { id: 26, name: 'Pastel Misto', description: 'Fiambre, queijo, azeitona e milho', price: 5.50, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.1 },
-    { id: 27, name: 'Pastel de Pizza', description: 'Queijo, fiambre, tomate e orégano', price: 5.50, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.0 },
-    { id: 28, name: 'Pastel Alto Astral', description: 'Queijo, bacon, tomate, azeitona, cheddar e orégano', price: 6.50, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.8 },
-    { id: 29, name: 'Pastel Romeu e Julieta', description: 'Queijo com goiabada', price: 5.50, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.7 },
-    { id: 30, name: 'Pastel de Banana com Nutela', description: 'Queijo, banana e nutella', price: 6.00, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.9 }
-  ],
-  cafe: [
-    { id: 31, name: 'Café Expresso', price: 1.00, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.5 },
-    { id: 32, name: 'Café Descafeinado', price: 1.00, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.3 },
-    { id: 33, name: 'Café Duplo', price: 2.00, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.6 },
-    { id: 34, name: 'Garoto', price: 1.00, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.2 },
-    { id: 35, name: 'Abatanado', price: 1.10, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.1 },
-    { id: 36, name: 'Meia de Leite', price: 1.50, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.4 },
-    { id: 37, name: 'Galão', price: 1.60, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.5 },
-    { id: 38, name: 'Chá', price: 1.60, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.0 },
-    { id: 39, name: 'Cappuccino', price: 3.00, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.7 },
-    { id: 40, name: 'Caricoa de Limão', price: 1.00, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 3.9 },
-    { id: 41, name: 'Chocolate Quente', price: 3.00, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.8 },
-    { id: 42, name: 'Torrada com Pão Caseiro', price: 2.00, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.3 },
-    { id: 43, name: 'Torrada com Pão de Forma', price: 1.50, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.1 },
-    { id: 44, name: 'Meia Torrada', price: 1.00, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.0 },
-    { id: 45, name: 'Croissant Misto', price: 3.00, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.6 },
-    { id: 46, name: 'Croissant Misto Tostado', price: 3.20, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.7 },
-    { id: 47, name: 'Tosta Mista', price: 3.20, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.5 },
-    { id: 48, name: 'Tosta Mista (Pão de Forma)', price: 2.80, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.4 },
-    { id: 49, name: 'Sandes Mista', price: 2.20, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.2 },
-    { id: 50, name: 'Pão com Ovo', price: 2.20, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.1 },
-    { id: 51, name: 'Ovos com Bacon', price: 4.00, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.7 }
-  ],
-  bebidas: [
-    { id: 52, name: 'Caipirinha', description: 'Cachaça 51 ou Velho Barreiro, lima, açúcar e gelo', price: 6.00, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.8 },
-    { id: 53, name: 'Caipiblack', description: 'Cachaça preta, lima, açúcar e gelo', price: 6.00, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.9 },
-    { id: 54, name: 'Whiskey Jamenson', price: 3.50, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.7 },
-    { id: 55, name: 'Whiskey J&B', price: 3.00, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.5 },
-    { id: 56, name: 'Whiskey Jack Daniels', price: 3.50, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.8 },
-    { id: 57, name: 'Whiskey Black Label', price: 4.00, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.9 },
-    { id: 58, name: 'Vodka', price: 4.00, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.6 },
-    { id: 59, name: 'Somersby', price: 2.50, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.4 },
-    { id: 60, name: 'Imperial Heineken (0.20)', price: 1.50, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.5 },
-    { id: 61, name: 'Caneca Heineken (0.50)', price: 3.00, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.7 },
-    { id: 62, name: 'Cerveja Garrafa (0.33ml)', price: 1.40, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.3 },
-    { id: 63, name: 'Cerveja Mini (0.20ml)', price: 1.10, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.2 },
-    { id: 64, name: 'Taça de Sangria', description: 'Sangria branca, rosé ou tinta', price: 6.00, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.8 },
-    { id: 65, name: 'Refrigerante Lata', price: 1.60, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.1 },
-    { id: 66, name: 'Água 1.5L', price: 1.50, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.0 },
-    { id: 67, name: 'Água 0.5L', price: 1.00, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.0 },
-    { id: 68, name: 'Água 0.33L', price: 0.60, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.0 },
-    { id: 69, name: 'Água Castelo', price: 1.40, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.2 },
-    { id: 70, name: 'Água das Pedras', price: 1.40, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.3 }
-  ],
-  salgados: [
-    { id: 71, name: 'Pão de Queijo', price: 1.60, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.5 },
-    { id: 72, name: 'Pastel de Nata', price: 1.30, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.7 },
-    { id: 73, name: 'Empada de Frango', price: 2.00, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.4 },
-    { id: 74, name: 'Kibe', price: 2.20, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.3 },
-    { id: 75, name: 'Fiambre e Queijo', price: 2.20, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.2 },
-    { id: 76, name: 'Bauru', price: 2.20, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.1 },
-    { id: 77, name: 'Bola de Queijo', price: 2.20, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.3 },
-    { id: 78, name: 'Coxinha de Frango', price: 2.20, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.6 },
-    { id: 79, name: 'Coxinha com Catupiry', price: 3.00, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.8 },
-    { id: 80, name: 'Hamburgão', price: 3.50, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.7 }
-  ],
-  sobremesas: [
-    { id: 81, name: 'Bolo no Pote - Prestígio', description: 'Chocolate com coco', price: 4.00, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.8 },
-    { id: 82, name: 'Bolo no Pote - Chocolate', description: 'Massa de chocolate com recheio de chocolate', price: 4.00, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.9 },
-    { id: 83, name: 'Bolo no Pote - Ananás', description: 'Creme de ninho com pedaços de ananás', price: 4.00, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.7 },
-    { id: 84, name: 'Bolo no Pote - Choco Misto', description: 'Chocolate preto com ninho', price: 4.00, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.8 },
-    { id: 85, name: 'Cheesecake - Goiabada', price: 3.50, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.7 },
-    { id: 86, name: 'Cheesecake - Frutos Vermelhos', price: 3.50, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.8 },
-    { id: 87, name: 'Brigadeiro Tradicional', price: 1.50, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.6 },
-    { id: 88, name: 'Brigadeiro Beijinho', price: 1.50, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.5 },
-    { id: 89, name: 'Brigadeiro Ninho', price: 2.00, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.8 },
-    { id: 90, name: 'Brigadeiro Paçoca', price: 2.00, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.7 },
-    { id: 91, name: 'Brigadeiro Morango', price: 2.00, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.8 },
-    { id: 92, name: 'Brigadeiro Churros', price: 2.00, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.9 },
-    { id: 93, name: 'Tarte de Toblerone', price: 2.20, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.7 },
-    { id: 94, name: 'Bolo de Brigadeiro (fatia)', price: 2.20, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.8 }
-  ]
-};
-
-/// Novo componente para exibir itens do menu
-const MenuItemCard = ({ item, onAdd, onRemove, currentQuantity = 0 }) => {
+// Componente de Card de Item do Menu Premium
+const MenuItemCard = ({ item, onAdd, onRemove, currentQuantity = 0, className = '' }) => {
   return (
     <motion.div 
-      whileHover={{ y: -2 }}
-      className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden transition hover:shadow-md"
+      whileHover={{ y: -5, scale: 1.02 }}
+      whileTap={{ scale: 0.98 }}
+      className={`bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden transition hover:shadow-md ${className}`}
     >
       <div className="p-4">
         <div className="flex justify-between items-start">
@@ -355,7 +500,7 @@ const MenuItemCard = ({ item, onAdd, onRemove, currentQuantity = 0 }) => {
               </Typography>
             )}
           </div>
-          <Typography variant="body" className="font-medium text-astral ml-2 whitespace-nowrap">
+          <Typography variant="body" className="font-bold text-primary ml-2 whitespace-nowrap">
             €{item.price.toFixed(2)}
           </Typography>
         </div>
@@ -370,7 +515,7 @@ const MenuItemCard = ({ item, onAdd, onRemove, currentQuantity = 0 }) => {
                 >
                   <FiMinus size={16} />
                 </button>
-                <span className="px-3 py-1 bg-white w-12 text-center border-x border-gray-200">
+                <span className="px-3 py-1 bg-white w-12 text-center border-x border-gray-200 font-medium">
                   {currentQuantity}
                 </span>
                 <button
@@ -380,7 +525,7 @@ const MenuItemCard = ({ item, onAdd, onRemove, currentQuantity = 0 }) => {
                   <FiPlus size={16} />
                 </button>
               </div>
-              <Typography variant="body" className="font-medium">
+              <Typography variant="body" className="font-bold">
                 €{(item.price * currentQuantity).toFixed(2)}
               </Typography>
             </>
@@ -390,6 +535,7 @@ const MenuItemCard = ({ item, onAdd, onRemove, currentQuantity = 0 }) => {
               size="small" 
               onClick={() => onAdd(item)}
               className="w-full"
+              fullWidth
             >
               <FiPlus className="mr-1" /> Adicionar
             </Button>
@@ -400,58 +546,105 @@ const MenuItemCard = ({ item, onAdd, onRemove, currentQuantity = 0 }) => {
   );
 };
 
-const OrderItem = ({ item, onQuantityChange, onRemove }) => {
+// Componente de Item do Pedido Premium
+const OrderItem = ({ 
+  item, 
+  onQuantityChange, 
+  onRemove, 
+  showStatus = false,
+  showCustomer = false,
+  showNotes = false,
+  className = '',
+  showActions = true
+}) => {
   return (
-    <div className="flex justify-between items-center p-3 hover:bg-gray-50 rounded-lg transition">
+    <motion.div 
+      whileHover={{ backgroundColor: '#F8FAFC' }}
+      className={`flex justify-between items-start p-3 hover:bg-gray-50 rounded-lg transition ${className}`}
+    >
       <div className="flex-1 min-w-0">
-        <Typography variant="body" className="font-medium truncate">{item.name}</Typography>
+        <div className="flex items-center">
+          {showStatus && !item.printedTimestamp && (
+            <Badge variant="new" className="mr-2" size="small" pulse>
+              Novo
+            </Badge>
+          )}
+          {showStatus && item.printedTimestamp && (
+            <Badge variant="sent" className="mr-2" size="small">
+              Enviado
+            </Badge>
+          )}
+          <Typography variant="body" className="font-medium truncate">{item.name}</Typography>
+        </div>
+        
+        {showCustomer && item.customerName && (
+          <Typography variant="caption" className="text-gray-500 block">
+            <FiUser className="inline mr-1" size={12} />
+            {item.customerName}
+          </Typography>
+        )}
+        
+        {showNotes && item.notes && (
+          <Typography variant="caption" className="text-gray-500 block italic">
+            <FiMessageSquare className="inline mr-1" size={12} />
+            {item.notes}
+          </Typography>
+        )}
+        
         <Typography variant="caption" className="text-gray-500">
           €{item.price.toFixed(2)} un.
         </Typography>
       </div>
       
       <div className="flex items-center ml-4">
-        <div className="flex items-center border border-gray-200 rounded-lg overflow-hidden">
-          <button
-            onClick={() => onQuantityChange(item.id, item.quantity - 1)}
-            className="px-3 py-1 bg-gray-50 hover:bg-gray-100 text-gray-700 transition"
-            disabled={item.quantity <= 1}
-          >
-            <FiMinus size={16} />
-          </button>
-          <span className="px-3 py-1 bg-white w-12 text-center border-x border-gray-200">
-            {item.quantity}
-          </span>
-          <button
-            onClick={() => onQuantityChange(item.id, item.quantity + 1)}
-            className="px-3 py-1 bg-gray-50 hover:bg-gray-100 text-gray-700 transition"
-          >
-            <FiPlus size={16} />
-          </button>
-        </div>
+        {showActions && (
+          <>
+            <div className="flex items-center border border-gray-200 rounded-lg overflow-hidden">
+              <button
+                onClick={() => onQuantityChange(item.id, item.quantity - 1)}
+                className="px-3 py-1 bg-gray-50 hover:bg-gray-100 text-gray-700 transition"
+                disabled={item.quantity <= 1}
+              >
+                <FiMinus size={16} />
+              </button>
+              <span className="px-3 py-1 bg-white w-12 text-center border-x border-gray-200 font-medium">
+                {item.quantity}
+              </span>
+              <button
+                onClick={() => onQuantityChange(item.id, item.quantity + 1)}
+                className="px-3 py-1 bg-gray-50 hover:bg-gray-100 text-gray-700 transition"
+              >
+                <FiPlus size={16} />
+              </button>
+            </div>
+            
+            <Typography variant="body" className="font-bold ml-4 w-20 text-right">
+              €{(item.price * item.quantity).toFixed(2)}
+            </Typography>
+          </>
+        )}
         
-        <Typography variant="body" className="font-medium ml-4 w-20 text-right">
-          €{(item.price * item.quantity).toFixed(2)}
-        </Typography>
-        
-        <button
-          onClick={() => onRemove(item.id)}
-          className="ml-4 text-red-500 hover:text-red-700 p-1 transition"
-        >
-          <FiTrash2 size={18} />
-        </button>
+        {onRemove && (
+          <button
+            onClick={() => onRemove(item.id)}
+            className="ml-4 text-danger hover:text-danger-dark p-1 transition"
+          >
+            <FiTrash2 size={18} />
+          </button>
+        )}
       </div>
-    </div>
+    </motion.div>
   );
 };
 
+// Componente de Abas de Categorias Premium
 const CategoryTabs = ({ categories, activeCategory, onSelect, className = '' }) => {
   return (
     <div className={`flex space-x-2 overflow-x-auto pb-2 ${className}`}>
       {categories.map(category => (
         <motion.button
           key={category.key}
-          whileHover={{ scale: 1.02 }}
+          whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.98 }}
           onClick={(e) => {
             e.preventDefault();
@@ -460,8 +653,8 @@ const CategoryTabs = ({ categories, activeCategory, onSelect, className = '' }) 
           }}
           className={`px-4 py-2 rounded-lg whitespace-nowrap flex items-center transition ${
             activeCategory === category.key 
-              ? 'bg-astral text-white shadow-md' 
-              : 'bg-gray-100 hover:bg-gray-200'
+              ? 'bg-primary text-white shadow-md' 
+              : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
           }`}
         >
           {category.icon && <category.icon className="mr-2" />}
@@ -472,24 +665,86 @@ const CategoryTabs = ({ categories, activeCategory, onSelect, className = '' }) 
   );
 };
 
-const PrintButton = ({ order, isPrinting, printOrder }) => (
+// Componente de Botão de Impressão Premium
+const KitchenPrintButton = ({ order, isPrinting, printOrder }) => (
   <Button
-    variant="outline"
+    variant="primary"
     icon={FiPrinter}
     onClick={(e) => {
       e.stopPropagation();
       printOrder(order);
     }}
     disabled={isPrinting}
+    loading={isPrinting}
     className="mr-2"
+    size="small"
+    gradient
   >
-    {isPrinting ? 'Imprimindo...' : 'Imprimir'}
+    {isPrinting ? 'Enviando...' : 'Enviar para Cozinha'}
   </Button>
 );
 
+// Componente de Modal de Confirmação Premium
+const ConfirmationModal = ({ 
+  isOpen, 
+  onClose, 
+  onConfirm, 
+  title = "Confirmar Ação", 
+  message = "Tem certeza que deseja realizar esta ação?",
+  confirmText = "Confirmar",
+  cancelText = "Cancelar",
+  variant = "danger",
+  icon: Icon = FiAlertCircle,
+  iconColor = "text-danger"
+}) => {
+  return (
+    <Modal
+      isOpen={isOpen}
+      onClose={onClose}
+      title={title}
+      size="sm"
+    >
+      <div className="text-center py-4">
+        <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100 mb-4">
+          <Icon className={`h-6 w-6 ${iconColor}`} />
+        </div>
+        <Typography variant="body" className="mb-2">
+          {message}
+        </Typography>
+      </div>
+      <div className="flex justify-end space-x-3">
+        <Button variant="outline" onClick={onClose}>
+          {cancelText}
+        </Button>
+        <Button variant={variant} onClick={onConfirm} gradient>
+          {confirmText}
+        </Button>
+      </div>
+    </Modal>
+  );
+};
+
+// Componente de Toggle Switch Premium
+const ToggleSwitch = ({ checked, onChange, label, className = '' }) => {
+  return (
+    <label className={`inline-flex items-center cursor-pointer ${className}`}>
+      <input 
+        type="checkbox" 
+        className="sr-only peer" 
+        checked={checked}
+        onChange={onChange}
+      />
+      <div className="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary/30 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+      {label && <span className="ms-3 text-sm font-medium text-gray-900">{label}</span>}
+    </label>
+  );
+};
+
+// Componente Principal do Painel Administrativo Premium
 const AdminPanel = () => {
+  // Estados do componente
   const [orders, setOrders] = useState([]);
-  const [activeTab, setActiveTab] = useState('all');
+  const [activeTab, setActiveTab] = useState('dashboard');
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [activeArea, setActiveArea] = useState('all');
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -513,16 +768,155 @@ const AdminPanel = () => {
     salgados: true,
     sobremesas: true
   });
+  const navigate = useNavigate();
   const [printerConnected, setPrinterConnected] = useState(false);
   const [error, setError] = useState(null);
   const [showSuccessNotification, setShowSuccessNotification] = useState(false);
   const [printedItems, setPrintedItems] = useState({});
   const [printerReconnectAttempted, setPrinterReconnectAttempted] = useState(false);
+  const [newItems, setNewItems] = useState([]);
+  const [sentItems, setSentItems] = useState([]);
+  const [groupedItems, setGroupedItems] = useState({});
+  const [viewMode, setViewMode] = useState('grouped');
+  const [isConfirmingClose, setIsConfirmingClose] = useState(false);
+  const [isSavingChanges, setIsSavingChanges] = useState(false);
+  const [isConfirmDelete, setIsConfirmDelete] = useState(false);
+  const [orderToDelete, setOrderToDelete] = useState(null);
+  const [isOrderDetailsOpen, setIsOrderDetailsOpen] = useState(false);
+  const [selectedOrderDetails, setSelectedOrderDetails] = useState(null);
+  const [isPrinterSettingsOpen, setIsPrinterSettingsOpen] = useState(false);
+  const [printerStatus, setPrinterStatus] = useState('disconnected');
+  const [isLoadingOrders, setIsLoadingOrders] = useState(true);
+  const [printerSettings, setPrinterSettings] = useState({
+    headerText: PRINTER_CONFIG.headerText,
+    footerText: PRINTER_CONFIG.footerText,
+    printQuality: PRINTER_CONFIG.printQuality,
+    paperWidth: PRINTER_CONFIG.paperWidth
+  });
+
+  const { register, handleSubmit, formState: { errors }, reset } = useForm({
+    resolver: zodResolver(orderSchema)
+  });
 
   const printerDeviceRef = useRef(null);
   const printerCharacteristicRef = useRef(null);
 
-  // Categorias do menu para navegação
+
+  // Dados do menu premium
+  const menu = {
+    semana: [
+      { id: 1, name: 'Frango Cremoso', description: 'Strogonoff de frango, arroz branco, salada e batata palha', price: 12.90, veg: false, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.5 },
+      { id: 2, name: 'Picanha Premium', description: 'Picanha grelhada, arroz branco, feijão tropeiro e vinagrete', price: 15.90, veg: false, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.8 },
+      { id: 3, name: 'Costela Raiz', description: 'Costela de vaca com mandioca, arroz branco, farofa e salada', price: 14.90, veg: false, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.7 },
+      { id: 4, name: 'Frango Supremo', description: 'Filé de frango à parmegiana, arroz branco, batata frita e salada', price: 13.90, veg: false, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.3 },
+      { id: 5, name: 'Feijoada Astral', description: 'Feijoada brasileira, arroz branco, couve, farofa, torresmo e laranja', price: 12.90, veg: false, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.9 },
+      { id: 6, name: 'Opção Vegetariana', description: 'Prato vegetariano sob consulta - acompanha bebida e café', price: 12.90, veg: true, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.2 }
+    ],
+    lanches: [
+      { id: 7, name: 'Hambúrguer com Fritas', description: 'Carne, alface, tomate, cebola, cheddar, molho da casa', price: 7.00, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.4 },
+      { id: 8, name: 'Hambúrguer Alto Astral', description: 'Carne 120g, bacon, queijo, anéis de cebola, alface, tomate, cheddar, molho coquetel e especial', price: 9.90, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.7 },
+      { id: 9, name: 'Hambúrguer Neg\'s', description: 'Carne 120g, frango panado, bacon, queijo, anéis de cebola, cebola crispy, alface, tomate, cheddar, molho coquetel e especial', price: 12.90, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.9 },
+      { id: 10, name: 'Sandes de Panado', description: 'Frango panado, alface, tomate, cebola, molho da casa', price: 5.50, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.1 },
+      { id: 11, name: 'Tostas Premium', description: 'Frango ou atum acompanha queijo, alface, tomate e cebola roxa', price: 6.50, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.0 },
+      { id: 12, name: 'Sandes Natural', description: 'Patê de frango, queijo, rúcula, tomate, cebola roxa e cenoura ralada', price: 6.50, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 3.9 }
+    ],
+    porcoes: [
+      { id: 13, name: 'Batata Frita', description: 'Porção com 400g de batata frita', price: 4.00, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.2 },
+      { id: 14, name: 'Fritas com Bacon e Queijo', description: 'Porção com 400g de batatas com bacon e queijo cheddar', price: 6.50, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.6 },
+      { id: 15, name: 'Chouriça com Cebola', description: 'Porção com 600g de chouriça acebolada e pão fatiado', price: 9.00, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.5 },
+      { id: 16, name: 'Asinha de Frango', description: 'Porção com 700g de asinhas de frango e molho barbecue', price: 12.00, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.4 },
+      { id: 17, name: 'Costelinha', description: 'Porção com 800g de costelinha e molho barbecue', price: 12.00, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.7 },
+      { id: 18, name: 'Picanha com Fritas', description: 'Porção com 600g de tiras de picanha temperada com sal de parrilha e acompanhado de batata frita ou doce', price: 18.00, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.8 },
+      { id: 19, name: 'Filé de Tilápia', description: 'Porção com 800g de filé de tilápia e molho tartaro', price: 14.00, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.3 }
+    ],
+    pasteis: [
+      { id: 20, name: 'Pastel Simples', description: 'Frango desfiado, carne picada ou queijo', price: 5.00, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.3 },
+      { id: 21, name: 'Pastel de Frango com Queijo', description: 'Frango desfiado com queijo', price: 5.50, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.5 },
+      { id: 22, name: 'Pastel de Frango com Queijo e Bacon', description: 'Frango desfiado com queijo e bacon em cubos', price: 6.50, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.7 },
+      { id: 23, name: 'Pastel de Carne com Queijo', description: 'Carne picada com queijo e azeitona', price: 5.50, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.4 },
+      { id: 24, name: 'Pastel de Carne com Queijo e Bacon', description: 'Carne picada com queijo, azeitona e bacon em cubos', price: 6.50, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.6 },
+      { id: 25, name: 'Pastel de Chouriça', description: 'Queijo, chouriça e milho', price: 5.50, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.2 },
+      { id: 26, name: 'Pastel Misto', description: 'Fiambre, queijo, azeitona e milho', price: 5.50, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.1 },
+      { id: 27, name: 'Pastel de Pizza', description: 'Queijo, fiambre, tomate e orégano', price: 5.50, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.0 },
+      { id: 28, name: 'Pastel Alto Astral', description: 'Queijo, bacon, tomate, azeitona, cheddar e orégano', price: 6.50, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.8 },
+      { id: 29, name: 'Pastel Romeu e Julieta', description: 'Queijo com goiabada', price: 5.50, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.7 },
+      { id: 30, name: 'Pastel de Banana com Nutela', description: 'Queijo, banana e nutella', price: 6.00, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.9 }
+    ],
+    cafe: [
+      { id: 31, name: 'Café Expresso', price: 1.00, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.5 },
+      { id: 32, name: 'Café Descafeinado', price: 1.00, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.3 },
+      { id: 33, name: 'Café Duplo', price: 2.00, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.6 },
+      { id: 34, name: 'Garoto', price: 1.00, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.2 },
+      { id: 35, name: 'Abatanado', price: 1.10, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.1 },
+      { id: 36, name: 'Meia de Leite', price: 1.50, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.4 },
+      { id: 37, name: 'Galão', price: 1.60, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.5 },
+      { id: 38, name: 'Chá', price: 1.60, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.0 },
+      { id: 39, name: 'Cappuccino', price: 3.00, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.7 },
+      { id: 40, name: 'Caricoa de Limão', price: 1.00, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 3.9 },
+      { id: 41, name: 'Chocolate Quente', price: 3.00, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.8 },
+      { id: 42, name: 'Torrada com Pão Caseiro', price: 2.00, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.3 },
+      { id: 43, name: 'Torrada com Pão de Forma', price: 1.50, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.1 },
+      { id: 44, name: 'Meia Torrada', price: 1.00, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.0 },
+      { id: 45, name: 'Croissant Misto', price: 3.00, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.6 },
+      { id: 46, name: 'Croissant Misto Tostado', price: 3.20, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.7 },
+      { id: 47, name: 'Tosta Mista', price: 3.20, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.5 },
+      { id: 48, name: 'Tosta Mista (Pão de Forma)', price: 2.80, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.4 },
+      { id: 49, name: 'Sandes Mista', price: 2.20, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.2 },
+      { id: 50, name: 'Pão com Ovo', price: 2.20, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.1 },
+      { id: 51, name: 'Ovos com Bacon', price: 4.00, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.7 }
+    ],
+    bebidas: [
+      { id: 52, name: 'Caipirinha', description: 'Cachaça 51 ou Velho Barreiro, lima, açúcar e gelo', price: 6.00, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.8 },
+      { id: 53, name: 'Caipiblack', description: 'Cachaça preta, lima, açúcar e gelo', price: 6.00, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.9 },
+      { id: 54, name: 'Whiskey Jamenson', price: 3.50, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.7 },
+      { id: 55, name: 'Whiskey J&B', price: 3.00, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.5 },
+      { id: 56, name: 'Whiskey Jack Daniels', price: 3.50, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.8 },
+      { id: 57, name: 'Whiskey Black Label', price: 4.00, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.9 },
+      { id: 58, name: 'Vodka', price: 4.00, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.6 },
+      { id: 59, name: 'Somersby', price: 2.50, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.4 },
+      { id: 60, name: 'Imperial Heineken (0.20)', price: 1.50, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.5 },
+      { id: 61, name: 'Caneca Heineken (0.50)', price: 3.00, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.7 },
+      { id: 62, name: 'Cerveja Garrafa (0.33ml)', price: 1.40, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.3 },
+      { id: 63, name: 'Cerveja Mini (0.20ml)', price: 1.10, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.2 },
+      { id: 64, name: 'Taça de Sangria', description: 'Sangria branca, rosé ou tinta', price: 6.00, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.8 },
+      { id: 65, name: 'Refrigerante Lata', price: 1.60, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.1 },
+      { id: 66, name: 'Água 1.5L', price: 1.50, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.0 },
+      { id: 67, name: 'Água 0.5L', price: 1.00, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.0 },
+      { id: 68, name: 'Água 0.33L', price: 0.60, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.0 },
+      { id: 69, name: 'Água Castelo', price: 1.40, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.2 },
+      { id: 70, name: 'Água das Pedras', price: 1.40, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.3 }
+    ],
+    salgados: [
+      { id: 71, name: 'Pão de Queijo', price: 1.60, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.5 },
+      { id: 72, name: 'Pastel de Nata', price: 1.30, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.7 },
+      { id: 73, name: 'Empada de Frango', price: 2.00, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.4 },
+      { id: 74, name: 'Kibe', price: 2.20, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.3 },
+      { id: 75, name: 'Fiambre e Queijo', price: 2.20, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.2 },
+      { id: 76, name: 'Bauru', price: 2.20, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.1 },
+      { id: 77, name: 'Bola de Queijo', price: 2.20, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.3 },
+      { id: 78, name: 'Coxinha de Frango', price: 2.20, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.6 },
+      { id: 79, name: 'Coxinha com Catupiry', price: 3.00, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.8 },
+      { id: 80, name: 'Hamburgão', price: 3.50, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.7 }
+    ],
+    sobremesas: [
+      { id: 81, name: 'Bolo no Pote - Prestígio', description: 'Chocolate com coco', price: 4.00, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.8 },
+      { id: 82, name: 'Bolo no Pote - Chocolate', description: 'Massa de chocolate com recheio de chocolate', price: 4.00, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.9 },
+      { id: 83, name: 'Bolo no Pote - Ananás', description: 'Creme de ninho com pedaços de ananás', price: 4.00, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.7 },
+      { id: 84, name: 'Bolo no Pote - Choco Misto', description: 'Chocolate preto com ninho', price: 4.00, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.8 },
+      { id: 85, name: 'Cheesecake - Goiabada', price: 3.50, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.7 },
+      { id: 86, name: 'Cheesecake - Frutos Vermelhos', price: 3.50, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.8 },
+      { id: 87, name: 'Brigadeiro Tradicional', price: 1.50, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.6 },
+      { id: 88, name: 'Brigadeiro Beijinho', price: 1.50, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.5 },
+      { id: 89, name: 'Brigadeiro Ninho', price: 2.00, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.8 },
+      { id: 90, name: 'Brigadeiro Paçoca', price: 2.00, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.7 },
+      { id: 91, name: 'Brigadeiro Morango', price: 2.00, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.8 },
+      { id: 92, name: 'Brigadeiro Churros', price: 2.00, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.9 },
+      { id: 93, name: 'Tarte de Toblerone', price: 2.20, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.7 },
+      { id: 94, name: 'Bolo de Brigadeiro (fatia)', price: 2.20, image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', rating: 4.8 }
+    ]
+  };
+
+  // Categorias do menu para navegação premium
   const menuCategories = [
     { key: 'semana', label: 'Pratos da Semana', icon: FiHome },
     { key: 'lanches', label: 'Lanches', icon: FiShoppingCart },
@@ -533,6 +927,95 @@ const AdminPanel = () => {
     { key: 'salgados', label: 'Salgados', icon: FiClock },
     { key: 'sobremesas', label: 'Sobremesas', icon: FiCheck }
   ];
+
+  // Efeito para separar itens enviados/não enviados e agrupar por cliente
+  useEffect(() => {
+    if (currentOrder) {
+      // Separa itens não enviados (sem printedTimestamp)
+      const unsent = currentOrder.items.filter(item => !item.printedTimestamp);
+      const sent = currentOrder.items.filter(item => item.printedTimestamp);
+      
+      setNewItems(unsent);
+      setSentItems(sent);
+      
+      // Agrupa itens por cliente (se houver informação de cliente)
+      const grouped = currentOrder.items.reduce((acc, item) => {
+        const customer = item.customerName || 'Cliente não identificado';
+        if (!acc[customer]) {
+          acc[customer] = [];
+        }
+        acc[customer].push(item);
+        return acc;
+      }, {});
+      
+      setGroupedItems(grouped);
+    }
+  }, [currentOrder]);
+
+  // Função para enviar apenas os novos itens para a cozinha
+  const sendNewItemsToKitchen = async () => {
+    if (newItems.length === 0) {
+      toast.warning('Não há novos itens para enviar à cozinha');
+      return;
+    }
+
+    try {
+      setIsPrinting(true);
+      
+      // Cria um pedido temporário apenas com os novos itens
+      const tempOrder = {
+        ...currentOrder,
+        items: newItems,
+        total: newItems.reduce((sum, item) => sum + (item.price * item.quantity), 0)
+      };
+
+      // Envia para impressão
+      const success = await printOrder(tempOrder);
+      
+      if (success) {
+        // Marca os itens como enviados
+        const updatedItems = currentOrder.items.map(item => {
+          if (!item.printedTimestamp) {
+            return { ...item, printedTimestamp: new Date().toISOString() };
+          }
+          return item;
+        });
+
+        // Atualiza o pedido no estado
+        setCurrentOrder({
+          ...currentOrder,
+          items: updatedItems
+        });
+
+        toast.success(`✅ ${newItems.length} item(s) enviado(s) para cozinha!`);
+      }
+    } catch (error) {
+      toast.error(`❌ Falha ao enviar itens: ${error.message}`);
+    } finally {
+      setIsPrinting(false);
+    }
+  };
+
+  // Função para confirmar o fechamento da mesa
+  const confirmCloseTable = () => {
+    setIsConfirmingClose(true);
+  };
+
+  // Função para fechar a mesa
+  const closeTable = async () => {
+    setIsConfirmingClose(false);
+    
+    try {
+      // Atualiza o status para 'completed'
+      const orderRef = ref(database, `orders/${currentOrder.id}`);
+      await update(orderRef, { status: 'completed' });
+
+      toast.success('✅ Mesa fechada com sucesso!');
+      setIsEditModalOpen(false);
+    } catch (error) {
+      toast.error('❌ Erro ao fechar mesa: ' + error.message);
+    }
+  };
 
   const savePrinterState = (device, characteristic) => {
     try {
@@ -675,7 +1158,7 @@ const AdminPanel = () => {
     const FEED = '\x1Bd';
   
     let receipt = INIT;
-    receipt += `${CENTER}${BOLD_ON}RESTAURANTE ALTO ASTRAL${BOLD_OFF}${LF}`;
+    receipt += `${CENTER}${BOLD_ON}${printerSettings.headerText}${BOLD_OFF}${LF}`;
     receipt += `PEDIDO: #${order.id?.slice(0, 6) || 'N/A'}${LF}`;
     receipt += `${new Date().toLocaleString()}${LF}${LF}`;
     receipt += '--------------------------------' + LF;
@@ -691,8 +1174,7 @@ const AdminPanel = () => {
   
     receipt += '--------------------------------' + LF;
     receipt += `${BOLD_ON}TOTAL: € ${order.total.toFixed(2)}${BOLD_OFF}${LF}${LF}`;
-    receipt += `${CENTER}Obrigado pela sua preferência!${LF}${LF}`;
-    receipt += `${CENTER}Volte sempre${LF}${LF}`;
+    receipt += `${CENTER}${printerSettings.footerText}${LF}${LF}`;
     receipt += `${FEED}${FEED}${CUT}`;
   
     return receipt;
@@ -720,33 +1202,22 @@ const AdminPanel = () => {
       const success = await sendToPrinter(receipt);
       
       if (success) {
-        toast.success(`✅ Pedido #${order.id.slice(0, 6)} impresso com sucesso!`);
+        toast.success(`✅ Pedido #${order.id.slice(0, 6)} enviado para cozinha com sucesso!`);
+        // Atualiza o status para "preparing" automaticamente
+        await updateOrderStatus(order.id, 'preparing');
+        return true;
       } else {
         throw new Error('Falha ao enviar para impressora');
       }
     } catch (error) {
       setIsPrinting(false);
       setPrintError(error.message);
-      toast.error(`❌ Falha na impressão: ${error.message}`);
+      toast.error(`❌ Falha ao enviar para cozinha: ${error.message}`);
+      return false;
     } finally {
       setIsPrinting(false);
     }
   };
-
-  const PrintButton = ({ order }) => (
-    <Button
-      variant="outline"
-      icon={FiPrinter}
-      onClick={(e) => {
-        e.stopPropagation();
-        printOrder(order);
-      }}
-      disabled={isPrinting}
-      className="mr-2"
-    >
-      {isPrinting ? 'Imprimindo...' : 'Imprimir'}
-    </Button>
-  );
 
   const updateOrderStatus = async (orderId, newStatus) => {
     const orderRef = ref(database, `orders/${orderId}`);
@@ -759,14 +1230,10 @@ const AdminPanel = () => {
         if (newStatus === 'preparing' || newStatus === 'ready') {
           await sendWhatsAppNotification(order, newStatus);
         }
-        
-        if (newStatus === 'preparing') {
-          await printOrder(order);
-        }
       }
     } catch (error) {
       console.error('Erro ao atualizar status:', error);
-      toast.error('Erro ao atualizar status do pedido');
+      toast.error('❌ Erro ao atualizar status do pedido');
     }
   };
 
@@ -784,7 +1251,8 @@ const AdminPanel = () => {
     } else {
       updatedItems.push({
         ...item,
-        quantity: 1
+        quantity: 1,
+        printedTimestamp: null // Novo item não foi enviado para cozinha
       });
     }
   
@@ -845,6 +1313,7 @@ const AdminPanel = () => {
     if (!currentOrder) return;
   
     try {
+      setIsSavingChanges(true);
       const ordersRef = ref(database, 'orders');
       
       // Remove todos os pedidos originais da mesa
@@ -865,22 +1334,25 @@ const AdminPanel = () => {
         timestamp: new Date().toISOString(),
         customer: currentOrder.customer || { name: 'Cliente não informado', phone: '' },
         orderType: currentOrder.orderType,
-        tableNumber: currentOrder.tableNumber || null, // Garante que o tableNumber está incluído
+        tableNumber: currentOrder.tableNumber || null,
         originalIds: [newOrderRef.key]
       });
   
-      toast.success(`Pedido da ${currentOrder.orderType === 'dine-in' ? 'mesa' : 'entrega'} ${currentOrder.tableNumber} atualizado com sucesso!`);
+      toast.success(`✅ Pedido da ${currentOrder.orderType === 'dine-in' ? 'mesa' : 'entrega'} ${currentOrder.tableNumber} atualizado com sucesso!`);
       
       setIsEditModalOpen(false);
       setIsEditingOrder(false);
   
     } catch (error) {
       console.error('Erro ao atualizar pedido:', error);
-      toast.error('Erro ao atualizar pedido. Por favor, tente novamente.');
+      toast.error('❌ Erro ao atualizar pedido. Por favor, tente novamente.');
+    } finally {
+      setIsSavingChanges(false);
     }
   };
 
-  useEffect(() => {
+  const loadOrders = useCallback(() => {
+    setIsLoadingOrders(true);
     const ordersRef = ref(database, 'orders');
   
     onValue(ordersRef, (snapshot) => {
@@ -889,21 +1361,18 @@ const AdminPanel = () => {
         const ordersArray = Object.keys(data).map(key => ({
           id: key,
           ...data[key],
-          items: data[key].items || [], // Garante que items existe
+          items: data[key].items || [],
           customer: data[key].customer || { name: 'Cliente não informado', phone: '' },
-          orderType: data[key].orderType || 'takeaway' // Define um padrão para orderType
+          orderType: data[key].orderType || 'takeaway'
         }));
         
-        // Verifica se há um novo pedido para direcionar para a aba correta
         if (ordersArray.length > 0 && orders.length > 0) {
           const newOrder = ordersArray[0];
           const isNewOrder = !orders.some(order => order.id === newOrder.id);
           
           if (isNewOrder) {
-            // Direciona para a aba de pedidos
             setActiveTab('orders');
             
-            // Define a aba de tipo de pedido com base no orderType
             if (newOrder.orderType === 'dine-in') {
               setActiveOrderType('dine-in');
             } else if (newOrder.orderType === 'delivery') {
@@ -918,80 +1387,125 @@ const AdminPanel = () => {
       } else {
         setOrders([]);
       }
+      setIsLoadingOrders(false);
     });
   }, [orders]);
 
+  useEffect(() => {
+    loadOrders();
+  }, [loadOrders]);
+
   const deleteOrder = (orderId) => {
-    if (window.confirm('Tem certeza que deseja excluir este pedido?')) {
-      const orderRef = ref(database, `orders/${orderId}`);
-      remove(orderRef)
-        .then(() => toast.success('Pedido excluído com sucesso!'))
-        .catch(error => toast.error('Erro ao excluir pedido: ' + error.message));
+    const orderRef = ref(database, `orders/${orderId}`);
+    remove(orderRef)
+      .then(() => toast.success('✅ Pedido excluído com sucesso!'))
+      .catch(error => toast.error('❌ Erro ao excluir pedido: ' + error.message));
+  };
+
+  const confirmDeleteOrder = (order) => {
+    setOrderToDelete(order);
+    setIsConfirmDelete(true);
+  };
+
+  const handleDeleteOrder = () => {
+    if (orderToDelete.originalIds && orderToDelete.originalIds.length > 0) {
+      const deletePromises = orderToDelete.originalIds.map(orderId => {
+        const orderRef = ref(database, `orders/${orderId}`);
+        return remove(orderRef);
+      });
+      
+      Promise.all(deletePromises)
+        .then(() => toast.success('✅ Pedido(s) excluído(s) com sucesso!'))
+        .catch(error => toast.error('❌ Erro ao excluir pedido(s): ' + error.message));
+    } else {
+      deleteOrder(orderToDelete.id);
     }
+    setIsConfirmDelete(false);
   };
 
   const extractTableNumber = (order) => {
-    // Primeiro tenta pegar diretamente do pedido
-    if (order.tableNumber) return order.tableNumber;
+    if (order.tableNumber && !isNaN(order.tableNumber)) {
+      return parseInt(order.tableNumber, 10);
+    }
     
-    // Depois tenta extrair da URL
     if (order.url) {
       try {
-        const urlObj = new URL(order.url);
-        const params = new URLSearchParams(urlObj.search);
-        return params.get('tableNumber') || 'Não informado';
-      } catch {
-        return 'Não informado';
+        const url = new URL(order.url);
+        const table = url.searchParams.get('table');
+        if (table && !isNaN(table)) return parseInt(table, 10);
+      } catch (e) {
+        console.error('Erro ao extrair mesa da URL:', e);
       }
     }
     
-    // Finalmente, tenta pegar de qualquer outro lugar
-    return order.table || 'Não informado';
+    if (order.customer?.name) {
+      const match = order.customer.name.match(/(Mesa|mesa|Table|table)[\s:]?(\d+)/i);
+      if (match && match[2] && !isNaN(match[2])) return parseInt(match[2], 10);
+    }
+    
+    if (order.id) {
+      const lastDigit = parseInt(order.id.slice(-1), 10);
+      if (!isNaN(lastDigit)) return (lastDigit % 16) + 1;
+    }
+    
+    return Math.floor(Math.random() * 16) + 1;
   };
 
-  // Função consolidateOrders modificada
   const consolidateOrders = (orders) => {
     const consolidatedOrders = [];
     const ordersMap = new Map();
+    const processedIds = new Set();
   
     orders.forEach(order => {
+      if (processedIds.has(order.id)) return;
+      
       if (!order.items) order.items = [];
       
-      // Para pedidos que não são de mesa, adiciona diretamente
       if (order.orderType !== 'dine-in') {
-        consolidatedOrders.push({...order, originalIds: [order.id]});
+        consolidatedOrders.push({
+          ...order,
+          originalIds: [order.id]
+        });
+        processedIds.add(order.id);
         return;
       }
   
-      // Extrai o número da mesa corretamente
       const tableNumber = extractTableNumber(order);
-      const orderKey = `dine-in-${tableNumber}`;
+      if (!tableNumber || tableNumber === 'Não informado') {
+        consolidatedOrders.push({
+          ...order,
+          tableNumber: 'Não informado',
+          originalIds: [order.id]
+        });
+        processedIds.add(order.id);
+        return;
+      }
+  
+      const orderKey = `dine-in-${tableNumber}-${order.status}`;
       
       if (ordersMap.has(orderKey)) {
         const existingOrder = ordersMap.get(orderKey);
         
         order.items.forEach(newItem => {
-          const existingItemIndex = existingOrder.items.findIndex(
-            item => item.id === newItem.id
+          const existingItem = existingOrder.items.find(
+            item => item.id === newItem.id && item.notes === newItem.notes
           );
   
-          if (existingItemIndex >= 0) {
-            existingOrder.items[existingItemIndex].quantity += newItem.quantity;
+          if (existingItem) {
+            existingItem.quantity += newItem.quantity;
           } else {
             existingOrder.items.push({...newItem});
           }
         });
   
         existingOrder.total = existingOrder.items.reduce(
-          (sum, item) => sum + (item.price * item.quantity), 
-          0
+          (sum, item) => sum + (item.price * item.quantity), 0
         );
   
         if (new Date(order.timestamp) > new Date(existingOrder.timestamp)) {
           existingOrder.timestamp = order.timestamp;
-          existingOrder.status = order.status;
         }
-        
+  
         existingOrder.originalIds.push(order.id);
       } else {
         const newConsolidatedOrder = {
@@ -1003,6 +1517,8 @@ const AdminPanel = () => {
         ordersMap.set(orderKey, newConsolidatedOrder);
         consolidatedOrders.push(newConsolidatedOrder);
       }
+      
+      processedIds.add(order.id);
     });
   
     return consolidatedOrders;
@@ -1013,13 +1529,10 @@ const AdminPanel = () => {
     
     return consolidated
       .filter(order => {
-        // Filtra por tipo de pedido
         if (activeOrderType !== 'all' && order.orderType !== activeOrderType) return false;
         
-        // Filtra por status
         if (filter !== 'all' && order.status !== filter) return false;
         
-        // Filtra por busca
         if (searchQuery) {
           const searchLower = searchQuery.toLowerCase();
           const matchesId = order.id?.toLowerCase().includes(searchLower);
@@ -1039,14 +1552,10 @@ const AdminPanel = () => {
     pendingOrders: orders.filter(o => o.status === 'pending').length,
     preparingOrders: orders.filter(o => o.status === 'preparing').length,
     readyOrders: orders.filter(o => o.status === 'ready').length,
-    todayRevenue: orders
-      .filter(o => new Date(o.timestamp).toDateString() === new Date().toDateString())
-      .reduce((sum, order) => sum + (order.total || 0), 0),
     dineInOrders: orders.filter(o => o.orderType === 'dine-in').length,
     deliveryOrders: orders.filter(o => o.orderType === 'delivery').length,
     takeawayOrders: orders.filter(o => o.orderType === 'takeaway').length
   };
- 
 
   const sendWhatsAppNotification = (order, newStatus) => {
     if (order.orderType === 'dine-in') return;
@@ -1073,7 +1582,6 @@ const AdminPanel = () => {
     }
   };
   
-  // Adicione esta constante antes do return
   const filteredMenuItems = useMemo(() => {
     const categoryItems = menu[activeMenuCategory] || [];
   
@@ -1086,155 +1594,346 @@ const AdminPanel = () => {
     );
   }, [activeMenuCategory, menuSearchQuery]);
 
-  return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-gradient-to-r from-astral to-astral-dark text-white p-4 shadow-lg sticky top-0 z-20">
-        <div className="container mx-auto flex justify-between items-center">
-          <div className="flex items-center">
-            <img src={logo} alt="Alto Astral" className="h-10 mr-3" />
-            <Typography variant="h1" className="text-2xl text-white">Painel Administrativo</Typography>
-          </div>
-          <Link 
-            to="/restricted/dashboard"  // Assumindo que é a rota principal da área restrita
-            className="bg-white/20 hover:bg-white/30 px-4 py-2 rounded-lg transition flex items-center"
-          >
-            <FiArrowLeft className="mr-2" /> Voltar Para o Dashboard
-          </Link>
+  const openOrderDetails = (order) => {
+    setSelectedOrderDetails(order);
+    setIsOrderDetailsOpen(true);
+  };
+
+  const openEditModal = (order) => {
+    const allTableOrders = orders.filter(
+      o => o.orderType === order.orderType && 
+           o.tableNumber === order.tableNumber && 
+           o.status === order.status
+    );
+    
+    const consolidatedItems = [];
+    allTableOrders.forEach(tableOrder => {
+      tableOrder.items.forEach(item => {
+        const existingItem = consolidatedItems.find(i => i.id === item.id && i.notes === item.notes);
+        if (existingItem) {
+          existingItem.quantity += item.quantity;
+        } else {
+          consolidatedItems.push({...item});
+        }
+      });
+    });
+
+    const orderToEdit = {
+      ...order,
+      items: consolidatedItems,
+      total: consolidatedItems.reduce((sum, item) => sum + (item.price * item.quantity), 0),
+      originalIds: allTableOrders.map(o => o.id)
+    };
+
+    setCurrentOrder(orderToEdit);
+    setIsEditModalOpen(true);
+    setIsEditingOrder(false);
+  };
+
+  const togglePrinterSettings = () => {
+    setIsPrinterSettingsOpen(!isPrinterSettingsOpen);
+  };
+
+  const savePrinterSettings = () => {
+    localStorage.setItem('printerSettings', JSON.stringify(printerSettings));
+    toast.success('✅ Configurações da impressora salvas com sucesso!');
+    setIsPrinterSettingsOpen(false);
+  };
+
+  useEffect(() => {
+    // Carrega configurações da impressora do localStorage
+    const savedSettings = localStorage.getItem('printerSettings');
+    if (savedSettings) {
+      setPrinterSettings(JSON.parse(savedSettings));
+    }
+
+    // Verifica se há conexão salva com a impressora
+    const savedPrinter = localStorage.getItem('bluetoothPrinter');
+    if (savedPrinter) {
+      const printerState = JSON.parse(savedPrinter);
+      if (printerState.connected) {
+        setPrinterConnected(true);
+      }
+    }
+  }, []);
+
+return (
+  <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+    {/* Header Premium */}
+    <header className="bg-gradient-to-r from-primary to-primary-dark text-white p-4 shadow-xl sticky top-0 z-20">
+      <div className="container mx-auto flex justify-between items-center">
+        <div className="flex items-center">
+          <img src={logo} alt="Alto Astral" className="h-12 mr-3" />
+          <Typography variant="h1" className="text-2xl text-white">
+            Painel Administrativo Premium
+          </Typography>
         </div>
-      </header>
+        <div className="flex items-center space-x-4">
+          <Button 
+            variant="ghost" 
+            icon={FiPrinter}
+            onClick={togglePrinterSettings}
+            className="text-white hover:bg-white/10"
+          >
+            {printerConnected ? 'Impressora Conectada' : 'Configurar Impressora'}
+          </Button>
+          <Button
+          onClick={() => (window.location.href = '/restricted')}
+          className="bg-white/20 hover:bg-white/30 px-4 py-2 rounded-lg transition flex items-center shadow hover:shadow-md text-black"
+        >
+          <FiArrowLeft className="mr-2" /> Voltar Para o Dashboard
+        </Button>
 
-
-      {/* Tabs Navigation */}
-      <div className="bg-white shadow-sm sticky top-16 z-10">
-        <div className="container mx-auto overflow-x-auto">
-          <div className="flex space-x-1 p-2">
-            <motion.button
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              onClick={() => setActiveTab('dashboard')}
-              className={`px-4 py-2 rounded-lg whitespace-nowrap flex items-center transition ${
-                activeTab === 'dashboard' 
-                  ? 'bg-astral text-white shadow-md' 
-                  : 'bg-gray-100 hover:bg-gray-200'
-              }`}
-            >
-              <FiPieChart className="mr-2" />
-              Dashboard
-            </motion.button>
-            <motion.button
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              onClick={() => setActiveTab('orders')}
-              className={`px-4 py-2 rounded-lg whitespace-nowrap flex items-center transition ${
-                activeTab === 'orders' 
-                  ? 'bg-astral text-white shadow-md' 
-                  : 'bg-gray-100 hover:bg-gray-200'
-              }`}
-            >
-              <FiShoppingCart className="mr-2" />
-              Pedidos
-              {stats.pendingOrders > 0 && (
-                <span className="ml-2 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
-                  {stats.pendingOrders}
-                </span>
-              )}
-            </motion.button>
-          </div>
         </div>
       </div>
+    </header>
 
+    {/* Printer Settings Modal */}
+    <Modal
+      isOpen={isPrinterSettingsOpen}
+      onClose={togglePrinterSettings}
+      title="Configurações da Impressora"
+      size="md"
+    >
+      <div className="space-y-6">
+        <div className="p-4 bg-gray-100 rounded-lg">
+          <Typography variant="subtitle" className="mb-2 text-gray-800">Status da Impressora</Typography>
+          <div className="flex items-center">
+            <div className={`h-3 w-3 rounded-full mr-2 ${printerConnected ? 'bg-success' : 'bg-danger'}`}></div>
+            <Typography variant="body" className="text-gray-700">
+              {printerConnected ? 'Conectada' : 'Desconectada'}
+            </Typography>
+          </div>
+        </div>
+
+        <div className="p-4 bg-gray-100 rounded-lg">
+          <Typography variant="subtitle" className="mb-2 text-gray-800">Configurações do Recibo</Typography>
+          <div className="space-y-4">
+            <Input
+              label="Texto do Cabeçalho"
+              value={printerSettings.headerText}
+              onChange={(e) => setPrinterSettings({...printerSettings, headerText: e.target.value})}
+            />
+            <Input
+              label="Texto do Rodapé"
+              value={printerSettings.footerText}
+              onChange={(e) => setPrinterSettings({...printerSettings, footerText: e.target.value})}
+            />
+            <Select
+              label="Qualidade de Impressão"
+              value={printerSettings.printQuality}
+              onChange={(e) => setPrinterSettings({...printerSettings, printQuality: e.target.value})}
+              options={[
+                { value: 'high', label: 'Alta' },
+                { value: 'medium', label: 'Média' },
+                { value: 'low', label: 'Baixa' }
+              ]}
+            />
+            <Select
+              label="Largura do Papel"
+              value={printerSettings.paperWidth}
+              onChange={(e) => setPrinterSettings({...printerSettings, paperWidth: parseInt(e.target.value)})}
+              options={[
+                { value: '58', label: '58mm' },
+                { value: '80', label: '80mm' }
+              ]}
+            />
+          </div>
+        </div>
+
+        <div className="grid grid-cols-2 gap-4">
+          <Button
+            variant={printerConnected ? 'success' : 'primary'}
+            onClick={connectToPrinter}
+            loading={isPrinting}
+            fullWidth
+            gradient
+          >
+            {printerConnected ? 'Reconectar Impressora' : 'Conectar Impressora'}
+          </Button>
+          {printerConnected && (
+            <Button
+              variant="danger"
+              onClick={() => {
+                if (printerDeviceRef.current?.gatt?.connected) {
+                  printerDeviceRef.current.gatt.disconnect();
+                }
+                clearPrinterState();
+              }}
+              fullWidth
+              gradient
+            >
+              Desconectar Impressora
+            </Button>
+          )}
+        </div>
+
+        <div className="grid grid-cols-2 gap-4">
+          <Button
+            variant="outline"
+            onClick={togglePrinterSettings}
+            fullWidth
+          >
+            Cancelar
+          </Button>
+          <Button
+            variant="primary"
+            onClick={savePrinterSettings}
+            fullWidth
+            gradient
+          >
+            Salvar Configurações
+          </Button>
+        </div>
+      </div>
+    </Modal>
+
+    {/* Tabs Navigation Premium */}
+    <div className="bg-white shadow-sm sticky top-16 z-10">
+      <div className="container mx-auto overflow-x-auto">
+        <div className="flex space-x-1 p-2">
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.98 }}
+            onClick={() => setActiveTab('dashboard')}
+            className={`px-4 py-2 rounded-lg whitespace-nowrap flex items-center transition ${
+              activeTab === 'dashboard' 
+                ? 'bg-gradient-to-r from-primary to-primary-dark text-white shadow-md' 
+                : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
+            }`}
+          >
+            <FiPieChart className="mr-2" />
+            Dashboard
+            <Badge variant="premium" className="ml-2" size="small">
+              <FiStar size={12} className="mr-1" />
+              Premium
+            </Badge>
+          </motion.button>
+          
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.98 }}
+            onClick={() => setActiveTab('orders')}
+            className={`px-4 py-2 rounded-lg whitespace-nowrap flex items-center transition ${
+              activeTab === 'orders' 
+                ? 'bg-gradient-to-r from-primary to-primary-dark text-white shadow-md' 
+                : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
+            }`}
+          >
+            <FiShoppingCart className="mr-2" />
+            Pedidos
+            {stats.pendingOrders > 0 && (
+              <span className="ml-2 bg-danger text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                {stats.pendingOrders}
+              </span>
+            )}
+          </motion.button>
+        </div>
+      </div>
+    </div>
       {/* Main Content */}
       <div className="container mx-auto p-4 pb-20">
         {/* Dashboard Tab */}
         {activeTab === 'dashboard' && (
           <div>
-            <Typography variant="h2" className="mb-6">Visão Geral</Typography>
+            <Typography variant="h2" className="mb-6">Visão Geral Premium</Typography>
+             
+          {/* Stats Cards */}
+<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+  <Card hoverEffect gradient="from-yellow-400 to-orange-300">
+    <div className="p-6">
+      <div className="flex items-center justify-between">
+        <Typography variant="subtitle" color="dark">Total Pedidos</Typography>
+        <FiShoppingCart className="text-gray-800 text-xl" />
+      </div>
+      <Typography variant="h1" className="mt-2 text-black">{stats.totalOrders}</Typography>
+      <Typography variant="caption" color="dark" className="mt-2 text-gray-700">Desde o início</Typography>
+    </div>
+  </Card>
 
-            {/* Stats Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-              <Card hoverEffect>
-                <div className="p-6">
-                  <div className="flex items-center justify-between">
-                    <Typography variant="subtitle" color="light">Total Pedidos</Typography>
-                    <FiShoppingCart className="text-gray-400 text-xl" />
-                  </div>
-                  <Typography variant="h1" className="mt-2">{stats.totalOrders}</Typography>
-                  <Typography variant="caption" color="light" className="mt-2">Desde o início</Typography>
-                </div>
-              </Card>
-              <Card hoverEffect>
-                <div className="p-6">
-                  <div className="flex items-center justify-between">
-                    <Typography variant="subtitle" color="light">Pedidos Pendentes</Typography>
-                    <FiClock className="text-yellow-500 text-xl" />
-                  </div>
-                  <Typography variant="h1" className="mt-2">{stats.pendingOrders}</Typography>
-                  <Typography variant="caption" color="light" className="mt-2">Aguardando preparo</Typography>
-                </div>
-              </Card>
-              <Card hoverEffect>
-                <div className="p-6">
-                  <div className="flex items-center justify-between">
-                    <Typography variant="subtitle" color="light">Em Preparo</Typography>
-                    <FiPackage className="text-blue-500 text-xl" />
-                  </div>
-                  <Typography variant="h1" className="mt-2">{stats.preparingOrders}</Typography>
-                  <Typography variant="caption" color="light" className="mt-2">Na cozinha</Typography>
-                </div>
-              </Card>
-              <Card hoverEffect>
-                <div className="p-6">
-                  <div className="flex items-center justify-between">
-                    <Typography variant="subtitle" color="light">Faturamento Hoje</Typography>
-                    <FiDollarSign className="text-green-500 text-xl" />
-                  </div>
-                  <Typography variant="h1" className="mt-2">€{stats.todayRevenue.toFixed(2)}</Typography>
-                  <Typography variant="caption" color="light" className="mt-2">Total do dia</Typography>
-                </div>
-              </Card>
-            </div>
+  <Card hoverEffect gradient="from-orange-300 to-orange-500">
+    <div className="p-6">
+      <div className="flex items-center justify-between">
+        <Typography variant="subtitle" color="dark">Pedidos Pendentes</Typography>
+        <FiClock className="text-gray-800 text-xl" />
+      </div>
+      <Typography variant="h1" className="mt-2 text-black">{stats.pendingOrders}</Typography>
+      <Typography variant="caption" color="dark" className="mt-2 text-gray-700">Aguardando preparo</Typography>
+    </div>
+  </Card>
 
-            {/* Order Type Stats */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-              <Card hoverEffect>
-                <div className="p-6">
-                  <div className="flex items-center justify-between">
-                    <Typography variant="subtitle" color="light">Pedidos na Mesa</Typography>
-                    <FiHome className="text-astral text-xl" />
-                  </div>
-                  <Typography variant="h1" className="mt-2">{stats.dineInOrders}</Typography>
-                  <Typography variant="caption" color="light" className="mt-2">Comer no restaurante</Typography>
-                </div>
-              </Card>
-              <Card hoverEffect>
-                <div className="p-6">
-                  <div className="flex items-center justify-between">
-                    <Typography variant="subtitle" color="light">Pedidos para Entrega</Typography>
-                    <FiTruck className="text-astral text-xl" />
-                  </div>
-                  <Typography variant="h1" className="mt-2">{stats.deliveryOrders}</Typography>
-                  <Typography variant="caption" color="light" className="mt-2">Delivery</Typography>
-                </div>
-              </Card>
-              <Card hoverEffect>
-                <div className="p-6">
-                  <div className="flex items-center justify-between">
-                    <Typography variant="subtitle" color="light">Pedidos para Retirada</Typography>
-                    <FiShoppingCart className="text-astral text-xl" />
-                  </div>
-                  <Typography variant="h1" className="mt-2">{stats.takeawayOrders}</Typography>
-                  <Typography variant="caption" color="light" className="mt-2">Takeaway</Typography>
-                </div>
-              </Card>
-            </div>
+  <Card hoverEffect gradient="from-blue-300 to-blue-500">
+    <div className="p-6">
+      <div className="flex items-center justify-between">
+        <Typography variant="subtitle" color="dark">Em Preparo</Typography>
+        <FiPackage className="text-gray-800 text-xl" />
+      </div>
+      <Typography variant="h1" className="mt-2 text-black">{stats.preparingOrders}</Typography>
+      <Typography variant="caption" color="dark" className="mt-2 text-gray-700">Na cozinha</Typography>
+    </div>
+  </Card>
+
+  <Card hoverEffect gradient="from-green-300 to-green-500">
+    <div className="p-6">
+      <div className="flex items-center justify-between">
+        <Typography variant="subtitle" color="dark">Prontos para Entrega</Typography>
+        <FiCheck className="text-gray-800 text-xl" />
+      </div>
+      <Typography variant="h1" className="mt-2 text-black">{stats.readyOrders}</Typography>
+      <Typography variant="caption" color="dark" className="mt-2 text-gray-700">Aguardando retirada</Typography>
+    </div>
+  </Card>
+</div>
+
+
+      {/* Order Type Stats */}
+<div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+  <Card hoverEffect gradient="from-purple-300 to-purple-500">
+    <div className="p-6">
+      <div className="flex items-center justify-between">
+        <Typography variant="subtitle" color="dark">Pedidos na Mesa</Typography>
+        <FiHome className="text-gray-800 text-xl" />
+      </div>
+      <Typography variant="h1" className="mt-2 text-black">{stats.dineInOrders}</Typography>
+      <Typography variant="caption" color="dark" className="mt-2 text-gray-700">Comer no restaurante</Typography>
+    </div>
+  </Card>
+
+  <Card hoverEffect gradient="from-teal-300 to-teal-500">
+    <div className="p-6">
+      <div className="flex items-center justify-between">
+        <Typography variant="subtitle" color="dark">Pedidos para Entrega</Typography>
+        <FiTruck className="text-gray-800 text-xl" />
+      </div>
+      <Typography variant="h1" className="mt-2 text-black">{stats.deliveryOrders}</Typography>
+      <Typography variant="caption" color="dark" className="mt-2 text-gray-700">Delivery</Typography>
+    </div>
+  </Card>
+
+  <Card hoverEffect gradient="from-pink-300 to-pink-500">
+    <div className="p-6">
+      <div className="flex items-center justify-between">
+        <Typography variant="subtitle" color="dark">Pedidos para Retirada</Typography>
+        <FiShoppingCart className="text-gray-800 text-xl" />
+      </div>
+      <Typography variant="h1" className="mt-2 text-black">{stats.takeawayOrders}</Typography>
+      <Typography variant="caption" color="dark" className="mt-2 text-gray-700">Takeaway</Typography>
+    </div>
+  </Card>
+</div>
+
 
             {/* Recent Orders */}
             <Card hoverEffect className="mb-8">
               <div className="p-6">
                 <div className="flex justify-between items-center mb-6">
                   <Typography variant="h3">Pedidos Recentes</Typography>
-                  <Button variant="ghost" icon={FiRefreshCw}>
+                  <Button 
+                    variant="ghost" 
+                    icon={FiRefreshCw}
+                    onClick={loadOrders}
+                    loading={isLoadingOrders}
+                  >
                     Atualizar
                   </Button>
                 </div>
@@ -1242,21 +1941,21 @@ const AdminPanel = () => {
                   <table className="min-w-full divide-y divide-gray-200">
                     <thead className="bg-gray-50">
                       <tr>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tipo</th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Itens</th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total</th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ações</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">ID</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Tipo</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Itens</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Total</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Status</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Ações</th>
                       </tr>
                     </thead>
                     <tbody className="bg-white divide-y divide-gray-200">
                       {filteredOrders.slice(0, 5).map(order => (
                         <tr key={order.id} className="hover:bg-gray-50">
-                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                             #{order.id?.slice(0, 6) || 'N/A'}
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                          <td className="px-6 py-4 whitespace-nowrap text-sm">
                             {order.orderType === 'dine-in' ? (
                               <span className="flex items-center">
                                 <FiHome className="mr-1" /> Mesa {order.tableNumber}
@@ -1271,7 +1970,7 @@ const AdminPanel = () => {
                               </span>
                             )}
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                          <td className="px-6 py-4 whitespace-nowrap text-sm">
                             <div className="group relative">
                               <span className="cursor-pointer underline decoration-dotted">
                                 {order.items?.reduce((sum, item) => sum + (item.quantity || 0), 0) || 0}
@@ -1281,7 +1980,7 @@ const AdminPanel = () => {
                                   <div className="text-xs font-semibold mb-1">Itens da mesa:</div>
                                   <ul className="space-y-1">
                                     {order.items?.map((item, idx) => (
-                                      <li key={idx} className="flex justify-between">
+                                      <li key={`${item.id}-${idx}`} className="flex justify-between">
                                         <span>{item.quantity}x {item.name}</span>
                                         <span>€{(item.price * item.quantity).toFixed(2)}</span>
                                       </li>
@@ -1291,15 +1990,15 @@ const AdminPanel = () => {
                               )}
                             </div>
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                          <td className="px-6 py-4 whitespace-nowrap text-sm">
                             €{(order.total || 0).toFixed(2)}
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
                             <StatusBadge status={order.status || 'pending'} />
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                          <td className="px-6 py-4 whitespace-nowrap text-sm">
                             <div className="flex space-x-2">
-                              <PrintButton 
+                              <KitchenPrintButton 
                                 order={order} 
                                 isPrinting={isPrinting}
                                 printOrder={printOrder}
@@ -1308,6 +2007,7 @@ const AdminPanel = () => {
                                 <Button 
                                   size="small" 
                                   onClick={() => updateOrderStatus(order.id, 'preparing')}
+                                  gradient
                                 >
                                   <FiClock /> Preparar
                                 </Button>
@@ -1316,6 +2016,7 @@ const AdminPanel = () => {
                                 <Button 
                                   size="small" 
                                   onClick={() => updateOrderStatus(order.id, 'ready')}
+                                  gradient
                                 >
                                   <FiCheck /> Pronto
                                 </Button>
@@ -1345,7 +2046,7 @@ const AdminPanel = () => {
                   <input
                     type="text"
                     placeholder="Buscar pedidos..."
-                    className="pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-astral focus:border-transparent w-full transition"
+                    className="pl-10 pr-4 py-2 border-2 border-gray-200 focus:border-primary focus:ring-primary/30 rounded-xl focus:ring-2 focus:outline-none w-full transition"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                   />
@@ -1369,68 +2070,68 @@ const AdminPanel = () => {
             {/* Order Type Tabs */}
             <div className="flex space-x-2 mb-4 overflow-x-auto pb-2">
               <motion.button
-                whileHover={{ scale: 1.02 }}
+                whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.98 }}
                 onClick={() => setActiveOrderType('all')}
                 className={`px-4 py-2 rounded-lg whitespace-nowrap flex items-center transition ${
                   activeOrderType === 'all' 
-                    ? 'bg-astral text-white shadow-md' 
-                    : 'bg-gray-100 hover:bg-gray-200'
+                    ? 'bg-gradient-to-r from-primary to-primary-dark text-white shadow-md' 
+                    : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
                 }`}
               >
                 <FiShoppingCart className="mr-2" />
                 Todos os Pedidos
               </motion.button>
               <motion.button
-                whileHover={{ scale: 1.02 }}
+                whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.98 }}
                 onClick={() => setActiveOrderType('dine-in')}
                 className={`px-4 py-2 rounded-lg whitespace-nowrap flex items-center transition ${
                   activeOrderType === 'dine-in' 
-                    ? 'bg-astral text-white shadow-md' 
-                    : 'bg-gray-100 hover:bg-gray-200'
+                    ? 'bg-gradient-to-r from-primary to-primary-dark text-white shadow-md' 
+                    : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
                 }`}
               >
                 <FiHome className="mr-2" />
                 Mesas
                 {filteredOrders.filter(o => o.orderType === 'dine-in' && o.status === 'pending').length > 0 && (
-                  <span className="ml-2 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                  <span className="ml-2 bg-danger text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
                     {filteredOrders.filter(o => o.orderType === 'dine-in' && o.status === 'pending').length}
                   </span>
                 )}
               </motion.button>
               <motion.button
-                whileHover={{ scale: 1.02 }}
+                whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.98 }}
                 onClick={() => setActiveOrderType('delivery')}
                 className={`px-4 py-2 rounded-lg whitespace-nowrap flex items-center transition ${
                   activeOrderType === 'delivery' 
-                    ? 'bg-astral text-white shadow-md' 
-                    : 'bg-gray-100 hover:bg-gray-200'
+                    ? 'bg-gradient-to-r from-primary to-primary-dark text-white shadow-md' 
+                    : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
                 }`}
               >
                 <FiTruck className="mr-2" />
                 Entregas
                 {filteredOrders.filter(o => o.orderType === 'delivery' && o.status === 'pending').length > 0 && (
-                  <span className="ml-2 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                  <span className="ml-2 bg-danger text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
                     {filteredOrders.filter(o => o.orderType === 'delivery' && o.status === 'pending').length}
                   </span>
                 )}
               </motion.button>
               <motion.button
-                whileHover={{ scale: 1.02 }}
+                whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.98 }}
                 onClick={() => setActiveOrderType('takeaway')}
                 className={`px-4 py-2 rounded-lg whitespace-nowrap flex items-center transition ${
                   activeOrderType === 'takeaway' 
-                    ? 'bg-astral text-white shadow-md' 
-                    : 'bg-gray-100 hover:bg-gray-200'
+                    ? 'bg-gradient-to-r from-primary to-primary-dark text-white shadow-md' 
+                    : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
                 }`}
               >
                 <FiShoppingCart className="mr-2" />
                 Retiradas
                 {filteredOrders.filter(o => o.orderType === 'takeaway' && o.status === 'pending').length > 0 && (
-                  <span className="ml-2 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                  <span className="ml-2 bg-danger text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
                     {filteredOrders.filter(o => o.orderType === 'takeaway' && o.status === 'pending').length}
                   </span>
                 )}
@@ -1442,29 +2143,26 @@ const AdminPanel = () => {
                 <table className="min-w-full divide-y divide-gray-200">
                   <thead className="bg-gray-50">
                     <tr>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Data/Hora</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tipo</th>
-                      {activeOrderType === 'dine-in' && (
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Mesa</th>
-                      )}
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Itens</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ações</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">ID</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Data/Hora</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Tipo</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Itens</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Total</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Status</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Ações</th>
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
                     {filteredOrders.length > 0 ? (
                       filteredOrders.map(order => (
                         <tr key={order.id} className="hover:bg-gray-50">
-                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                             #{order.id?.slice(0, 6) || 'N/A'}
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                          <td className="px-6 py-4 whitespace-nowrap text-sm">
                             {new Date(order.timestamp)?.toLocaleString() || 'Data inválida'}
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                          <td className="px-6 py-4 whitespace-nowrap text-sm">
                             {order.orderType === 'dine-in' ? (
                               <span className="flex items-center">
                                 <FiHome className="mr-1" /> Mesa
@@ -1480,22 +2178,22 @@ const AdminPanel = () => {
                             )}
                           </td>
                           {activeOrderType === 'dine-in' && (
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            <td className="px-6 py-4 whitespace-nowrap text-sm">
                               {order.tableNumber ? `Mesa ${order.tableNumber}` : 'Não informado'}
                             </td>
                           )}
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                          <td className="px-6 py-4 whitespace-nowrap text-sm">
                             {order.items?.reduce((sum, item) => sum + (item.quantity || 0), 0)}
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                          <td className="px-6 py-4 whitespace-nowrap text-sm">
                             €{(order.total || 0).toFixed(2)}
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
                             <StatusBadge status={order.status || 'pending'} />
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                          <td className="px-6 py-4 whitespace-nowrap text-sm">
                             <div className="flex flex-wrap gap-2">
-                              <PrintButton 
+                              <KitchenPrintButton 
                                 order={order} 
                                 isPrinting={isPrinting}
                                 printOrder={printOrder}
@@ -1505,6 +2203,7 @@ const AdminPanel = () => {
                                   size="small" 
                                   onClick={() => updateOrderStatus(order.id, 'preparing')}
                                   className="flex-grow"
+                                  gradient
                                 >
                                   <FiClock />
                                 </Button>
@@ -1514,63 +2213,26 @@ const AdminPanel = () => {
                                   size="small" 
                                   onClick={() => updateOrderStatus(order.id, 'ready')}
                                   className="flex-grow"
+                                  gradient
                                 >
                                   <FiCheck />
                                 </Button>
                               )}
                               <button 
-                                onClick={() => {
-                                  const allTableOrders = orders.filter(
-                                    o => o.orderType === order.orderType && 
-                                         o.tableNumber === order.tableNumber && 
-                                         o.status === order.status
-                                  );
-                                  
-                                  const consolidatedItems = [];
-                                  allTableOrders.forEach(tableOrder => {
-                                    tableOrder.items.forEach(item => {
-                                      const existingItem = consolidatedItems.find(i => i.id === item.id);
-                                      if (existingItem) {
-                                        existingItem.quantity += item.quantity;
-                                      } else {
-                                        consolidatedItems.push({...item});
-                                      }
-                                    });
-                                  });
-
-                                  const orderToEdit = {
-                                    ...order,
-                                    items: consolidatedItems,
-                                    total: consolidatedItems.reduce((sum, item) => sum + (item.price * item.quantity), 0),
-                                    originalIds: allTableOrders.map(o => o.id)
-                                  };
-
-                                  setCurrentOrder(orderToEdit);
-                                  setIsEditModalOpen(true);
-                                  setIsEditingOrder(true);
-                                }}
-                                className="text-astral hover:text-astral-dark p-2 transition"
+                                onClick={() => openOrderDetails(order)}
+                                className="text-primary hover:text-primary-dark p-2 transition"
+                              >
+                                <FiEye />
+                              </button>
+                              <button 
+                                onClick={() => openEditModal(order)}
+                                className="text-primary hover:text-primary-dark p-2 transition"
                               >
                                 <FiEdit />
                               </button>
                               <button 
-                                onClick={() => {
-                                  if (order.originalIds && order.originalIds.length > 0) {
-                                    if (window.confirm(`Tem certeza que deseja excluir ${order.originalIds.length > 1 ? 'todos os pedidos desta mesa?' : 'este pedido?'}`)) {
-                                      const deletePromises = order.originalIds.map(orderId => {
-                                        const orderRef = ref(database, `orders/${orderId}`);
-                                        return remove(orderRef);
-                                      });
-                                      
-                                      Promise.all(deletePromises)
-                                        .then(() => toast.success('Pedido(s) excluído(s) com sucesso!'))
-                                        .catch(error => toast.error('Erro ao excluir pedido(s): ' + error.message));
-                                    }
-                                  } else {
-                                    deleteOrder(order.id);
-                                  }
-                                }}
-                                className="text-red-500 hover:text-red-700 p-2 transition"
+                                onClick={() => confirmDeleteOrder(order)}
+                                className="text-danger hover:text-danger-dark p-2 transition"
                               >
                                 <FiTrash2 />
                               </button>
@@ -1580,8 +2242,8 @@ const AdminPanel = () => {
                       ))
                     ) : (
                       <tr>
-                        <td colSpan={activeOrderType === 'dine-in' ? "7" : "6"} className="px-6 py-4 text-center text-sm text-gray-500">
-                          Nenhum pedido encontrado
+                        <td colSpan={activeOrderType === 'dine-in' ? "7" : "6"} className="px-6 py-4 text-center text-sm">
+                          {isLoadingOrders ? 'Carregando pedidos...' : 'Nenhum pedido encontrado'}
                         </td>
                       </tr>
                     )}
@@ -1593,240 +2255,455 @@ const AdminPanel = () => {
         )}
       </div>
 
+      {/* Order Details Modal */}
+      <Modal 
+        isOpen={isOrderDetailsOpen} 
+        onClose={() => setIsOrderDetailsOpen(false)}
+        title={`Detalhes do Pedido #${selectedOrderDetails?.id?.slice(0, 6) || ''}`}
+        size="lg"
+      >
+        {selectedOrderDetails && (
+          <div className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="p-4 rounded-xl bg-gray-50">
+                <Typography variant="subtitle" className="mb-3">Informações do Pedido</Typography>
+                <div className="space-y-2">
+                  <div>
+                    <Typography variant="caption" className="block text-gray-500">Tipo:</Typography>
+                    <Typography variant="body">
+                      {selectedOrderDetails.orderType === 'dine-in' ? (
+                        <span className="flex items-center">
+                          <FiHome className="mr-1" /> Mesa {selectedOrderDetails.tableNumber}
+                        </span>
+                      ) : selectedOrderDetails.orderType === 'delivery' ? (
+                        <span className="flex items-center">
+                          <FiTruck className="mr-1" /> Entrega
+                        </span>
+                      ) : (
+                        <span className="flex items-center">
+                          <FiShoppingCart className="mr-1" /> Retirada
+                        </span>
+                      )}
+                    </Typography>
+                  </div>
+                  
+                  <div>
+                    <Typography variant="caption" className="block text-gray-500">Data/Hora:</Typography>
+                    <Typography variant="body">
+                      {new Date(selectedOrderDetails.timestamp).toLocaleString()}
+                    </Typography>
+                  </div>
+                  
+                  <div>
+                    <Typography variant="caption" className="block text-gray-500">Status:</Typography>
+                    <Typography variant="body">
+                      <StatusBadge status={selectedOrderDetails.status || 'pending'} />
+                    </Typography>
+                  </div>
+                  
+                  <div>
+                    <Typography variant="caption" className="block text-gray-500">Total:</Typography>
+                    <Typography variant="body" className="font-bold">
+                      €{(selectedOrderDetails.total || 0).toFixed(2)}
+                    </Typography>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="p-4 rounded-xl bg-gray-50">
+                <Typography variant="subtitle" className="mb-3">Informações do Cliente</Typography>
+                <div className="space-y-2">
+                  <div>
+                    <Typography variant="caption" className="block text-gray-500">Nome:</Typography>
+                    <Typography variant="body">
+                      {selectedOrderDetails.customer?.name || 'Não informado'}
+                    </Typography>
+                  </div>
+                  
+                  <div>
+                    <Typography variant="caption" className="block text-gray-500">Telefone:</Typography>
+                    <Typography variant="body">
+                      {selectedOrderDetails.customer?.phone || 'Não informado'}
+                    </Typography>
+                  </div>
+                  
+                  {selectedOrderDetails.customer?.notes && (
+                    <div>
+                      <Typography variant="caption" className="block text-gray-500">Observações:</Typography>
+                      <Typography variant="body">
+                        {selectedOrderDetails.customer.notes}
+                      </Typography>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+            
+            <div className="p-4 rounded-xl bg-gray-50">
+              <Typography variant="subtitle" className="mb-3">Itens do Pedido</Typography>
+              <div className="border border-gray-200 rounded-lg divide-y divide-gray-200 max-h-96 overflow-y-auto">
+                {selectedOrderDetails.items?.length > 0 ? (
+                  selectedOrderDetails.items.map((item, idx) => (
+                    <OrderItem
+                      key={`${item.id}-${idx}`}
+                      item={item}
+                      onQuantityChange={() => {}}
+                      onRemove={null}
+                      showStatus={!item.printedTimestamp}
+                      showCustomer={true}
+                      showNotes={!!item.notes}
+                      showActions={false}
+                    />
+                  ))
+                ) : (
+                  <div className="p-4 text-center text-gray-500">
+                    Nenhum item encontrado neste pedido
+                  </div>
+                )}
+              </div>
+            </div>
+            
+            <div className="flex justify-end space-x-3">
+              <Button 
+                variant="outline" 
+                onClick={() => setIsOrderDetailsOpen(false)}
+              >
+                Fechar
+              </Button>
+              <Button 
+                variant="primary" 
+                onClick={() => {
+                  setIsOrderDetailsOpen(false);
+                  openEditModal(selectedOrderDetails);
+                }}
+                gradient
+              >
+                <FiEdit className="mr-2" /> Editar Pedido
+              </Button>
+            </div>
+          </div>
+        )}
+      </Modal>
+
       {/* Edit Order Modal */}
       <Modal 
         isOpen={isEditModalOpen} 
         onClose={() => {
           setIsEditModalOpen(false);
           setIsEditingOrder(false);
+          setIsConfirmingClose(false);
         }}
-        title={`${currentOrder?.orderType === 'dine-in' ? 'Mesa' : 'Pedido'} #${currentOrder?.tableNumber || ''}`}
+        title={`${currentOrder?.orderType === 'dine-in' ? 'Comanda - Mesa' : 'Pedido'} ${currentOrder?.tableNumber || ''}`}
         size="xl"
+        fullHeight
+        footer={!isConfirmingClose}
+        customFooter={
+          isConfirmingClose ? (
+            <div className="p-4 border-t border-gray-100 bg-white flex justify-end space-x-3">
+              <Button variant="outline" onClick={() => setIsConfirmingClose(false)}>
+                Cancelar
+              </Button>
+              <Button variant="danger" onClick={closeTable} gradient>
+                <FiLock className="mr-2" /> Confirmar Fechamento
+              </Button>
+            </div>
+          ) : null
+        }
       >
         {currentOrder && (
-          <form id="modal-form" onSubmit={(e) => {
-            e.preventDefault();
-            if (isEditingOrder) {
-              saveOrderChanges();
-            } else {
-              setIsEditModalOpen(false);
-            }
-          }}>
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              <div className="lg:col-span-2">
-                {isEditingOrder ? (
-                  <>
-                    <div className="mb-6">
-                      <Typography variant="h3" className="mb-4">Adicionar Itens</Typography>
-                      
-                      <div className="mb-4">
-                        <div className="relative mb-4">
-                          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                            <FiSearch className="text-gray-400" />
-                          </div>
-                          <input
-                            type="text"
-                            placeholder="Buscar itens no menu..."
-                            className="pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-astral focus:border-transparent w-full transition"
-                            value={menuSearchQuery}
-                            onChange={(e) => setMenuSearchQuery(e.target.value)}
-                          />
-                        </div>
-                        
-                        <CategoryTabs
-                          categories={menuCategories}
-                          activeCategory={activeMenuCategory}
-                          onSelect={(category) => {
-                            setActiveMenuCategory(category);
-                            if (!expandedCategories[category]) {
-                              setExpandedCategories(prev => ({
-                                ...prev,
-                                [category]: true
-                              }));
-                            }
-                          }}
-                          className="mb-4"
-                        />
-                        
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          {filteredMenuItems.map(item => {
-                            const currentItem = currentOrder?.items?.find(i => i.id === item.id);
-                            const currentQuantity = currentItem ? currentItem.quantity : 0;
-                            
-                            return (
-                              <MenuItemCard
-                                key={item.id}
-                                item={item}
-                                onAdd={addItemToOrder}
-                                onRemove={removeItemFromOrder}
-                                currentQuantity={currentQuantity}
-                              />
-                            );
-                          })}
-                        </div>
-                      </div>
-                    </div>
-                    
-                    <div className="mb-6">
-                      <Typography variant="h3" className="mb-4">Itens do Pedido</Typography>
-                      
-                      <div className="border border-gray-200 rounded-lg divide-y divide-gray-200 max-h-96 overflow-y-auto">
-                        {currentOrder.items?.length > 0 ? (
-                          currentOrder.items.map((item, index) => (
-                            <OrderItem
-                              key={`${item.id}-${index}`}
-                              item={item}
-                              onQuantityChange={updateItemQuantity}
-                              onRemove={removeItemFromOrder}
-                            />
-                          ))
-                        ) : (
-                          <div className="p-4 text-center text-gray-500">
-                            Nenhum item adicionado ao pedido
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </>
-                ) : (
-                  <div className="mb-4">
-                    <Typography variant="h3" className="mb-4">Itens do Pedido</Typography>
-                    
-                    <div className="border border-gray-200 rounded-lg divide-y divide-gray-200 max-h-96 overflow-y-auto">
-                      {(currentOrder.items || []).map((item, index) => (
-                        <div key={index} className="p-3 flex justify-between items-center hover:bg-gray-50 transition">
-                          <div>
-                            <Typography variant="body" className="font-medium">{item.name}</Typography>
-                            <Typography variant="caption">{item.quantity}x €{(item.price || 0).toFixed(2)}</Typography>
-                          </div>
-                          <Typography variant="body" className="font-medium">
-                            €{((item.price || 0) * (item.quantity || 0)).toFixed(2)}
-                          </Typography>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-              
-              <div className="lg:col-span-1">
-                <div className="sticky top-4">
-                  <Typography variant="h3" className="mb-4">Informações do Pedido</Typography>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-full">
+            <div className="lg:col-span-2">
+              {/* Seção de Adição de Itens (apenas quando editando) */}
+              {isEditingOrder && (
+                <div className="mb-6">
+                  <Typography variant="h3" className="mb-4">Adicionar Itens</Typography>
                   
-                  <div className="space-y-4 mb-6">
-                    <div>
-                      <Typography variant="caption" className="block mb-1">
-                        {currentOrder.orderType === 'dine-in' ? 'Número da Mesa' : 'Número'}
-                      </Typography>
-                      <p className="bg-gray-50 p-3 rounded-lg">
-                        {currentOrder.tableNumber || 
-                        (currentOrder.orderType === 'dine-in' && currentOrder.id 
-                          ? `Mesa ${parseInt(currentOrder.id.slice(-2), 10) % 16 + 1}` 
-                          : 'Não informado')}
-                      </p>
-                    </div>
-                    
-                    <div>
-                      <Typography variant="caption" className="block mb-1">Tipo de Pedido</Typography>
-                      <p className="bg-gray-50 p-3 rounded-lg">
-                        {currentOrder.orderType === 'dine-in' ? 'Mesa' :
-                         currentOrder.orderType === 'delivery' ? 'Entrega' : 'Retirada'}
-                      </p>
-                    </div>
-                    
-                    <div>
-                      <Typography variant="caption" className="block mb-1">Data/Hora</Typography>
-                      <p className="bg-gray-50 p-3 rounded-lg">
-                        {new Date(currentOrder.timestamp)?.toLocaleString() || 'Data inválida'}
-                      </p>
-                    </div>
-                    
-                    <div>
-                      <Typography variant="caption" className="block mb-1">Status</Typography>
-                      <Select
-                        value={currentOrder.status || 'pending'}
-                        onChange={(e) => {
-                          setCurrentOrder({...currentOrder, status: e.target.value});
-                        }}
-                        options={[
-                          { value: 'pending', label: 'Pendente' },
-                          { value: 'preparing', label: 'Em Preparo' },
-                          { value: 'ready', label: 'Pronto' },
-                          { value: 'completed', label: 'Concluído' }
-                        ]}
+                  <div className="mb-4">
+                    <div className="relative mb-4">
+                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <FiSearch className="text-gray-400" />
+                      </div>
+                      <input
+                        type="text"
+                        placeholder="Buscar itens no menu..."
+                        className="pl-10 pr-4 py-2 border-2 border-gray-200 focus:border-primary focus:ring-primary/30 rounded-xl focus:ring-2 focus:outline-none w-full transition"
+                        value={menuSearchQuery}
+                        onChange={(e) => setMenuSearchQuery(e.target.value)}
                       />
                     </div>
                     
-                    {currentOrder.orderType !== 'dine-in' && (
-                      <div>
-                        <Typography variant="caption" className="block mb-1">Cliente</Typography>
-                        <p className="bg-gray-50 p-3 rounded-lg">
-                          {currentOrder.customer?.name || 'Não informado'}
-                        </p>
-                      </div>
-                    )}
+                    <CategoryTabs
+                      categories={menuCategories}
+                      activeCategory={activeMenuCategory}
+                      onSelect={setActiveMenuCategory}
+                      className="mb-4"
+                    />
                     
-                    <div>
-                      <Typography variant="caption" className="block mb-1">Observações</Typography>
-                      <p className="bg-gray-50 p-3 rounded-lg">
-                        {currentOrder.customer?.notes || 'Nenhuma observação'}
-                      </p>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {filteredMenuItems.map(item => (
+                        <MenuItemCard
+                          key={item.id}
+                          item={item}
+                          onAdd={addItemToOrder}
+                          onRemove={removeItemFromOrder}
+                          currentQuantity={currentOrder.items?.find(i => i.id === item.id)?.quantity || 0}
+                        />
+                      ))}
                     </div>
                   </div>
+                </div>
+              )}
+
+              {/* Seção de Itens da Comanda */}
+              <div className="mb-6 h-full">
+                <div className="flex justify-between items-center mb-4">
+                  <Typography variant="h3">Itens da Comanda</Typography>
+                  {newItems.length > 0 && (
+                    <Badge variant="warning" className="flex items-center">
+                      <FiAlertCircle className="mr-1" />
+                      {newItems.length} item(s) não enviado(s)
+                    </Badge>
+                  )}
+                </div>
+                
+                {/* Abas para visualização agrupada ou linear */}
+                <div className="flex border-b border-gray-200 mb-4">
+                  <button
+                    onClick={() => setViewMode('grouped')}
+                    className={`px-4 py-2 font-medium ${viewMode === 'grouped' ? 'text-primary border-b-2 border-primary' : 'text-gray-500'}`}
+                  >
+                    <FiUsers className="inline mr-2" />
+                    Agrupado por Cliente
+                  </button>
+                  <button
+                    onClick={() => setViewMode('linear')}
+                    className={`px-4 py-2 font-medium ${viewMode === 'linear' ? 'text-primary border-b-2 border-primary' : 'text-gray-500'}`}
+                  >
+                    <FiList className="inline mr-2" />
+                    Lista Completa
+                  </button>
+                </div>
+                
+                {/* Visualização dos Itens */}
+                <div className="border border-gray-200 rounded-xl divide-y divide-gray-200 h-[calc(100%-60px)] overflow-y-auto">
+                  {viewMode === 'grouped' ? (
+                    // Visualização Agrupada por Cliente
+                    Object.entries(groupedItems).length > 0 ? (
+                      Object.entries(groupedItems).map(([customer, items]) => (
+                        <div key={customer} className="p-3">
+                          <div className="flex items-center mb-2">
+                            <FiUserCheck className="text-primary mr-2" />
+                            <Typography variant="subtitle" className="text-primary">{customer}</Typography>
+                          </div>
+                          <div className="pl-6">
+                            {items.map((item, idx) => (
+                              <OrderItem
+                                key={`${item.id}-${idx}`}
+                                item={item}
+                                onQuantityChange={updateItemQuantity}
+                                onRemove={removeItemFromOrder}
+                                showStatus={!item.printedTimestamp}
+                                showNotes={!!item.notes}
+                              />
+                            ))}
+                          </div>
+                        </div>
+                      ))
+                    ) : (
+                      <div className="p-4 text-center text-gray-500">
+                        Nenhum item adicionado à comanda
+                      </div>
+                    )
+                  ) : (
+                    // Visualização Linear
+                    currentOrder.items?.length > 0 ? (
+                      currentOrder.items.map((item, idx) => (
+                        <OrderItem
+                          key={`${item.id}-${idx}`}
+                          item={item}
+                          onQuantityChange={updateItemQuantity}
+                          onRemove={removeItemFromOrder}
+                          showStatus={!item.printedTimestamp}
+                          showCustomer={true}
+                          showNotes={!!item.notes}
+                        />
+                      ))
+                    ) : (
+                      <div className="p-4 text-center text-gray-500">
+                        Nenhum item adicionado à comanda
+                      </div>
+                    )
+                  )}
+                </div>
+              </div>
+            </div>
+            
+            {/* Painel de Ações e Informações */}
+            <div className="lg:col-span-1">
+              <div className="sticky top-4 space-y-6">
+                {/* Resumo do Pedido */}
+                <div>
+                  <Typography variant="h3" className="mb-4">Resumo</Typography>
                   
-                  <div className="space-y-2 border-t border-gray-200 pt-4">
+                  <div className="p-4 rounded-xl bg-gray-50">
                     <div className="flex justify-between">
-                      <Typography variant="body">Subtotal:</Typography>
-                      <Typography variant="body" className="font-medium">
-                        €{((currentOrder.total || 0) - (currentOrder.orderType === 'delivery' ? 2.5 : 0)).toFixed(2)}
+                      <Typography variant="body">Tipo:</Typography>
+                      <Typography variant="body" className="font-bold">
+                        {currentOrder.orderType === 'dine-in' ? (
+                          <span className="flex items-center">
+                            <FiHome className="mr-1" /> Mesa
+                          </span>
+                        ) : currentOrder.orderType === 'delivery' ? (
+                          <span className="flex items-center">
+                            <FiTruck className="mr-1" /> Entrega
+                          </span>
+                        ) : (
+                          <span className="flex items-center">
+                            <FiShoppingCart className="mr-1" /> Retirada
+                          </span>
+                        )}
                       </Typography>
                     </div>
-                    {currentOrder.orderType === 'delivery' && (
-                      <div className="flex justify-between">
-                        <Typography variant="body">Taxa de Entrega:</Typography>
-                        <Typography variant="body" className="font-medium">€2.50</Typography>
-                      </div>
-                    )}
-                    <div className="flex justify-between pt-2 border-t border-gray-200">
+                    
+                    <div className="flex justify-between">
+                      <Typography variant="body">Status:</Typography>
+                      <StatusBadge status={currentOrder.status || 'pending'} />
+                    </div>
+                    
+                    <div className="flex justify-between">
+                      <Typography variant="body">Itens:</Typography>
+                      <Typography variant="body" className="font-bold">
+                        {currentOrder.items?.length || 0}
+                      </Typography>
+                    </div>
+                    
+                    <div className="flex justify-between">
+                      <Typography variant="body">Não enviados:</Typography>
+                      <Typography variant="body" className="font-bold">
+                        {newItems.length}
+                      </Typography>
+                    </div>
+                    
+                    <div className="pt-3 border-t border-gray-200">
                       <Typography variant="body" className="font-bold">Total:</Typography>
-                      <Typography variant="body" className="font-bold text-astral">
+                      <Typography variant="h3" className="text-primary">
                         €{(currentOrder.total || 0).toFixed(2)}
                       </Typography>
                     </div>
                   </div>
-                  
-                  <div className="mt-6 space-y-3">
-                    {currentOrder.orderType === 'dine-in' && (
-                      <Button
-                        variant={isEditingOrder ? 'success' : 'outline'}
-                        size="large"
-                        onClick={() => setIsEditingOrder(!isEditingOrder)}
-                        icon={isEditingOrder ? FiCheck : FiEdit}
-                        className="w-full"
-                      >
-                        {isEditingOrder ? 'Finalizar Edição' : 'Editar Pedido'}
-                      </Button>
-                    )}
-                    
+                </div>
+                
+                {/* Ações Principais */}
+                <div className="space-y-3">
+                  {newItems.length > 0 && (
                     <Button
-                      variant="outline"
+                      variant="primary"
                       size="large"
-                      onClick={() => {
-                        setIsEditModalOpen(false);
-                        setIsEditingOrder(false);
-                      }}
+                      onClick={sendNewItemsToKitchen}
+                      icon={FiPrinter}
+                      disabled={isPrinting}
+                      loading={isPrinting}
                       className="w-full"
+                      gradient
                     >
-                      Cancelar
+                      {isPrinting ? 'Enviando...' : 'Enviar para Cozinha'}
                     </Button>
+                  )}
+                  
+                  <Button
+                    variant={isEditingOrder ? 'success' : 'outline'}
+                    size="large"
+                    onClick={() => setIsEditingOrder(!isEditingOrder)}
+                    icon={isEditingOrder ? FiCheck : FiEdit}
+                    className="w-full"
+                    gradient={isEditingOrder}
+                  >
+                    {isEditingOrder ? 'Parar de Editar' : 'Editar Comanda'}
+                  </Button>
+                  
+                  {isEditingOrder && (
+                    <Button
+                      variant="primary"
+                      size="large"
+                      onClick={saveOrderChanges}
+                      icon={FiSave}
+                      loading={isSavingChanges}
+                      className="w-full"
+                      gradient
+                    >
+                      {isSavingChanges ? 'Salvando...' : 'Salvar Alterações'}
+                    </Button>
+                  )}
+
+                  {currentOrder.status !== 'completed' && (
+                    <Button
+                      variant="danger"
+                      size="large"
+                      onClick={confirmCloseTable}
+                      icon={FiCheckCircle}
+                      className="w-full"
+                      gradient
+                    >
+                      Fechar Mesa
+                    </Button>
+                  )}
+                </div>
+                
+                {/* Detalhes do Pedido */}
+                <div className="p-4 rounded-xl bg-gray-50">
+                  <Typography variant="subtitle" className="mb-2">Detalhes</Typography>
+                  
+                  <div className="space-y-2">
+                    <div>
+                      <Typography variant="caption" className="block text-gray-500">Data/Hora:</Typography>
+                      <Typography variant="body">
+                        {new Date(currentOrder.timestamp).toLocaleString()}
+                      </Typography>
+                    </div>
+                    
+                    {currentOrder.customer?.notes && (
+                      <div>
+                        <Typography variant="caption" className="block text-gray-500">Observações:</Typography>
+                        <Typography variant="body">
+                          {currentOrder.customer.notes}
+                        </Typography>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
             </div>
-          </form>
+          </div>
         )}
       </Modal>
-    </div>
+
+      {/* Confirmação de Exclusão */}
+      <ConfirmationModal
+        isOpen={isConfirmDelete}
+        onClose={() => setIsConfirmDelete(false)}
+        onConfirm={handleDeleteOrder}
+        title="Confirmar Exclusão"
+        message={`Tem certeza que deseja excluir ${orderToDelete?.originalIds?.length > 1 ? 'todos os pedidos desta mesa?' : 'este pedido?'}`}
+        confirmText="Excluir"
+        cancelText="Cancelar"
+        variant="danger"
+      />
+
+      {/* Confirmação de Fechamento de Mesa */}
+      <ConfirmationModal
+        isOpen={isConfirmingClose}
+        onClose={() => setIsConfirmingClose(false)}
+        onConfirm={closeTable}
+        title="Fechar Mesa"
+        message="Tem certeza que deseja fechar esta mesa? Esta ação não pode ser desfeita."
+        confirmText="Fechar Mesa"
+        cancelText="Cancelar"
+        variant="danger"
+        icon={FiLock}
+        iconColor="text-primary"
+      />
+      
+      </div>
   );
 };
 

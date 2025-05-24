@@ -16,13 +16,13 @@ const Login = () => {
     // Credenciais simples (em produção, use autenticação segura)
     if (username === 'admin' && password === '2320') {
       localStorage.setItem('adminLoggedIn', 'true');
-      navigate('/restricted');
+      navigate('/admin', { replace: true }); // Redireciona forçadamente para /admin
     } else {
       setError('Credenciais inválidas. Tente novamente.');
     }
   };
 
-  return (
+    return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex flex-col items-center justify-center p-4">
       <motion.div 
         initial={{ y: -20, opacity: 0 }}

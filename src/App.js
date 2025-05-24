@@ -1,27 +1,38 @@
+// App.js
 import React from 'react';
-import { Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import InterfaceCliente from './InterfaceCliente';
 import AdminPanel from './AdminPanel';
 import Login from './Login';
 import RestrictedArea from './restricted';
-import QRCodeGenerator from './QRCodeGenerator'; // Importe o componente QRCodeGenerator
+import QRCodeGenerator from './QRCodeGenerator';
+import Footer from './components/Footer';
 
 function App() {
+  const location = useLocation();
+  const showFooterOnlyOnHome = location.pathname === '/';
+
   return (
-    <Routes>
-      <Route path="/" element={<InterfaceCliente />} />
-      <Route path="/login" element={<Login />} />
-      <Route path="/admin" element={<AdminPanel />} />
+    <>
+      <Routes>
+        <Route path="/" element={<InterfaceCliente />} />
+        <Route path="/login" element={<Login />} />
+        <Route 
+          path="/admin/*" 
+          element={
+            localStorage.getItem('adminLoggedIn') === 'true' 
+              ? <AdminPanel /> 
+              : <Navigate to="/login" state={{ from: '/admin' }} replace />
+          } 
+        />
+        <Route path="/qrcodes" element={<QRCodeGenerator />} />
+        <Route path="/restricted" element={<RestrictedArea />} />
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
       
-      {/* Nova rota para o gerador de QR Codes */}
-      <Route path="/qrcodes" element={<QRCodeGenerator />} />
-      
-      {/* Rota para área restrita */}
-      <Route path="/restricted/dashboard" element={<RestrictedArea />} />
-   
-      {/* Rota de fallback - deve ser a última */}
-      <Route path="*" element={<Navigate to="/" replace />} />
-    </Routes>
+      {/* Footer visível somente na rota '/' */}
+      {showFooterOnlyOnHome && <Footer />}
+    </>
   );
 }
 
