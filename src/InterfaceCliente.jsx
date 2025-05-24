@@ -188,8 +188,6 @@ const AdminDashboard = () => {
   const [favorites, setFavorites] = useState([]);
   const controls = useAnimation();
 
-
-
   useEffect(() => {
     const ordersRef = ref(database, 'orders');
     onValue(ordersRef, (snapshot) => {
@@ -201,8 +199,6 @@ const AdminDashboard = () => {
       setOrders(ordersList);
     });
   }, []);
-
-  
 
   useEffect(() => {
     loginAnonimo()
@@ -278,7 +274,7 @@ const AdminDashboard = () => {
       <div className="container mx-auto p-4">
         <div className="bg-white rounded-xl shadow-md p-4 mb-6">
           <div className="flex flex-col md:flex-row md:justify-between space-y-4 md:space-y-0">
-            <div className="flex overflow-x-auto space-x-2 pb-2">
+            <div className="flex overflow-x-auto space-x-2 pb-2 scrollbar-hide">
               <button
                 onClick={() => { setActiveTab('all'); setActiveArea('all'); }}
                 className={`px-4 py-2 rounded-lg whitespace-nowrap ${activeTab === 'all' ? 'bg-[#b0aca6] text-[#e6be44]' : 'bg-gray-100'}`}
@@ -306,7 +302,7 @@ const AdminDashboard = () => {
             </div>
             
             {activeTab === 'dine-in' && (
-              <div className="flex overflow-x-auto space-x-2 pb-2">
+              <div className="flex overflow-x-auto space-x-2 pb-2 scrollbar-hide">
                 <button
                   onClick={() => setActiveArea('all')}
                   className={`px-4 py-2 rounded-lg whitespace-nowrap ${activeArea === 'all' ? 'bg-[#b0aca6] text-[#e6be44]' : 'bg-gray-100'}`}
@@ -555,7 +551,7 @@ const AdminDashboard = () => {
                         }}
                         className="flex-1 py-2 bg-red-500 text-white rounded-lg"
                       >
-                        Cancelar 
+                        Cancelar Pedido
                       </button>
                     )}
                   </div>
@@ -573,153 +569,6 @@ const AdminDashboard = () => {
   );
 };
 
-const Typography = {
-  H1: ({ children, className = '' }) => (
-    <h1 className={`text-4xl md:text-5xl font-bold tracking-tight ${className}`}>
-      {children}
-    </h1>
-  ),
-  H2: ({ children, className = '' }) => (
-    <h2 className={`text-3xl md:text-4xl font-bold tracking-tight ${className}`}>
-      {children}
-    </h2>
-  ),
-  H3: ({ children, className = '' }) => (
-    <h3 className={`text-2xl md:text-3xl font-semibold ${className}`}>
-      {children}
-    </h3>
-  ),
-  Subtitle: ({ children, className = '' }) => (
-    <p className={`text-lg text-opacity-80 ${className}`}>
-      {children}
-    </p>
-  ),
-  Body: ({ children, className = '' }) => (
-    <p className={`text-base ${className}`}>
-      {children}
-    </p>
-  ),
-  Caption: ({ children, className = '' }) => (
-    <p className={`text-sm opacity-75 ${className}`}>
-      {children}
-    </p>
-  )
-};
-
-const Button = ({ 
-  children, 
-  variant = 'primary', 
-  size = 'medium',
-  icon: Icon,
-  iconPosition = 'left',
-  className = '',
-  disabled = false,
-  ...props 
-}) => {
-  const variants = {
-    primary: 'bg-[#b0aca6] text-[#e6be44] shadow-lg hover:shadow-[#b0aca6]/30',
-    secondary: 'bg-secondary-500 hover:bg-secondary-600 text-white',
-    outline: 'border border-[#b0aca6] text-[#e6be44] hover:bg-[#b0aca6]/10',
-    ghost: 'hover:bg-gray-100',
-    danger: 'bg-red-500 hover:bg-red-600 text-white',
-    glass: 'bg-white/10 backdrop-blur-md border border-white/20 hover:bg-white/20'
-  };
-
-  const sizes = {
-    small: 'py-1.5 px-3 text-sm',
-    medium: 'py-2.5 px-5',
-    large: 'py-3.5 px-7 text-lg'
-  };
-
-  return (
-    <motion.button
-      whileHover={!disabled ? { y: -2, scale: 1.02 } : {}}
-      whileTap={!disabled ? { scale: 0.98 } : {}}
-      className={`
-        rounded-xl transition-all duration-200 flex items-center justify-center gap-2 font-medium
-        ${variants[variant]} ${sizes[size]} ${className}
-        ${disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
-      `}
-      disabled={disabled}
-      {...props}
-    >
-      {Icon && iconPosition === 'left' && <Icon className="flex-shrink-0" />}
-      {children}
-      {Icon && iconPosition === 'right' && <Icon className="flex-shrink-0" />}
-    </motion.button>
-  );
-};
-
-const Card = ({ children, className = '', hoverEffect = true }) => {
-  return (
-    <motion.div 
-      whileHover={hoverEffect ? { y: -5 } : {}}
-      className={`
-        bg-white rounded-2xl shadow-sm overflow-hidden border-2 border-[#e6be44]
-        hover:shadow-md transition-all duration-300 ${className}
-      `}
-    >
-      {children}
-    </motion.div>
-  );
-};
-
-const Badge = ({ children, variant = 'default', className = '' }) => {
-  const variants = {
-    default: 'bg-gray-100 text-gray-800',
-    primary: 'bg-[#b0aca6]/10 text-[#e6be44]',
-    success: 'bg-green-100 text-green-800',
-    warning: 'bg-yellow-100 text-yellow-800',
-    danger: 'bg-red-100 text-red-800',
-    info: 'bg-blue-100 text-blue-800'
-  };
-
-  return (
-    <span className={`text-xs font-medium px-2.5 py-0.5 rounded-full ${variants[variant]} ${className}`}>
-      {children}
-    </span>
-  );
-};
-
-const Rating = ({ value, max = 5, className = '' }) => {
-  return (
-    <div className={`flex items-center ${className}`}>
-      {[...Array(max)].map((_, i) => (
-        <FiStar 
-          key={i} 
-          className={`w-4 h-4 ${i < value ? 'text-[#e6be44] fill-[#e6be44]' : 'text-gray-300'}`} 
-        />
-      ))}
-    </div>
-  );
-};
-
-const Notification = ({ message, type = 'info', onClose }) => {
-  const bgColors = {
-    info: 'bg-blue-500',
-    success: 'bg-green-500',
-    warning: 'bg-yellow-500',
-    error: 'bg-red-500'
-  };
-
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, x: 20 }}
-      className={`${bgColors[type]} text-white px-4 py-3 rounded-lg shadow-lg flex justify-between items-center`}
-    >
-      <span>{message}</span>
-      <button onClick={onClose} className="ml-4">
-        <FiX />
-      </button>
-    </motion.div>
-  );
-};
-
-
-
-
 const InterfaceCliente = () => {
   const [activeTab, setActiveTab] = useState('semana');
   const [cart, setCart] = useState([]);
@@ -729,6 +578,8 @@ const InterfaceCliente = () => {
     surname: '',
     phone: '',
     address: '',
+    postalCode: '',
+    city: '',
     reference: '',
     notes: '',
     paymentMethod: '',
@@ -741,23 +592,14 @@ const InterfaceCliente = () => {
   const controls = useAnimation();
   const location = useLocation();
   const navigate = useNavigate();
-  const [userIsLoggedIn, setUserIsLoggedIn] = useState(false);
   const [showWelcomeModal, setShowWelcomeModal] = useState(true);
   const [showWhatsAppModal, setShowWhatsAppModal] = useState(false);
   const [whatsAppLink, setWhatsAppLink] = useState('');
   const [countdown, setCountdown] = useState(40);
-  const [isOpen, setIsOpen] = useState(false);
-
-
+  const [orderType, setOrderType] = useState('dine-in');
 
   const queryParams = new URLSearchParams(location.search);
   const tableNumberFromQR = queryParams.get('table') || '';
-
-  const [orderType, setOrderType] = useState('dine-in');
-  
-  const handleSuccessfulLogin = () => {
-    setUserIsLoggedIn(true);
-  };
 
   useEffect(() => {
     if (tableNumberFromQR) {
@@ -977,16 +819,14 @@ const InterfaceCliente = () => {
       </div>
     );
   }
-if (checkoutStep === 'cart-summary') {
+
+  if (checkoutStep === 'cart-summary') {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-50 to-[#f8f5f0] p-4 md:p-8 flex items-center justify-center">
         <div className="w-full max-w-2xl">
-          {/* Moldura dourada e header premium */}
           <div className="relative">
-            {/* Moldura superior */}
             <div className="h-2 bg-[#b0aca6] rounded-t-xl"></div>
             
-            {/* Header com efeito premium */}
             <div className="bg-white px-6 py-5 border-x border-gray-100">
               <motion.div 
                 initial={{ opacity: 0, y: -10 }}
@@ -1016,9 +856,7 @@ if (checkoutStep === 'cart-summary') {
             </div>
           </div>
 
-          {/* Container principal com bordas laterais */}
           <div className="bg-white border-x border-gray-100 px-6 py-1">
-            {/* Card do carrinho com sombra refinada */}
             <motion.div 
               initial={{ y: 20, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
@@ -1026,7 +864,6 @@ if (checkoutStep === 'cart-summary') {
               className="bg-white rounded-xl mb-6 mt-4"
             >
               <div className="p-6 md:p-8">
-                {/* Cabeçalho do carrinho */}
                 <div className="flex items-center mb-6 pb-4 border-b border-gray-100">
                   <div className="relative">
                     <div className="absolute -left-1 -top-1 w-12 h-12 bg-[#e6be44]/10 rounded-lg"></div>
@@ -1040,7 +877,6 @@ if (checkoutStep === 'cart-summary') {
                   </div>
                 </div>
                 
-                {/* Lista de itens com scroll personalizado */}
                 <div className="space-y-5 mb-6 max-h-80 overflow-y-auto pr-3 custom-scrollbar">
                   {cart.map((item, index) => (
                     <motion.div 
@@ -1051,7 +887,6 @@ if (checkoutStep === 'cart-summary') {
                       className="flex justify-between items-start p-4 rounded-xl hover:bg-[#faf8f3] transition-colors border border-gray-100 shadow-xs"
                     >
                       <div className="flex-1 flex items-start">
-                        {/* Thumbnail com borda dourada */}
                         <div className="relative w-16 h-16 rounded-lg overflow-hidden mr-4 flex-shrink-0 border-2 border-[#e6be44]/30">
                           <img 
                             src={item.image} 
@@ -1083,7 +918,6 @@ if (checkoutStep === 'cart-summary') {
                         </div>
                       </div>
                       
-                      {/* Contador de quantidade premium */}
                       <div className="flex items-center space-x-2 ml-4">
                         <motion.button
                           whileHover={{ scale: 1.1, backgroundColor: "#f0f0f0" }}
@@ -1109,7 +943,6 @@ if (checkoutStep === 'cart-summary') {
                   ))}
                 </div>
 
-                {/* Resumo de valores premium */}
                 <div className="border-t border-gray-200 pt-6">
                   <div className="space-y-4">
                     {orderType === 'delivery' && (
@@ -1128,15 +961,11 @@ if (checkoutStep === 'cart-summary') {
             </motion.div>
           </div>
 
-          {/* Rodapé com moldura */}
           <div className="relative">
-            {/* Botões de ação premium */}
             <div className="bg-white px-6 py-5 border-x border-b border-gray-100 rounded-b-xl">
               <div className="flex justify-between">
                 <motion.button
-                  whileHover={{ 
-                    scale: 1.02,
-                  }}
+                  whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                   onClick={() => setCheckoutStep('menu')}
                   className="px-6 py-3 rounded-xl bg-[#918e89] text-[#e6be44] font-bold transition-all"
@@ -1144,29 +973,25 @@ if (checkoutStep === 'cart-summary') {
                   Voltar ao Menu
                 </motion.button>
                 <motion.button
-                whileHover={{ 
-                    scale: 1.02,
-                  }}
+                  whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                   onClick={() => setCheckoutStep('order-type')}
                   disabled={cart.length === 0}
                   className={`px-8 py-3 rounded-xl font-medium transition-all relative overflow-hidden ${
                     cart.length === 0
                       ? 'bg-[#918e89] text-[#e6be44] cursor-not-allowed'
-                      : 'bg-[#918e89] text-[#e6be44] font-bold '
+                      : 'bg-[#918e89] text-[#e6be44] font-bold'
                   }`}
                 >
-                  <span className="relative z-10 font-bold ">Continuar</span>
+                  <span className="relative z-10 font-bold">Continuar</span>
                 </motion.button>
               </div>
             </div>
             
-            {/* Moldura inferior */}
             <div className="h-2 bg-[#b0aca6] rounded-b-xl"></div>
           </div>
         </div>
 
-        {/* Estilo personalizado para a scrollbar */}
         <style jsx>{`
           .custom-scrollbar::-webkit-scrollbar {
             width: 5px;
@@ -1187,16 +1012,14 @@ if (checkoutStep === 'cart-summary') {
       </div>
     );
   }
-if (checkoutStep === 'order-type') {
+
+  if (checkoutStep === 'order-type') {
     return (
       <div className="min-h-screen bg-white p-4 md:p-6 flex items-center justify-center">
         <div className="w-full max-w-md">
-          {/* Moldura superior */}
           <div className="h-2 bg-[#b0aca6] rounded-t-xl"></div>
           
-          {/* Container principal */}
           <div className="bg-white border-x border-gray-100 px-6 py-6">
-            {/* Header premium */}
             <div className="flex items-center mb-8">
               <motion.button
                 whileHover={{ scale: 1.1, backgroundColor: "#f5f5f5" }}
@@ -1218,7 +1041,6 @@ if (checkoutStep === 'order-type') {
               </div>
             </div>
 
-            {/* Título com animação */}
             <motion.h3 
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
@@ -1228,9 +1050,7 @@ if (checkoutStep === 'order-type') {
               Como deseja receber seu pedido?
             </motion.h3>
             
-            {/* Opções de entrega premium */}
             <div className="space-y-5 mb-6">
-              {/* Opção 1 - Comer no local */}
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -1275,7 +1095,6 @@ if (checkoutStep === 'order-type') {
                 </motion.button>
               </motion.div>
 
-              {/* Opção 2 - Retirada */}
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -1320,7 +1139,6 @@ if (checkoutStep === 'order-type') {
                 </motion.button>
               </motion.div>
 
-              {/* Opção 3 - Entrega */}
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -1367,7 +1185,6 @@ if (checkoutStep === 'order-type') {
             </div>
           </div>
 
-          {/* Moldura inferior */}
           <div className="h-2 bg-[#b0aca6] rounded-b-xl"></div>
         </div>
       </div>
@@ -1381,7 +1198,7 @@ if (checkoutStep === 'order-type') {
           <div className="flex items-center mb-6">
             <button
               onClick={() => setCheckoutStep('order-type')}
-              className="mr-4 text- black"
+              className="mr-4 text-black"
             >
               <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -1396,7 +1213,7 @@ if (checkoutStep === 'order-type') {
             className="bg-white rounded-2xl shadow-md p-6 mb-6"
           >
             <h3 className="text-lg font-semibold mb-4 flex items-center text-black">
-              <FiHome className="mr-2 text- black" />
+              <FiHome className="mr-2 text-black" />
               Informe o número da sua mesa
             </h3>
             
@@ -1449,16 +1266,13 @@ if (checkoutStep === 'order-type') {
     );
   }
 
-if (checkoutStep === 'customer-info') {
+  if (checkoutStep === 'customer-info') {
     return (
       <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 p-4 md:p-6">
         <div className="max-w-2xl mx-auto">
-          {/* Moldura superior */}
           <div className="h-2 bg-[#b0aca6] rounded-t-xl"></div>
           
-          {/* Container principal */}
           <div className="bg-white/90 backdrop-blur-sm border-x border-gray-200 px-6 py-8">
-            {/* Header premium */}
             <div className="flex items-center mb-8">
               <motion.button
                 whileHover={{ scale: 1.1, backgroundColor: "#f5f5f5" }}
@@ -1480,7 +1294,6 @@ if (checkoutStep === 'customer-info') {
               </div>
             </div>
 
-            {/* Resumo do pedido */}
             <motion.div 
               initial={{ y: 20, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
@@ -1534,7 +1347,6 @@ if (checkoutStep === 'customer-info') {
               </div>
             </motion.div>
 
-            {/* Formulário de informações */}
             <motion.div
               initial={{ y: 20, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
@@ -1691,7 +1503,6 @@ if (checkoutStep === 'customer-info') {
               </div>
             </motion.div>
 
-            {/* Método de pagamento */}
             {orderType !== 'dine-in' && (
               <motion.div
                 initial={{ y: 20, opacity: 0 }}
@@ -1795,7 +1606,6 @@ if (checkoutStep === 'customer-info') {
               </motion.div>
             )}
 
-            {/* Observações */}
             <motion.div
               initial={{ y: 20, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
@@ -1820,7 +1630,6 @@ if (checkoutStep === 'customer-info') {
             </motion.div>
           </div>
 
-          {/* Rodapé com botões de ação */}
           <div className="relative">
             <div className="bg-white px-6 py-5 border-x border-b border-gray-200 rounded-b-xl">
               <div className="flex justify-between">
@@ -1892,12 +1701,10 @@ if (checkoutStep === 'customer-info') {
               </div>
             </div>
             
-            {/* Moldura inferior */}
             <div className="h-2 bg-[#b0aca6] rounded-b-xl"></div>
           </div>
         </div>
 
-        {/* Estilo personalizado para a scrollbar */}
         <style jsx>{`
           .custom-scrollbar::-webkit-scrollbar {
             width: 5px;
@@ -1916,7 +1723,6 @@ if (checkoutStep === 'customer-info') {
           }
         `}</style>
 
-        {/* Modal do WhatsApp */}
         {showWhatsAppModal && (
           <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 p-4">
             <motion.div 
@@ -1988,7 +1794,6 @@ if (checkoutStep === 'customer-info') {
         <WelcomeModal onClose={() => setShowWelcomeModal(false)} />
       )}
 
-      {/* Notificações */}
       <div className="fixed top-4 right-4 z-50 space-y-2">
         <AnimatePresence>
           {notifications.map((notification) => (
@@ -2014,8 +1819,8 @@ if (checkoutStep === 'customer-info') {
         </AnimatePresence>
       </div>
 
-      <header className="bg-white text-black  shadow-lg sticky top-0 z-20">
-        <div className="container mx-auto flex justify-between items-center">
+      <header className="bg-white text-black shadow-lg sticky top-0 z-20">
+        <div className="container mx-auto px-4 flex justify-between items-center">
           <div className="flex items-center">
             <img src={logo} alt="Alto Astral" className="h-24 mr-2" />
           </div>
@@ -2068,46 +1873,46 @@ if (checkoutStep === 'customer-info') {
           </motion.p>
         </div>
       </div>  
-<div className="bg- white shadow-sm sticky top-16 z-10">
-<div className="container mx-auto overflow-x-auto">
-  <div className="flex space-x-1 p-2">
-    {['semana', 'lanches', 'porcoes', 'pasteis', 'cafe', 'bebidas', 'salgados', 'sobremesas'].map((tab) => (
-      <motion.button
-        key={tab}
-        whileHover={{ scale: 1.02 }}
-        whileTap={{ scale: 0.98 }}
-        onClick={() => setActiveTab(tab)}
-        className={`px-4 py-2 rounded-lg whitespace-nowrap flex items-center transition border font-bold ${
-          activeTab === tab
-            ? 'border-[#e6be44] bg-[#b0aca6] text-black'
-            : 'border-gray-200 bg-[#918e89] text-[#FFFAF1]'
-        }`}
-      >
-        {tab === 'semana' && <FiCalendar className="mr-2" />}
-        {tab === 'lanches' && <FaHamburger className="mr-2" />}
-        {tab === 'porcoes' && <FaDrumstickBite className="mr-2" />}
-        {tab === 'pasteis' && <GiPieSlice className="mr-2" />}
-        {tab === 'cafe' && <FiCoffee className="mr-2" />}
-        {tab === 'bebidas' && <FaCocktail className="mr-2" />}
-        {tab === 'salgados' && <GiSandwich className="mr-2" />}
-        {tab === 'sobremesas' && <FaIceCream className="mr-2" />}
 
-        {tab === 'semana' && 'Cardápio'}
-        {tab === 'lanches' && 'Lanches'}
-        {tab === 'porcoes' && 'Porções'}
-        {tab === 'pasteis' && 'Pasteis'}
-        {tab === 'cafe' && 'Bom Dia'}
-        {tab === 'bebidas' && 'Bebidas'}
-        {tab === 'salgados' && 'Salgados'}
-        {tab === 'sobremesas' && 'Sobremesas'}
-      </motion.button>
-    ))}
-  </div>
-</div>
-</div>
+      <div className="bg-white shadow-sm sticky top-16 z-10">
+        <div className="container mx-auto px-4 overflow-x-auto">
+          <div className="flex space-x-1 p-2 scrollbar-hide">
+            {['semana', 'lanches', 'porcoes', 'pasteis', 'cafe', 'bebidas', 'salgados', 'sobremesas'].map((tab) => (
+              <motion.button
+                key={tab}
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                onClick={() => setActiveTab(tab)}
+                className={`px-4 py-2 rounded-lg whitespace-nowrap flex items-center transition border font-bold ${
+                  activeTab === tab
+                    ? 'border-[#e6be44] bg-[#b0aca6] text-black'
+                    : 'border-gray-200 bg-[#918e89] text-[#FFFAF1]'
+                }`}
+              >
+                {tab === 'semana' && <FiCalendar className="mr-2" />}
+                {tab === 'lanches' && <FaHamburger className="mr-2" />}
+                {tab === 'porcoes' && <FaDrumstickBite className="mr-2" />}
+                {tab === 'pasteis' && <GiPieSlice className="mr-2" />}
+                {tab === 'cafe' && <FiCoffee className="mr-2" />}
+                {tab === 'bebidas' && <FaCocktail className="mr-2" />}
+                {tab === 'salgados' && <GiSandwich className="mr-2" />}
+                {tab === 'sobremesas' && <FaIceCream className="mr-2" />}
 
+                {tab === 'semana' && 'Cardápio'}
+                {tab === 'lanches' && 'Lanches'}
+                {tab === 'porcoes' && 'Porções'}
+                {tab === 'pasteis' && 'Pasteis'}
+                {tab === 'cafe' && 'Bom Dia'}
+                {tab === 'bebidas' && 'Bebidas'}
+                {tab === 'salgados' && 'Salgados'}
+                {tab === 'sobremesas' && 'Sobremesas'}
+              </motion.button>
+            ))}
+          </div>
+        </div>
+      </div>
 
-      <main className="container mx-auto p-4 pb-20">
+      <main className="container mx-auto px-4 pb-20">
         <AnimatePresence mode="wait">
           <motion.div
             key={activeTab}
@@ -2122,28 +1927,28 @@ if (checkoutStep === 'customer-info') {
                   <div className="flex items-center justify-between mb-6">
                     <h2 className="text-2xl font-bold text-black flex items-center">
                       {category === 'semana' && (
-                        <GiMeal className="mr-2 text-black text-2xl" /> // Ícone de prato de comida
+                        <GiMeal className="mr-2 text-black text-2xl" />
                       )}
                       {category === 'lanches' && (
-                        <GiSandwich className="mr-2 text-black text-2xl" /> // Ícone de sanduíche
+                        <GiSandwich className="mr-2 text-black text-2xl" />
                       )}
                       {category === 'porcoes' && (
-                        <GiChickenOven className="mr-2 text-black text-2xl" /> // Ícone de porção de frango
+                        <GiChickenOven className="mr-2 text-black text-2xl" />
                       )}
                       {category === 'pasteis' && (
-                        <GiPieSlice className="mr-2 text-black text-2xl" /> // Ícone de fatia de torta
+                        <GiPieSlice className="mr-2 text-black text-2xl" />
                       )}
                       {category === 'cafe' && (
-                        <GiCoffeeCup className="mr-2 text-black text-2xl" /> // Ícone de xícara de café
+                        <GiCoffeeCup className="mr-2 text-black text-2xl" />
                       )}
                       {category === 'bebidas' && (
-                        <GiWineBottle className="mr-2 text-black text-2xl" /> // Ícone de garrafa de vinho
+                        <GiWineBottle className="mr-2 text-black text-2xl" />
                       )}
                       {category === 'salgados' && (
-                        <GiHotMeal className="mr-2 text-black text-2xl" /> // Ícone de prato quente
+                        <GiHotMeal className="mr-2 text-black text-2xl" />
                       )}
                       {category === 'sobremesas' && (
-                        <GiCakeSlice className="mr-2 text-black text-2xl" /> // Ícone de fatia de bolo
+                        <GiCakeSlice className="mr-2 text-black text-2xl" />
                       )}
                       {category === 'semana' && 'Cardápio da Semana'}
                       {category === 'lanches' && 'Lanches'}
@@ -2156,9 +1961,13 @@ if (checkoutStep === 'customer-info') {
                     </h2>
                   </div>
                   
-                  <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {filteredMenu(category).map(item => (
-                      <Card key={item.id}>
+                      <motion.div 
+                        key={item.id}
+                        whileHover={{ y: -5 }}
+                        className="bg-white rounded-2xl shadow-sm overflow-hidden border-2 border-[#e6be44]"
+                      >
                         <div className="relative h-48 overflow-hidden group">
                           <img 
                             src={item.image} 
@@ -2185,7 +1994,7 @@ if (checkoutStep === 'customer-info') {
                         <div className="p-4">
                           <div className="flex justify-between items-start">
                             <h3 className="font-bold text-lg text-black">{item.name}</h3>
-                            <span className="font-bold text- black bg-white px-2 py-1 rounded-lg">€{item.price.toFixed(2)}</span>
+                            <span className="font-bold text-black bg-white px-2 py-1 rounded-lg">€{item.price.toFixed(2)}</span>
                           </div>
                     
                           {item.description && <p className="text-gray-600 text-sm mt-2">{item.description}</p>}
@@ -2193,13 +2002,13 @@ if (checkoutStep === 'customer-info') {
                             whileHover={{ scale: 1.02 }}
                             whileTap={{ scale: 0.98 }}
                             onClick={() => addToCart(item)}
-                            className="mt-4 w-full bg-[#918e89] text-[#e6be44] font-bold px-4 py-2 rounded-lg  transition flex items-center justify-center"
+                            className="mt-4 w-full bg-[#918e89] text-[#e6be44] font-bold px-4 py-2 rounded-lg transition flex items-center justify-center"
                           >
                             <FiPlus className="mr-1" />
                             Adicionar
                           </motion.button>
                         </div>
-                      </Card>
+                      </motion.div>
                     ))}
                   </div>
                 </div>
