@@ -555,7 +555,7 @@ const AdminDashboard = () => {
                         }}
                         className="flex-1 py-2 bg-red-500 text-white rounded-lg"
                       >
-                        Cancelar Pedido
+                        Cancelar 
                       </button>
                     )}
                   </div>
