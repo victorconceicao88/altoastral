@@ -1,4 +1,4 @@
-import React, { useState, useEffect, createContext, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { ref, push, update, database, loginAnonimo } from './firebase';
 import { getDatabase, set, onValue } from 'firebase/database';
 import WelcomeModal from "./components/welcomemodal";
@@ -7,7 +7,7 @@ import {
   FiShoppingCart, FiX, FiCheck, FiClock, FiTruck, FiHome, 
   FiCalendar, FiCoffee, FiMeh, FiPlus, FiMinus, FiInfo, 
   FiStar, FiHeart, FiShare2, FiUser, FiMapPin, FiPhone, 
-  FiEdit2, FiCreditCard, FaCalendarAlt, FaCoffee,FiMail
+  FiEdit2, FiCreditCard, FaCalendarAlt, FaCoffee, FiMail
 } from 'react-icons/fi';
 import { 
   FaHamburger, 
@@ -597,6 +597,16 @@ const InterfaceCliente = () => {
   const [whatsAppLink, setWhatsAppLink] = useState('');
   const [countdown, setCountdown] = useState(40);
   const [orderType, setOrderType] = useState('dine-in');
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(/iPhone|iPad|iPod|Android|webOS|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent));
+    };
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   const queryParams = new URLSearchParams(location.search);
   const tableNumberFromQR = queryParams.get('table') || '';
@@ -727,6 +737,11 @@ const InterfaceCliente = () => {
         setWhatsAppLink(`https://wa.me/${phoneNumber}?text=${message}`);
         setShowWhatsAppModal(true);
         setCountdown(40);
+        
+        // Solução para iOS que não abre links diretamente
+        if (isMobile) {
+          window.location.href = `whatsapp://send?phone=${phoneNumber}&text=${message}`;
+        }
       }
     } catch (error) {
       console.error("Erro ao enviar pedido:", error);
