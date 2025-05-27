@@ -1206,80 +1206,98 @@ const InterfaceCliente = () => {
     );
   }
 
-  if (checkoutStep === 'table-number') {
-    return (
-      <div className="min-h-screen bg-white p-4">
-        <div className="max-w-md mx-auto">
-          <div className="flex items-center mb-6">
-            <button
-              onClick={() => setCheckoutStep('order-type')}
-              className="mr-4 text-black"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-              </svg>
-            </button>
-            <h2 className="text-2xl font-bold text-black">Número da Mesa</h2>
-          </div>
-          
-          <motion.div 
-            initial={{ y: 20, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            className="bg-white rounded-2xl shadow-md p-6 mb-6"
+if (checkoutStep === 'table-number') {
+  return (
+    <div className="min-h-screen bg-white p-4">
+      <div className="max-w-md mx-auto">
+        <div className="flex items-center mb-6">
+          <button
+            onClick={() => setCheckoutStep('order-type')}
+            className="mr-4 text-black"
           >
-            <h3 className="text-lg font-semibold mb-4 flex items-center text-black">
-              <FiHome className="mr-2 text-black" />
-              Informe o número da sua mesa
-            </h3>
-            
-            <div className="space-y-4">
-              <div>
-                <label className="block text-black mb-1">Número da Mesa *</label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <FiHome className="text-gray-400" />
-                  </div>
-                  <input
-                    type="text"
-                    value={customerInfo.tableNumber}
-                    onChange={(e) => setCustomerInfo({...customerInfo, tableNumber: e.target.value})}
-                    className="w-full pl-10 p-3 border border-gray-300 rounded-lg"
-                    required
-                    placeholder="Ex: 5"
-                  />
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            </svg>
+          </button>
+          <h2 className="text-2xl font-bold text-black">Informações da Mesa</h2>
+        </div>
+        
+        <motion.div 
+          initial={{ y: 20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          className="bg-white rounded-2xl shadow-md p-6 mb-6"
+        >
+          <h3 className="text-lg font-semibold mb-4 flex items-center text-black">
+            <FiHome className="mr-2 text-black" />
+            Informe os dados da sua mesa
+          </h3>
+          
+          <div className="space-y-4">
+            <div>
+              <label className="block text-black mb-1">Número da Mesa *</label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <FiHome className="text-gray-400" />
                 </div>
-                <p className="text-xs text-gray-500 mt-1">Verifique o número no QR Code da sua mesa</p>
+                <input
+                  type="text"
+                  value={customerInfo.tableNumber}
+                  onChange={(e) => setCustomerInfo({...customerInfo, tableNumber: e.target.value})}
+                  className="w-full pl-10 p-3 border border-gray-300 rounded-lg"
+                  required
+                  placeholder="Ex: 5"
+                />
               </div>
+              <p className="text-xs text-gray-500 mt-1">Verifique o número no QR Code da sua mesa</p>
             </div>
-          </motion.div>
 
-          <div className="flex justify-between sticky bottom-0 bg-white p-4 -mx-4 border-t">
-            <motion.button
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              onClick={() => setCheckoutStep('order-type')}
-              className="bg-gray-200 text-black px-6 py-3 rounded-lg hover:bg-gray-300 transition"
-            >
-              Voltar
-            </motion.button>
-            <motion.button
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              onClick={() => setCheckoutStep('customer-info')}
-              disabled={!customerInfo.tableNumber}
-              className={`px-6 py-3 rounded-lg transition ${
-                !customerInfo.tableNumber
-                  ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                  : 'bg-[#b0aca6] text-[#e6be44] hover:bg-[#a09c96]'
-              }`}
-            >
-              Continuar
-            </motion.button>
+            <div>
+              <label className="block text-black mb-1">Seu Nome *</label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <FiUser className="text-gray-400" />
+                </div>
+                <input
+                  type="text"
+                  value={customerInfo.name}
+                  onChange={(e) => setCustomerInfo({...customerInfo, name: e.target.value})}
+                  className="w-full pl-10 p-3 border border-gray-300 rounded-lg"
+                  required
+                  placeholder="Seu nome para identificação"
+                />
+              </div>
+              <p className="text-xs text-gray-500 mt-1">Assim podemos identificar seu pedido</p>
+            </div>
           </div>
+        </motion.div>
+
+        <div className="flex justify-between sticky bottom-0 bg-white p-4 -mx-4 border-t">
+          <motion.button
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            onClick={() => setCheckoutStep('order-type')}
+            className="bg-gray-200 text-black px-6 py-3 rounded-lg hover:bg-gray-300 transition"
+          >
+            Voltar
+          </motion.button>
+          <motion.button
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            onClick={() => setCheckoutStep('customer-info')}
+            disabled={!customerInfo.tableNumber || !customerInfo.name}
+            className={`px-6 py-3 rounded-lg transition ${
+              !customerInfo.tableNumber || !customerInfo.name
+                ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                : 'bg-[#b0aca6] text-[#e6be44] hover:bg-[#a09c96]'
+            }`}
+          >
+            Continuar
+          </motion.button>
         </div>
       </div>
-    );
-  }
+    </div>
+  );
+}
 
   if (checkoutStep === 'customer-info') {
     return (
@@ -1667,26 +1685,26 @@ const InterfaceCliente = () => {
                   whileTap={{ scale: 0.98 }}
                   onClick={handleCheckout}
                   disabled={
-                    (orderType === 'delivery' && (
-                      !customerInfo.name || 
-                      !customerInfo.surname || 
-                      !customerInfo.phone || 
-                      !customerInfo.address ||
-                      !customerInfo.postalCode ||
-                      !customerInfo.city ||
-                      !customerInfo.reference ||
-                      (customerInfo.paymentMethod === 'cash' && !customerInfo.changeFor) ||
-                      !customerInfo.paymentMethod
-                    )) ||
-                    (orderType === 'takeaway' && (
-                      !customerInfo.name || 
-                      !customerInfo.surname || 
-                      !customerInfo.phone ||
-                      !customerInfo.paymentMethod
-                    )) ||
-                    (orderType === 'dine-in' && !customerInfo.tableNumber) ||
-                    cart.length === 0
-                  }
+                      (orderType === 'delivery' && (
+                        !customerInfo.name || 
+                        !customerInfo.surname || 
+                        !customerInfo.phone || 
+                        !customerInfo.address ||
+                        !customerInfo.postalCode ||
+                        !customerInfo.city ||
+                        !customerInfo.reference ||
+                        (customerInfo.paymentMethod === 'cash' && !customerInfo.changeFor) ||
+                        !customerInfo.paymentMethod
+                      )) ||
+                      (orderType === 'takeaway' && (
+                        !customerInfo.name || 
+                        !customerInfo.surname || 
+                        !customerInfo.phone ||
+                        !customerInfo.paymentMethod
+                      )) ||
+                      (orderType === 'dine-in' && (!customerInfo.tableNumber || !customerInfo.name)) ||
+                      cart.length === 0
+                    }
                   className={`px-8 py-3 rounded-xl font-medium transition-all relative overflow-hidden ${
                     ((orderType === 'delivery' && (
                       !customerInfo.name || 
