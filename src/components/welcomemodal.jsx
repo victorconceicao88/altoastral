@@ -1,19 +1,8 @@
 import { motion, AnimatePresence } from 'framer-motion'
 import { GiBrazil, GiCoffeeCup, GiPieSlice, GiMeal } from 'react-icons/gi'
-import confetti from 'canvas-confetti'
 import React from "react"
 
 const WelcomeModal = ({ onClose }) => {
-  // Efeito de confete ao abrir o modal
-  const triggerConfetti = () => {
-    confetti({
-      particleCount: 100,
-      spread: 70,
-      origin: { y: 0.6 },
-      colors: ['#e6be44', '#b0aca6', '#ffffff']
-    })
-  }
-
   // Animação personalizada
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -45,7 +34,6 @@ const WelcomeModal = ({ onClose }) => {
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
         className="fixed inset-0 bg-transparent backdrop-blur-sm z-[9999] flex items-center justify-center p-4"
-        onAnimationComplete={triggerConfetti}
       >
         <motion.div
           initial={{ scale: 0.9, y: 20, opacity: 0 }}
@@ -60,7 +48,7 @@ const WelcomeModal = ({ onClose }) => {
             }
           }}
           exit={{ scale: 0.95, opacity: 0 }}
-          className="bg-gradient-to-br from-[#1a1a1a] to-[#2d2d2d] rounded-2xl shadow-2xl max-w-md w-full overflow-hidden border border-[#e6be44]/20 relative"
+          className="bg-white rounded-2xl shadow-2xl max-w-md w-full overflow-hidden border border-[#e6be44]/20 relative"
         >
           {/* Efeito de brilho */}
           <div className="absolute inset-0 overflow-hidden">
@@ -84,7 +72,7 @@ const WelcomeModal = ({ onClose }) => {
           </div>
           
           {/* Corpo do modal */}
-          <div className="p-6 relative">
+          <div className="p-6 relative text-[#d5c8b6]">
             <motion.div
               className="space-y-6"
               variants={containerVariants}
@@ -100,8 +88,8 @@ const WelcomeModal = ({ onClose }) => {
                   <GiPieSlice className="text-black" size={24} />
                 </div>
                 <div>
-                  <h3 className="font-semibold text-white">Pastel de Feira</h3>
-                  <p className="text-[#b0aca6] text-sm">Servidos diariamente a partir das 15h</p>
+                  <h3 className="font-bold text-black">Pastel de Feira</h3>
+                  <p className="text-black font-semibold">Servidos diariamente a partir das 15h</p>
                 </div>
               </motion.div>
 
@@ -114,8 +102,8 @@ const WelcomeModal = ({ onClose }) => {
                   <GiCoffeeCup className="text-black" size={24} />
                 </div>
                 <div>
-                  <h3 className="font-semibold text-white">Especialidades</h3>
-                  <p className="text-[#b0aca6] text-sm">Pastéis disponíveis o dia inteiro aos sábados</p>
+                  <h3 className="font-bold text-black">Especialidades</h3>
+                  <p className="text-black font-semibold ">Pastéis disponíveis o dia inteiro aos sábados</p>
                 </div>
               </motion.div>
 
@@ -128,8 +116,8 @@ const WelcomeModal = ({ onClose }) => {
                   <GiMeal className="text-black" size={24} />
                 </div>
                 <div>
-                  <h3 className="font-semibold text-white">Feijoada Astral</h3>
-                  <p className="text-[#b0aca6] text-sm">Servida exclusivamente às sextas-feiras</p>
+                  <h3 className="font-bold text-black">Feijoada Astral</h3>
+                  <p className="text-black font-semibold ">Servida exclusivamente às sextas-feiras</p>
                 </div>
               </motion.div>
             </motion.div>
@@ -143,7 +131,7 @@ const WelcomeModal = ({ onClose }) => {
             >
               <button
                 onClick={onClose}
-                className="w-full bg-gradient-to-r from-[#e6be44] to-[#d8b23d] text-black hover:from-[#d8b23d] hover:to-[#c9a437] font-bold py-3 rounded-lg transition-all transform hover:scale-[1.02] active:scale-[0.98] shadow-lg hover:shadow-[#e6be44]/30"
+                className="w-full bg-[#b0aca6] text-[#e6be44] font-bold py-3 rounded-lg transition-all transform hover:scale-[1.02] active:scale-[0.98] shadow-lg hover:shadow-[#e6be44]/30"
               >
                 Explorar Cardápio
               </button>
@@ -156,4 +144,3 @@ const WelcomeModal = ({ onClose }) => {
 }
 
 export default WelcomeModal
-

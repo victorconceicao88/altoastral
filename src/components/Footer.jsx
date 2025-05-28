@@ -1,16 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import {
-  FiMapPin,
-  FiPhone,
-  FiClock,
-  FiLock,
-  FiMail,
-  FiCalendar,
-  FiInstagram,
-  FiFacebook,
-  FiArrowRight,
-  FiCheck
+  FiMapPin, FiPhone, FiClock, FiLock, FiMail, FiCalendar, FiInstagram, FiFacebook, FiArrowRight, FiCheck
 } from 'react-icons/fi';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -27,38 +18,41 @@ const UltraFooter = () => {
   const events = [
     {
       id: 1,
-      title: "Eventos Corporativos",
-      description: "Soluções completas para seu evento empresarial com menu personalizado e ambiente exclusivo",
+      title: "Ambiente Acolhedor para Eventos",
+      description:
+        "Oferecemos um serviço completo para tornar seu evento ainda mais especial. Nosso buffet conta com um espaço acolhedor, bem estruturado e preparado para receber festas, eventos corporativos e confraternizações com conforto e elegância.",
       image: EventImage1,
       features: [
-        "Coffee breaks premium",
-        "Estrutura completa",
-        "Equipe especializada",
-        "Personalização total"
+        "Espaço versátil para eventos",
+        "Ambiente climatizado e organizado",
+        "Ideal para confraternizações e celebrações",
+        "Equipe pronta para atender"
       ]
     },
     {
       id: 2,
-      title: "Celebrações Especiais",
-      description: "Transforme seus momentos importantes em memórias inesquecíveis com nossa gastronomia",
+      title: "Gastronomia Variada e de Qualidade",
+      description:
+        "Trabalhamos com uma ampla variedade de salgadinhos, docinhos e petiscos preparados com ingredientes selecionados. Nossas opções são pensadas para agradar todos os paladares, oferecendo sabor, qualidade e apresentação impecável.",
       image: EventImage2,
       features: [
-        "Buffet completo",
-        "Decoração temática",
-        "Sobremesas exclusivas",
-        "Coordenação de evento"
+        "Salgados e doces artesanais",
+        "Petiscos variados e saborosos",
+        "Apresentação impecável",
+        "Qualidade garantida"
       ]
     },
     {
       id: 3,
-      title: "Experiências Privadas",
-      description: "Jantares íntimos e experiências gastronômicas personalizadas em ambiente exclusivo",
+      title: "Atendimento e Experiência Personalizada",
+      description:
+        "Nosso atendimento é totalmente personalizado, com foco em praticidade e atenção aos detalhes. Buscamos proporcionar uma experiência inesquecível aos nossos clientes, cuidando de cada momento com dedicação.",
       image: EventImage3,
       features: [
-        "Menu degustação",
-        "Chef exclusivo",
-        "Harmonização premium",
-        "Atendimento VIP"
+        "Equipe atenciosa e dedicada",
+        "Organização do início ao fim",
+        "Foco na satisfação do cliente",
+        "Experiência marcante para todos"
       ]
     }
   ];
@@ -67,14 +61,13 @@ const UltraFooter = () => {
     if (!isHovering) {
       const interval = setInterval(() => {
         setActiveEvent((prev) => (prev + 1) % events.length);
-      }, 5000);
+      }, 8000);
       return () => clearInterval(interval);
     }
   }, [isHovering, events.length]);
 
   return (
     <footer className="bg-[#918e89] text-white relative overflow-hidden">
-      {/* Container da onda responsivo */}
       <div className="w-full h-16 md:h-24 lg:h-32 -mt-px overflow-hidden">
         <img 
           src={WavePattern} 
@@ -84,21 +77,16 @@ const UltraFooter = () => {
         />
       </div>
 
-      {/* Espaçamento seguro para mobile */}
       <div className="pt-8 md:pt-12 lg:pt-16"></div>
 
-      {/* Conteúdo principal */}
       <div className="container mx-auto px-4 sm:px-6 pb-8 md:pb-12">
-        {/* Destaque premium para eventos - Totalmente reformulado */}
         <div 
           className="relative rounded-xl md:rounded-2xl mb-10 md:mb-16 mx-2 sm:mx-0 shadow-2xl overflow-hidden border border-[#b8b4ae]/20"
           onMouseEnter={() => setIsHovering(true)}
           onMouseLeave={() => setIsHovering(false)}
         >
-          {/* Background gradient com overlay */}
           <div className="absolute inset-0 bg-gradient-to-r from-[#7a6d5d]/90 to-[#5a5148]/90 z-0"></div>
           
-          {/* Imagens dos eventos em carrossel */}
           <div className="absolute inset-0 overflow-hidden z-0">
             <AnimatePresence mode="wait">
               <motion.div
@@ -106,7 +94,7 @@ const UltraFooter = () => {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
-                transition={{ duration: 1 }}
+                transition={{ duration: 2 }}
                 className="absolute inset-0"
               >
                 <img 
@@ -119,15 +107,13 @@ const UltraFooter = () => {
             </AnimatePresence>
           </div>
 
-          {/* Conteúdo sobreposto */}
           <div className="relative z-10 p-6 md:p-8 lg:p-12">
             <div className="flex flex-col lg:flex-row items-start justify-between gap-8">
-              {/* Texto e informações */}
               <div className="flex-1 space-y-6">
                 <motion.div
                   initial={{ y: 20, opacity: 0 }}
                   animate={{ y: 0, opacity: 1 }}
-                  transition={{ delay: 0.2 }}
+                  transition={{ delay: 0.2, duration: 1 }}
                 >
                   <div className="inline-flex items-center text-[#d5c8b6] px-4 py-2 rounded-full border border-[#d5c8b6]/50 mb-4">
                     <FiCalendar className="text-xl text-[#d5c8b6] mr-2" />
@@ -141,7 +127,7 @@ const UltraFooter = () => {
                     initial={{ y: 20, opacity: 0 }}
                     animate={{ y: 0, opacity: 1 }}
                     exit={{ y: -20, opacity: 0 }}
-                    transition={{ duration: 0.5 }}
+                    transition={{ duration: 1.2 }}
                   >
                     <h3 className="text-2xl md:text-4xl lg:text-5xl font-bold font-sans-serif text-[#fffaf1] leading-tight">
                       {events[activeEvent].title}
@@ -155,7 +141,7 @@ const UltraFooter = () => {
                     initial={{ y: 20, opacity: 0 }}
                     animate={{ y: 0, opacity: 1 }}
                     exit={{ y: -20, opacity: 0 }}
-                    transition={{ duration: 0.5, delay: 0.1 }}
+                    transition={{ duration: 1.4, delay: 0.2 }}
                   >
                     <p className="text-lg md:text-xl text-[#fffaf1] mt-2 md:mt-4 max-w-2xl">
                       {events[activeEvent].description}
@@ -170,7 +156,7 @@ const UltraFooter = () => {
                         key={`feature-${events[activeEvent].id}-${index}`}
                         initial={{ x: -20, opacity: 0 }}
                         animate={{ x: 0, opacity: 1 }}
-                        transition={{ delay: 0.2 + (index * 0.1) }}
+                        transition={{ duration: 0.8, delay: 0.4 + index * 0.2 }}
                         className="flex items-center"
                       >
                         <div className="bg-[#d5c8b6]/40 p-1 rounded-full mr-3">
@@ -183,9 +169,7 @@ const UltraFooter = () => {
                 </div>
               </div>
 
-              {/* Controles e CTA */}
               <div className="w-full lg:w-auto flex flex-col items-start lg:items-end space-y-6">
-                {/* Indicadores do carrossel */}
                 <div className="flex space-x-2">
                   {events.map((_, index) => (
                     <button
@@ -197,23 +181,21 @@ const UltraFooter = () => {
                   ))}
                 </div>
 
-                {/* Botão CTA */}
                 <motion.div
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  transition={{ type: "spring", stiffness: 400, damping: 10 }}
-                >
-                  <a
-                    href="https://wa.me/351282038830"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="bg-[#d5c8b6] text-  px-8 md:px-10 py-4 md:py-5 rounded-xl font-bold flex items-center transition-all duration-300 shadow-lg group"
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    transition={{ type: "spring", stiffness: 400, damping: 10 }}
                   >
-                    <span className=" font-sans-serif text-black md:text-lg font- mr-3">Saber Mais</span>
-                    <FiArrowRight className="text-black transition-transform group-hover:translate-x-1" />
-                  </a>
-                </motion.div>
-
+                    <a
+                      href="https://wa.me/351282038830?text=Ol%C3%A1%2C%20gostaria%20de%20obter%20mais%20informa%C3%A7%C3%B5es%20sobre%20os%20eventos."
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="bg-[#d5c8b6] text-black px-8 md:px-10 py-4 md:py-5 rounded-xl font-bold flex items-center transition-all duration-300 shadow-lg group"
+                    >
+                      <span className="font-sans-serif md:text-lg font- mr-3">Saber Mais</span>
+                      <FiArrowRight className="text-black transition-transform group-hover:translate-x-1" />
+                    </a>
+                  </motion.div>
                 <p className=" font-sans-serif text-[#fffaf1]/80 text-sm md:text-base text-right hidden lg:block">
                   Entre em contato para orçamentos personalizados
                 </p>
