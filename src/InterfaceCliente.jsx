@@ -9,7 +9,6 @@ import logo from './assets/logo-alto-astral.png';
 import cafe from './assets/cafe.jpg';
 import mbwayLogo from './assets/images.png';
 import { foodImages, menu } from './data.js';
-
 import { FiShoppingCart, FiX, FiCheck, FiClock, FiTruck, FiHome, FiCalendar, FiCoffee, FiMeh, FiPlus, FiMinus, FiInfo, FiStar, FiHeart, FiShare2, FiUser, FiMapPin, FiPhone, FiEdit2, FiCreditCard, FiMail } from 'react-icons/fi';
 import { FaCalendarAlt, FaCoffee, FaHamburger, FaDrumstickBite, FaCocktail, FaIceCream } from 'react-icons/fa';
 import { GiMeal, GiSandwich, GiChickenOven, GiPieSlice, GiCoffeeCup, GiWineBottle, GiHotMeal, GiCakeSlice } from 'react-icons/gi';
@@ -302,6 +301,8 @@ const InterfaceCliente = () => {
   const [orderType, setOrderType] = useState('takeaway');
   const [isMobile, setIsMobile] = useState(false);
   const [selectedOrderForWhatsApp, setSelectedOrderForWhatsApp] = useState(null);
+  const currentHour = new Date().getHours();
+  const isMenuClosed = currentHour >= 15; // Fecha após 15h
 
   useEffect(() => {
     const checkMobile = () => {
@@ -398,7 +399,7 @@ const InterfaceCliente = () => {
         throw new Error('O carrinho está vazio');
       }
       
-      if (orderType === 'delivery' && (!customerInfo.name || !customerInfo.phone || !customerInfo.address || !customerInfo.postalCode || !customerInfo.city || !customerInfo.reference)) {
+      if (orderType === 'delivery' && (!customerInfo.name || !customerInfo.phone || !customerInfo.address || !customerInfo.postalCode || !customerInfo.city)) {
         throw new Error('Informações do cliente incompletas para entrega');
       }
       
@@ -1170,28 +1171,22 @@ const InterfaceCliente = () => {
                 </motion.button>
                 <button
                   onClick={handleCheckout}
-                  className={`px-4 md:px-6 py-2 md:py-3 rounded-xl font-medium transition-all relative overflow-hidden text-sm md:text-base ${
-                    ((orderType === 'delivery' && (
-                      !customerInfo.name || 
-                      !customerInfo.surname || 
-                      !customerInfo.phone || 
-                      !customerInfo.address ||
-                      !customerInfo.postalCode ||
-                      !customerInfo.city ||
-                      !customerInfo.reference ||
-                      (customerInfo.paymentMethod === 'cash' && !customerInfo.changeFor) ||
-                      !customerInfo.paymentMethod
-                    )) ||
-                    (orderType === 'takeaway' && (
-                      !customerInfo.name || 
-                      !customerInfo.surname || 
-                      !customerInfo.phone ||
-                      !customerInfo.paymentMethod
-                    )) ||
-                    cart.length === 0)
-                      ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                      : 'bg-[#b0aca6] text-white hover:bg-[#a09c96]'
-                  }`}
+                  className={`px-4 py-3 rounded-lg font-bold transition-all ${
+                  (orderType === 'delivery' && (
+                    !customerInfo.name || 
+                    !customerInfo.phone || 
+                    !customerInfo.address || 
+                    !customerInfo.postalCode || 
+                    !customerInfo.city
+                  )) ||
+                  (orderType === 'takeaway' && (
+                    !customerInfo.name || 
+                    !customerInfo.phone
+                  )) ||
+                  cart.length === 0
+                    ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                    : 'bg-[#b0aca6] hover:bg-[#918e89] text-[#e6be44] cursor-pointer'
+                }`}
                 >
                   Finalizar Pedido
                 </button>
@@ -1284,31 +1279,31 @@ const InterfaceCliente = () => {
       {showWelcomeModal && (
         <WelcomeModal onClose={() => setShowWelcomeModal(false)} />
       )}
-    
-      <div className="fixed top-4 right-4 z-50 space-y-2">
-        <AnimatePresence>
-          {notifications.map((notification) => (
-            <motion.div
-              key={notification.id}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, x: 20 }}
-              className={`px-3 py-2 md:px-4 md:py-3 rounded-lg shadow-lg flex justify-between items-center text-sm md:text-base ${
-                notification.type === 'error' ? 'bg-red-500' :
-                notification.type === 'success' ? 'bg-green-500' : 'bg-blue-500'
-              } text-white`}
-            >
-              <span>{notification.message}</span>
-              <button 
-                onClick={() => setNotifications(notifications.filter(n => n.id !== notification.id))}
-                className="ml-3"
+            
+        <div className="notification-container">
+          <AnimatePresence>
+            {notifications.map((notification) => (
+              <motion.div
+                key={notification.id}
+                initial={{ opacity: 0, y: -20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, x: 20 }}
+                className={`mb-2 px-4 py-3 rounded-lg shadow-md flex justify-between items-center text-sm ${
+                  notification.type === 'error' ? 'bg-red-500' :
+                  notification.type === 'success' ? 'bg-green-500' : 'bg-blue-500'
+                } text-white`}
               >
-                <FiX size={16} className="md:size-5" />
-              </button>
-            </motion.div>
-          ))}
-        </AnimatePresence>
-      </div>
+                <span className="flex-1">{notification.message}</span>
+                <button 
+                  onClick={() => setNotifications(notifications.filter(n => n.id !== notification.id))}
+                  className="ml-3 focus:outline-none"
+                >
+                  <FiX size={16} />
+                </button>
+              </motion.div>
+            ))}
+          </AnimatePresence>
+        </div>
 
       <header className="bg-white text-black shadow-lg sticky top-0 z-20">
         <div className="container mx-auto px-4 flex justify-between items-center py-2">
@@ -1370,17 +1365,20 @@ const InterfaceCliente = () => {
         <div className="container mx-auto px-4 overflow-x-auto">
           <div className="flex space-x-1 p-2 scrollbar-hide">
             {['semana', 'lanches', 'porcoes', 'pasteis', 'cafe', 'bebidas', 'salgados', 'sobremesas'].map((tab) => (
-              <motion.button
-                key={tab}
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                onClick={() => setActiveTab(tab)}
-                className={`px-3 py-2 md:px-4 md:py-2 rounded-lg whitespace-nowrap flex items-center transition border font-medium md:font-bold text-xs md:text-sm ${
-                  activeTab === tab
-                    ? 'border-[#e6be44] bg-[#b0aca6] text-black'
-                    : 'border-gray-200 bg-[#918e89] text-[#FFFAF1]'
-                }`}
-              >
+             <motion.button
+                    key={tab}
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    onClick={() => setActiveTab(tab)}
+                    disabled={tab === 'semana' && isMenuClosed} // Desativa se for "semana" e após 15h
+                    className={`px-3 py-2 rounded-lg whitespace-nowrap flex items-center transition border font-medium md:font-bold text-xs md:text-sm ${
+                      activeTab === tab
+                        ? 'border-[#e6be44] bg-[#b0aca6] text-black'
+                        : 'border-gray-200 bg-[#918e89] text-[#FFFAF1]'
+                    } ${
+                      tab === 'semana' && isMenuClosed ? 'opacity-50 cursor-not-allowed' : ''
+                    }`}
+                  >
                 {tab === 'semana' && <FiCalendar className="mr-1 md:mr-2" />}
                 {tab === 'lanches' && <FaHamburger className="mr-1 md:mr-2" />}
                 {tab === 'porcoes' && <FaDrumstickBite className="mr-1 md:mr-2" />}
@@ -1404,55 +1402,63 @@ const InterfaceCliente = () => {
         </div>
       </div>
 
-      <main className="container mx-auto px-4 pb-16 md:pb-20">
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={activeTab}
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            transition={{ duration: 0.3 }}
-          >
-            {['semana', 'lanches', 'porcoes', 'pasteis', 'cafe', 'bebidas', 'salgados', 'sobremesas'].map((category) => (
-              activeTab === category && (
-                <div key={category}>
-                  <div className="flex items-center justify-between mb-4 md:mb-6">
-                    <h2 className="text-xl md:text-2xl font-bold text-black flex items-center">
-                      {category === 'semana' && (
-                        <GiMeal className="mr-2 text-black text-xl md:text-2xl" />
-                      )}
-                      {category === 'lanches' && (
-                        <GiSandwich className="mr-2 text-black text-xl md:text-2xl" />
-                      )}
-                      {category === 'porcoes' && (
-                        <GiChickenOven className="mr-2 text-black text-xl md:text-2xl" />
-                      )}
-                      {category === 'pasteis' && (
-                        <GiPieSlice className="mr-2 text-black text-xl md:text-2xl" />
-                      )}
-                      {category === 'cafe' && (
-                        <GiCoffeeCup className="mr-2 text-black text-xl md:text-2xl" />
-                      )}
-                      {category === 'bebidas' && (
-                        <GiWineBottle className="mr-2 text-black text-xl md:text-2xl" />
-                      )}
-                      {category === 'salgados' && (
-                        <GiHotMeal className="mr-2 text-black text-xl md:text-2xl" />
-                      )}
-                      {category === 'sobremesas' && (
-                        <GiCakeSlice className="mr-2 text-black text-xl md:text-2xl" />
-                      )}
-                      {category === 'semana' && 'Cardápio da Semana'}
-                      {category === 'lanches' && 'Lanches'}
-                      {category === 'porcoes' && 'Porções'}
-                      {category === 'pasteis' && 'Pasteis'}
-                      {category === 'cafe' && 'Bom Dia'}
-                      {category === 'bebidas' && 'Bebidas'}
-                      {category === 'salgados' && 'Salgados'}
-                      {category === 'sobremesas' && 'Sobremesas'}
-                    </h2>
+   <main className="container mx-auto px-4 pb-16 md:pb-20">
+  <AnimatePresence mode="wait">
+    <motion.div
+      key={activeTab}
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -10 }}
+      transition={{ duration: 0.3 }}
+    >
+      {['semana', 'lanches', 'porcoes', 'pasteis', 'cafe', 'bebidas', 'salgados', 'sobremesas'].map((category) => (
+        activeTab === category && (
+          <div key={category}>
+            <div className="flex items-center justify-between mb-4 md:mb-6">
+              <h2 className="text-xl md:text-2xl font-bold text-black flex items-center">
+                {category === 'semana' && <GiMeal className="mr-2 text-black text-xl md:text-2xl" />}
+                {category === 'lanches' && <GiSandwich className="mr-2 text-black text-xl md:text-2xl" />}
+                {category === 'porcoes' && <GiChickenOven className="mr-2 text-black text-xl md:text-2xl" />}
+                {category === 'pasteis' && <GiPieSlice className="mr-2 text-black text-xl md:text-2xl" />}
+                {category === 'cafe' && <GiCoffeeCup className="mr-2 text-black text-xl md:text-2xl" />}
+                {category === 'bebidas' && <GiWineBottle className="mr-2 text-black text-xl md:text-2xl" />}
+                {category === 'salgados' && <GiHotMeal className="mr-2 text-black text-xl md:text-2xl" />}
+                {category === 'sobremesas' && <GiCakeSlice className="mr-2 text-black text-xl md:text-2xl" />}
+
+                {category === 'semana' && 'Cardápio da Semana'}
+                {category === 'lanches' && 'Lanches'}
+                {category === 'porcoes' && 'Porções'}
+                {category === 'pasteis' && 'Pasteis'}
+                {category === 'cafe' && 'Bom Dia'}
+                {category === 'bebidas' && 'Bebidas'}
+                {category === 'salgados' && 'Salgados'}
+                {category === 'sobremesas' && 'Sobremesas'}
+              </h2>
+            </div>
+
+            {category === 'semana' ? (
+              (() => {
+                const now = new Date();
+                const currentHour = now.getHours();
+                const isClosed = currentHour >= 15 || currentHour < 10;
+                
+                return isClosed ? (
+                  <div className="text-center p-8 bg-gray-100 rounded-lg">
+                    <FiClock className="mx-auto text-3xl text-gray-500 mb-3" />
+                    <p className="font-medium text-gray-700">
+                      {currentHour >= 15 
+                        ? "O cardápio da semana estará disponível amanhã às 10h" 
+                        : "O cardápio abre às 10h da manhã"
+                      }
+                    </p>
+                    <p className="text-sm text-gray-500 mt-1">
+                      {currentHour >= 15 
+                        ? "Aproveite nosso cardápio regular!" 
+                        : "Volte mais tarde!"
+                      }
+                    </p>
                   </div>
-                  
+                ) : (
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
                     {filteredMenu(category).map(item => (
                       <motion.div 
@@ -1467,14 +1473,11 @@ const InterfaceCliente = () => {
                             onError={(e) => { e.target.onerror = null; e.target.src = cafe }}
                             className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                           />
-
                           <button 
                             onClick={() => toggleFavorite(item.id)}
                             className="absolute top-2 right-2 p-1 md:p-2 bg-white/80 rounded-full backdrop-blur-sm hover:bg-white transition"
                           >
-                            <FiHeart 
-                              className={`w-4 h-4 md:w-5 md:h-5 ${favorites.includes(item.id) ? 'text-red-500 fill-red-500' : 'text-gray-400'}`} 
-                            />
+                            <FiHeart className={`w-4 h-4 md:w-5 md:h-5 ${favorites.includes(item.id) ? 'text-red-500 fill-red-500' : 'text-gray-400'}`} />
                           </button>
                           {item.veg && (
                             <span className="absolute top-2 left-2 text-xs font-medium px-2 py-0.5 rounded-full bg-green-100 text-green-800 flex items-center">
@@ -1490,7 +1493,6 @@ const InterfaceCliente = () => {
                             <h3 className="font-bold text-base md:text-lg text-black">{item.name}</h3>
                             <span className="font-bold text-base md:text-lg text-black bg-white px-1 md:px-2 py-0.5 md:py-1 rounded-lg">€{item.price.toFixed(2)}</span>
                           </div>
-                    
                           {item.description && <p className="text-gray-600 text-xs md:text-sm mt-1 md:mt-2">{item.description}</p>}
                           <motion.button
                             whileHover={{ scale: 1.02 }}
@@ -1505,12 +1507,64 @@ const InterfaceCliente = () => {
                       </motion.div>
                     ))}
                   </div>
-                </div>
-              )
-            ))}
-          </motion.div>
-        </AnimatePresence>
-      </main>
+                );
+              })()
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+                {filteredMenu(category).map(item => (
+                  <motion.div 
+                    key={item.id}
+                    whileHover={{ y: -5 }}
+                    className="bg-white rounded-xl md:rounded-2xl shadow-sm overflow-hidden border-2 border-[#e6be44]"
+                  >
+                    <div className="relative h-40 md:h-48 overflow-hidden group">
+                      <img 
+                        src={item.image || cafe} 
+                        alt={item.name} 
+                        onError={(e) => { e.target.onerror = null; e.target.src = cafe }}
+                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                      />
+                      <button 
+                        onClick={() => toggleFavorite(item.id)}
+                        className="absolute top-2 right-2 p-1 md:p-2 bg-white/80 rounded-full backdrop-blur-sm hover:bg-white transition"
+                      >
+                        <FiHeart className={`w-4 h-4 md:w-5 md:h-5 ${favorites.includes(item.id) ? 'text-red-500 fill-red-500' : 'text-gray-400'}`} />
+                      </button>
+                      {item.veg && (
+                        <span className="absolute top-2 left-2 text-xs font-medium px-2 py-0.5 rounded-full bg-green-100 text-green-800 flex items-center">
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                            <path fillRule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+                          </svg>
+                          Vegetariano
+                        </span>
+                      )}
+                    </div>
+                    <div className="p-3 md:p-4">
+                      <div className="flex justify-between items-start">
+                        <h3 className="font-bold text-base md:text-lg text-black">{item.name}</h3>
+                        <span className="font-bold text-base md:text-lg text-black bg-white px-1 md:px-2 py-0.5 md:py-1 rounded-lg">€{item.price.toFixed(2)}</span>
+                      </div>
+                      {item.description && <p className="text-gray-600 text-xs md:text-sm mt-1 md:mt-2">{item.description}</p>}
+                      <motion.button
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                        onClick={() => addToCart(item)}
+                        className="mt-3 md:mt-4 w-full bg-[#918e89] text-[#e6be44] font-bold px-3 py-1 md:px-4 md:py-2 rounded-lg transition flex items-center justify-center text-sm md:text-base"
+                      >
+                        <FiPlus className="mr-1" />
+                        Adicionar
+                      </motion.button>
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+            )}
+          </div>
+        )
+      ))}
+    </motion.div>
+  </AnimatePresence>
+</main>
 
       {cart.length > 0 && (
         <motion.div 

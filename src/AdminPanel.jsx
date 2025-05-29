@@ -14,8 +14,6 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { menu, menuCategories } from './menuData';
 import { sendWhatsAppMessage } from './whatsappUtils';
 
-
-
 const PRINTER_CONFIG = {
   deviceName: "BlueTooth Printer",
   serviceUUID: "0000ff00-0000-1000-8000-00805f9b34fb",
@@ -103,6 +101,7 @@ const normalizeCustomerData = (customer) => {
     orderType: customer.orderType || 'takeaway'
   };
 };
+
 const StatusBadge = ({ status }) => {
   const statusMap = {
     'pending': { color: 'warning', text: 'Pendente', icon: FiClock },
@@ -145,11 +144,11 @@ const OrderItem = ({ item, showStatus = false, showNotes = false }) => {
   );
 };
 
-
 const OrderView = ({ 
   order, 
   onPrint,
-  onCancel
+  onCancel,
+  onMarkAsReady
 }) => {
   const hasNewItems = order.items?.some(item => !item.printedTimestamp);
 
@@ -207,21 +206,18 @@ const OrderView = ({
                   <span>{customer.paymentMethod || 'Não informado'}</span>
                 </div>
               </div>
-                  {order.orderType === 'delivery' && (
-                  <div>
-                    <div className="flex items-start mb-1">
-                      <FiMapPin className="text-gray-600 mr-2 mt-1 flex-shrink-0" />
-                      <div>
-                        <div><strong>Endereço:</strong> {customer.address.street}, {customer.address.number}</div>
-                        {customer.address.complement && <div><strong>Complemento:</strong> {customer.address.complement}</div>}
-                        <div><strong>Bairro:</strong> {customer.address.neighborhood}</div>
-                        <div><strong>Cidade:</strong> {customer.address.city}</div>
-                        <div><strong>CEP:</strong> {customer.address.postalCode}</div>
-                      </div>
+              {order.orderType === 'delivery' && (
+                <div>
+                  <div className="flex items-start mb-1">
+                    <FiMapPin className="text-gray-600 mr-2 mt-1 flex-shrink-0" />
+                    <div>
+                      <div><strong>Endereço Completo:</strong> {customer.address.street}, {customer.address.number}</div>
+                      {customer.address.complement && <div><strong>Complemento:</strong> {customer.address.complement}</div>}
+                      <div><strong>Codigo Postal:</strong> {customer.address.postalCode}</div>
                     </div>
                   </div>
-                )}
-
+                </div>
+              )}
             </div>
             
             {customer.notes && (
@@ -270,6 +266,14 @@ const OrderView = ({
           <div className="flex justify-between items-center">
             <div className="font-bold">Total: €{(order.total || 0).toFixed(2)}</div>
             <div className="flex space-x-2">
+              {order.status === 'preparing' && (
+                <button
+                  onClick={() => onMarkAsReady(order)}
+                  className="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded text-sm flex items-center"
+                >
+                  <FiCheckCircle className="mr-1" /> Marcar como Pronto
+                </button>
+              )}
               <button
                 onClick={() => onPrint(order)}
                 className="px-3 py-1 bg-green-600 hover:bg-green-700 text-white rounded text-sm flex items-center"
@@ -290,12 +294,68 @@ const OrderView = ({
   );
 };
 
+const CollapsibleSection = ({ title, children, defaultOpen = true }) => {
+  const [isOpen, setIsOpen] = useState(defaultOpen);
+
+  return (
+    <div className="bg-white rounded-lg shadow mb-6 overflow-hidden">
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className="w-full flex justify-between items-center p-4 bg-gray-100 hover:bg-gray-200 transition-colors"
+      >
+        <h3 className="font-bold text-lg">{title}</h3>
+        {isOpen ? <FiChevronUp /> : <FiChevronDown />}
+      </button>
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            transition={{ duration: 0.2 }}
+          >
+            <div className="p-4">
+              {children}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+};
+
+const StatusTabs = ({ activeTab, onTabChange }) => {
+  const tabs = [
+    { id: 'pending', label: 'Pendentes', icon: FiClock },
+    { id: 'preparing', label: 'Em Preparo', icon: FiClock },
+    { id: 'ready', label: 'Prontos', icon: FiCheck }
+  ];
+
+  return (
+    <div className="flex border-b border-gray-200">
+      {tabs.map(tab => (
+        <button
+          key={tab.id}
+          onClick={() => onTabChange(tab.id)}
+          className={`px-4 py-2 flex items-center text-sm font-medium ${activeTab === tab.id ? 'border-b-2 border-green-500 text-green-600' : 'text-gray-500 hover:text-gray-700'}`}
+        >
+          <tab.icon className="mr-2" />
+          {tab.label}
+        </button>
+      ))}
+    </div>
+  );
+};
+
 const AdminPanel = () => {
   const [orders, setOrders] = useState([]);
   const [activeTab, setActiveTab] = useState('dashboard');
   const [filter, setFilter] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [printerConnected, setPrinterConnected] = useState(false);
+  const [dashboardView, setDashboardView] = useState('stats');
+  const [dashboardStatusTab, setDashboardStatusTab] = useState('pending');
+  const [ordersCollapsed, setOrdersCollapsed] = useState(false);
   const printerDeviceRef = useRef(null);
   const printerCharacteristicRef = useRef(null);
   const [isPrinting, setIsPrinting] = useState(false);
@@ -326,91 +386,90 @@ const AdminPanel = () => {
     loadOrders();
   }, [loadOrders]);
 
-const notifyOrderReceived = async (order) => {
-  const customer = normalizeCustomerData(order.customer);
-  if (!customer.phone) {
-    toast.warning('Número de telefone não informado, não foi possível enviar mensagem');
-    return;
-  }
+  const notifyOrderReceived = async (order) => {
+    const customer = normalizeCustomerData(order.customer);
+    if (!customer.phone) {
+      toast.warning('Número de telefone não informado, não foi possível enviar mensagem');
+      return;
+    }
 
-  const message = `Olá, ${customer.name}! Recebemos o seu pedido e já estamos preparando. Obrigado por escolher o Alto Astral!`;
-  
-  try {
-    const whatsappUrl = `https://wa.me/${customer.phone.replace(/\D/g, '')}?text=${encodeURIComponent(message)}`;
-    window.open(whatsappUrl, '_blank');
-    toast.success('Mensagem de confirmação enviada ao cliente');
-  } catch (error) {
-    toast.error('Erro ao enviar mensagem de confirmação');
-  }
-};
-
-const notifyOrderReady = async (order) => {
-  const customer = normalizeCustomerData(order.customer);
-  if (!customer.phone) {
-    toast.warning('Número de telefone não informado, não foi possível enviar mensagem');
-    return;
-  }
-
-  const message = order.orderType === 'delivery' 
-    ? `Olá, ${customer.name}! O seu pedido está pronto e já estamos a caminho para entregar. Obrigado!`
-    : `Olá, ${customer.name}! O seu pedido já está pronto para recolha. Obrigado!`;
-  
-  try {
-    const whatsappUrl = `https://wa.me/${customer.phone.replace(/\D/g, '')}?text=${encodeURIComponent(message)}`;
-    window.open(whatsappUrl, '_blank');
-    toast.success('Mensagem de pronto enviada ao cliente');
-  } catch (error) {
-    toast.error('Erro ao enviar mensagem de pronto');
-  }
-};
-
-// Modifique a função printOrder para incluir a notificação
-const printOrder = async (order) => {
-  if (!order || !order.items || order.items.length === 0) {
-    toast.error('Pedido inválido ou sem itens');
-    return;
-  }
-  
-  try {
-    setIsPrinting(true);
-    toast.info('Preparando impressora...');
+    const message = `Olá, ${customer.name}! Recebemos o seu pedido e já estamos preparando. Obrigado por escolher o Alto Astral!`;
     
-    const receipt = formatOrderForPrint(order);
-    await sendToPrinter(receipt);
+    try {
+      const whatsappUrl = `https://wa.me/${customer.phone.replace(/\D/g, '')}?text=${encodeURIComponent(message)}`;
+      window.open(whatsappUrl, '_blank');
+      toast.success('Mensagem de confirmação enviada ao cliente');
+    } catch (error) {
+      toast.error('Erro ao enviar mensagem de confirmação');
+    }
+  };
+
+  const notifyOrderReady = async (order) => {
+    const customer = normalizeCustomerData(order.customer);
+    if (!customer.phone) {
+      toast.warning('Número de telefone não informado, não foi possível enviar mensagem');
+      return;
+    }
+
+    const message = order.orderType === 'delivery' 
+      ? `Olá, ${customer.name}! O seu pedido está pronto e já estamos a caminho para entregar. Obrigado!`
+      : `Olá, ${customer.name}! O seu pedido já está pronto para recolha. Obrigado!`;
     
-    // Marcar itens como impressos
-    const updates = {};
-    const now = new Date().toISOString();
+    try {
+      const whatsappUrl = `https://wa.me/${customer.phone.replace(/\D/g, '')}?text=${encodeURIComponent(message)}`;
+      window.open(whatsappUrl, '_blank');
+      toast.success('Mensagem de pronto enviada ao cliente');
+    } catch (error) {
+      toast.error('Erro ao enviar mensagem de pronto');
+    }
+  };
+
+  const printOrder = async (order) => {
+    if (!order || !order.items || order.items.length === 0) {
+      toast.error('Pedido inválido ou sem itens');
+      return;
+    }
     
-    order.items.forEach(item => {
-      if (!item.printedTimestamp) {
-        updates[`orders/${order.id}/items/${item.id}/printedTimestamp`] = now;
+    try {
+      setIsPrinting(true);
+      toast.info('Preparando impressora...');
+      
+      const receipt = formatOrderForPrint(order);
+      await sendToPrinter(receipt);
+      
+      // Marcar itens como impressos
+      const updates = {};
+      const now = new Date().toISOString();
+      
+      order.items.forEach(item => {
+        if (!item.printedTimestamp) {
+          updates[`orders/${order.id}/items/${item.id}/printedTimestamp`] = now;
+        }
+      });
+      
+      if (order.status === 'pending') {
+        updates[`orders/${order.id}/status`] = 'preparing';
       }
-    });
-    
-    if (order.status === 'pending') {
-      updates[`orders/${order.id}/status`] = 'preparing';
+      
+      await update(ref(database), updates);
+      
+      // Enviar notificação para o cliente
+      await notifyOrderReceived(order);
+      
+      toast.success('✅ Pedido enviado para cozinha com sucesso!');
+    } catch (error) {
+      console.error('Erro ao enviar pedido:', error);
+      let errorMessage = '❌ Falha ao enviar pedido: ';
+      if (error.message.includes('GATT')) {
+        errorMessage += 'Problema na conexão com a impressora. Verifique se está ligada e pareada.';
+      } else {
+        errorMessage += error.message;
+      }
+      toast.error(errorMessage);
+    } finally {
+      setIsPrinting(false);
     }
-    
-    await update(ref(database), updates);
-    
-    // Enviar notificação para o cliente
-    await notifyOrderReceived(order);
-    
-    toast.success('✅ Pedido enviado para cozinha com sucesso!');
-  } catch (error) {
-    console.error('Erro ao enviar pedido:', error);
-    let errorMessage = '❌ Falha ao enviar pedido: ';
-    if (error.message.includes('GATT')) {
-      errorMessage += 'Problema na conexão com a impressora. Verifique se está ligada e pareada.';
-    } else {
-      errorMessage += error.message;
-    }
-    toast.error(errorMessage);
-  } finally {
-    setIsPrinting(false);
-  }
-};
+  };
 
   const formatOrderForPrint = (order) => {
     const customer = normalizeCustomerData(order.customer);
@@ -539,39 +598,42 @@ const printOrder = async (order) => {
     }
   };
 
-const updateOrderStatus = async (orderId, newStatus) => {
-  try {
-    // Atualiza o status no banco de dados
-    await update(ref(database, `orders/${orderId}`), {
-      status: newStatus,
-      readyTimestamp: newStatus === 'ready' ? new Date().toISOString() : null
-    });
+  const updateOrderStatus = async (orderId, newStatus) => {
+    try {
+      await update(ref(database, `orders/${orderId}`), {
+        status: newStatus,
+        readyTimestamp: newStatus === 'ready' ? new Date().toISOString() : null
+      });
 
-    // Notificação WhatsApp apenas se mudou para "ready"
-    if (newStatus === 'ready') {
-      const order = orders.find(o => o.id === orderId);
-      if (order) {
-        const customer = normalizeCustomerData(order.customer);
-        if (customer.phone) {
-          const message = order.orderType === 'delivery'
-            ? `Olá ${customer.name}, seu pedido está a caminho! 🚀`
-            : `Olá ${customer.name}, seu pedido está pronto para retirada! ✅`;
-          
-          window.open(`https://wa.me/${customer.phone.replace(/\D/g, '')}?text=${encodeURIComponent(message)}`, '_blank');
+      if (newStatus === 'ready') {
+        const order = orders.find(o => o.id === orderId);
+        if (order) {
+          const customer = normalizeCustomerData(order.customer);
+          if (customer.phone) {
+            const message = order.orderType === 'delivery'
+              ? `Olá ${customer.name}, seu pedido está a caminho! 🚀`
+              : `Olá ${customer.name}, seu pedido está pronto para retirada! ✅`;
+            
+            window.open(`https://wa.me/${customer.phone.replace(/\D/g, '')}?text=${encodeURIComponent(message)}`, '_blank');
+          }
         }
       }
-    }
 
-    toast.success(`Status atualizado: ${newStatus === 'ready' ? 'Pronto' : 'Em preparo'}`);
-  } catch (error) {
-    toast.error('Erro ao atualizar status');
-    console.error(error);
-  }
-};
+      toast.success(`Status atualizado: ${newStatus === 'ready' ? 'Pronto' : 'Em preparo'}`);
+    } catch (error) {
+      toast.error('Erro ao atualizar status');
+      console.error(error);
+    }
+  };
+
+  const markOrderAsReady = async (order) => {
+    await updateOrderStatus(order.id, 'ready');
+  };
 
   const filteredOrders = useMemo(() => {
     return orders.filter(order => {
-      if (filter !== 'all' && order.status !== filter) return false;
+      if (activeTab === 'orders' && filter !== 'all' && order.status !== filter) return false;
+      if (activeTab === 'dashboard' && dashboardStatusTab !== 'all' && order.status !== dashboardStatusTab) return false;
       if (searchQuery) {
         const searchLower = searchQuery.toLowerCase();
         const matchesId = order.id?.toLowerCase().includes(searchLower);
@@ -581,7 +643,7 @@ const updateOrderStatus = async (orderId, newStatus) => {
       }
       return true;
     });
-  }, [orders, filter, searchQuery]);
+  }, [orders, filter, searchQuery, activeTab, dashboardStatusTab]);
 
   const stats = {
     totalOrders: orders.length,
@@ -592,7 +654,7 @@ const updateOrderStatus = async (orderId, newStatus) => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <header className="bg-green-700 text-white p-4 shadow sticky top-0 z-20">
+      <header className="bg-[#b0aca6] text-white p-4 shadow sticky top-0 z-20">
         <div className="container mx-auto flex justify-between items-center">
           <div className="flex items-center">
             <img src={logo} alt="Alto Astral" className="h-10 mr-3" />
@@ -611,16 +673,16 @@ const updateOrderStatus = async (orderId, newStatus) => {
 
       <div className="bg-white shadow-sm sticky top-16 z-10">
         <div className="container mx-auto">
-          <div className="flex p-2">
+          <div className="flex overflow-x-auto p-2">
             <button
               onClick={() => setActiveTab('dashboard')}
-              className={`px-4 py-2 rounded-lg flex items-center ${activeTab === 'dashboard' ? 'bg-green-100 text-green-800' : 'text-gray-600'}`}
+              className={`px-4 py-2 rounded-lg flex-shrink-0 flex items-center ${activeTab === 'dashboard' ? 'bg-green-100 text-green-800' : 'text-gray-600'}`}
             >
               Dashboard
             </button>
             <button
               onClick={() => setActiveTab('orders')}
-              className={`px-4 py-2 rounded-lg flex items-center ${activeTab === 'orders' ? 'bg-green-100 text-green-800' : 'text-gray-600'}`}
+              className={`px-4 py-2 rounded-lg flex-shrink-0 flex items-center ${activeTab === 'orders' ? 'bg-green-100 text-green-800' : 'text-gray-600'}`}
             >
               Pedidos
               {stats.pendingOrders > 0 && (
@@ -638,151 +700,128 @@ const updateOrderStatus = async (orderId, newStatus) => {
           <div>
             <h2 className="text-xl font-bold mb-6">Visão Geral</h2>
              
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-              <div className="bg-white p-4 rounded-lg shadow">
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Total Pedidos</span>
-                  <FiShoppingCart className="text-gray-500" />
+            <CollapsibleSection title="Estatísticas" defaultOpen={true}>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                <div className="bg-white p-4 rounded-lg shadow">
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Total Pedidos</span>
+                    <FiShoppingCart className="text-gray-500" />
+                  </div>
+                  <div className="text-2xl font-bold mt-2">{stats.totalOrders}</div>
                 </div>
-                <div className="text-2xl font-bold mt-2">{stats.totalOrders}</div>
-              </div>
 
-              <div className="bg-white p-4 rounded-lg shadow">
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Pendentes</span>
-                  <FiClock className="text-gray-500" />
+                <div className="bg-white p-4 rounded-lg shadow">
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Pendentes</span>
+                    <FiClock className="text-gray-500" />
+                  </div>
+                  <div className="text-2xl font-bold mt-2">{stats.pendingOrders}</div>
                 </div>
-                <div className="text-2xl font-bold mt-2">{stats.pendingOrders}</div>
-              </div>
 
-              <div className="bg-white p-4 rounded-lg shadow">
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Em Preparo</span>
-                  <FiClock className="text-gray-500" />
+                <div className="bg-white p-4 rounded-lg shadow">
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Em Preparo</span>
+                    <FiClock className="text-gray-500" />
+                  </div>
+                  <div className="text-2xl font-bold mt-2">{stats.preparingOrders}</div>
                 </div>
-                <div className="text-2xl font-bold mt-2">{stats.preparingOrders}</div>
-              </div>
 
-              <div className="bg-white p-4 rounded-lg shadow">
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Prontos</span>
-                  <FiCheck className="text-gray-500" />
+                <div className="bg-white p-4 rounded-lg shadow">
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Prontos</span>
+                    <FiCheck className="text-gray-500" />
+                  </div>
+                  <div className="text-2xl font-bold mt-2">{stats.readyOrders}</div>
                 </div>
-                <div className="text-2xl font-bold mt-2">{stats.readyOrders}</div>
               </div>
-            </div>
+            </CollapsibleSection>
 
-            <div className="bg-white rounded-lg shadow p-4 mb-6">
-              <div className="flex justify-between items-center mb-4">
-                <h3 className="font-bold">Pedidos Recentes</h3>
+            <CollapsibleSection title="Pedidos Recentes">
+              <div className="mb-4">
+                <StatusTabs 
+                  activeTab={dashboardStatusTab} 
+                  onTabChange={setDashboardStatusTab} 
+                />
               </div>
               
-              {filteredOrders.slice(0, 3).map(order => (
-                <OrderView
-                  key={order.id}
-                  order={order}
-                  onPrint={printOrder}
-                  onCancel={(order) => setOrderToCancel(order)}
-                />
-              ))}
-        
-              <div className="overflow-x-auto">
-                <table className="min-w-full divide-y divide-gray-200">
-                  <thead className="bg-gray-50">
-                    <tr>
-                      <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">ID</th>
-                      <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Tipo</th>
-                      <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Cliente</th>
-                      <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Itens</th>
-                      <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
-                      <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Ações</th>
-                    </tr>
-                  </thead>
-                  <tbody className="bg-white divide-y divide-gray-200">
-                    {filteredOrders.slice(0, 5).map(order => (
-                      <tr key={order.id} className="hover:bg-gray-50">
-                        <td className="px-4 py-2 whitespace-nowrap text-sm">#{order.id?.slice(0, 6)}</td>
-                        <td className="px-4 py-2 whitespace-nowrap text-sm">
-                          {order.orderType === 'delivery' ? 'Entrega' : 'Retirada'}
-                        </td>
-                        <td className="px-4 py-2 whitespace-nowrap text-sm">
-                          {order.customer?.name || 'Não informado'}
-                        </td>
-                        <td className="px-4 py-2 whitespace-nowrap text-sm">{order.items?.length || 0}</td>
-                        <td className="px-4 py-2 whitespace-nowrap">
-                          <StatusBadge status={order.status} />
-                        </td>
-                        <td className="px-4 py-2 whitespace-nowrap text-sm">
-                          <div className="flex space-x-1">
-                            <button
-                              onClick={() => printOrder(order)}
-                              className="px-2 py-1 bg-green-600 hover:bg-green-700 rounded text-xs text-white"
-                            >
-                              Enviar
-                            </button>
-                            {order.status === 'preparing' && (
-                              <button
-                              onClick={() => updateOrderStatus(order.id, 'ready')}
-                              className="px-3 py-1 bg-green-600 text-white rounded flex items-center"
-                            >
-                              <FiCheckCircle className="mr-1" /> Pronto
-                            </button>
-                            )}
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
+              {filteredOrders.length > 0 ? (
+                <div className="space-y-4">
+                  {filteredOrders.slice(0, 5).map(order => (
+                    <OrderView
+                      key={order.id}
+                      order={order}
+                      onPrint={printOrder}
+                      onCancel={(order) => setOrderToCancel(order)}
+                      onMarkAsReady={markOrderAsReady}
+                    />
+                  ))}
+                </div>
+              ) : (
+                <div className="bg-gray-50 p-4 rounded text-center text-gray-500">
+                  Nenhum pedido encontrado
+                </div>
+              )}
+            </CollapsibleSection>
           </div>
         )}
 
         {activeTab === 'orders' && (
           <div>
             <div className="flex flex-col md:flex-row justify-between items-center mb-4 gap-2">
-              <h2 className="text-xl font-bold">Todos os Pedidos</h2>
-              <div className="flex flex-col md:flex-row w-full md:w-auto gap-2">
-                <div className="relative flex-1">
-                  <FiSearch className="absolute left-3 top-3 text-gray-400" />
-                  <input
-                    type="text"
-                    placeholder="Buscar pedidos..."
-                    className="pl-10 pr-4 py-2 border border-gray-300 rounded w-full"
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                  />
-                </div>
-                <select
-                  value={filter}
-                  onChange={(e) => setFilter(e.target.value)}
-                  className="border border-gray-300 rounded px-3 py-2"
+              <div className="flex items-center w-full">
+                <button
+                  onClick={() => setOrdersCollapsed(!ordersCollapsed)}
+                  className="mr-2 text-gray-600 hover:text-gray-800"
                 >
-                  <option value="all">Todos</option>
-                  <option value="pending">Pendentes</option>
-                  <option value="preparing">Em Preparo</option>
-                  <option value="ready">Prontos</option>
-                </select>
+                  {ordersCollapsed ? <FiChevronDown /> : <FiChevronUp />}
+                </button>
+                <h2 className="text-xl font-bold">Todos os Pedidos</h2>
               </div>
-            </div>
-
-            <div className="space-y-4">
-              {filteredOrders.length > 0 ? (
-                filteredOrders.map(order => (
-                  <OrderView
-                    key={order.id}
-                    order={order}
-                    onPrint={printOrder}
-                    onCancel={(order) => setOrderToCancel(order)}
-                  />
-                ))
-              ) : (
-                <div className="bg-white rounded-lg shadow p-4 text-center text-gray-500">
-                  Nenhum pedido encontrado
+              {!ordersCollapsed && (
+                <div className="flex flex-col md:flex-row w-full md:w-auto gap-2">
+                  <div className="relative flex-1">
+                    <FiSearch className="absolute left-3 top-3 text-gray-400" />
+                    <input
+                      type="text"
+                      placeholder="Buscar pedidos..."
+                      className="pl-10 pr-4 py-2 border border-gray-300 rounded w-full"
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                    />
+                  </div>
+                  <select
+                    value={filter}
+                    onChange={(e) => setFilter(e.target.value)}
+                    className="border border-gray-300 rounded px-3 py-2"
+                  >
+                    <option value="all">Todos</option>
+                    <option value="pending">Pendentes</option>
+                    <option value="preparing">Em Preparo</option>
+                    <option value="ready">Prontos</option>
+                  </select>
                 </div>
               )}
             </div>
+
+            {!ordersCollapsed && (
+              <div className="space-y-4">
+                {filteredOrders.length > 0 ? (
+                  filteredOrders.map(order => (
+                    <OrderView
+                      key={order.id}
+                      order={order}
+                      onPrint={printOrder}
+                      onCancel={(order) => setOrderToCancel(order)}
+                      onMarkAsReady={markOrderAsReady}
+                    />
+                  ))
+                ) : (
+                  <div className="bg-white rounded-lg shadow p-4 text-center text-gray-500">
+                    Nenhum pedido encontrado
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         )}
       </div>

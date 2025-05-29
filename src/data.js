@@ -22,6 +22,28 @@ import caipirinha from './assets/caipirinha.png';
 import caipiblack from './assets/caipiblack.png';
 import logoBackground from './assets/fotodecapa.jpeg';
 import cafe from './assets/cafe.jpg';
+import pedras from './assets/pedras.jpg';
+import Somersby from './assets/somersby.jpg';
+import Imperial from './assets/imperial.jpg';
+import cerveja from './assets/cerveja.jpg';
+import sangria from './assets/sangria.jpg';
+import cocacola from './assets/cocacola.jpg';
+import Coxinha from './assets/coxinha.jpg';
+import agua from './assets/agua.jpg';
+import kibe from './assets/kibe.jpg';
+import bauru from './assets/bauru.jpg';
+import fiambre from './assets/fiambre.jpg';
+
+const drinkImages = {
+  caipirinha: 'https://images.unsplash.com/photo-1516684669134-de6f7c473a2a?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=80',
+  whiskey: 'https://images.unsplash.com/photo-1554866585-cd94860890b7?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=80',
+  vodka: 'https://images.unsplash.com/photo-1605270012917-bf157c5a9541?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=80',
+  cerveja: 'https://images.unsplash.com/photo-1535958636474-b021ee887b13?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=80',
+  refrigerante: 'https://images.unsplash.com/photo-1554866585-cd94860890b7?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=80',
+  agua: 'https://images.unsplash.com/photo-1561029471-b0a51aee0c4b?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=80',
+  sangria: 'https://images.unsplash.com/photo-1551751299-1b51cab2694c?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=80',
+  baldeCerveja: 'https://images.unsplash.com/photo-1571330735066-03aaa9429d89?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=80'
+};
 
 export const foodImages = {
   frangoCremoso: frangoCremoso,
@@ -47,12 +69,23 @@ export const foodImages = {
   chocolatequente: chocolatequente,
   caipirinha: caipirinha,
   caipiblack: caipiblack,
+  pedras:pedras,
+  Somersby:Somersby,
+  Imperial:Imperial,
+  cerveja:cerveja,
+  sangria:sangria,
+  cocacola:cocacola,
+  Coxinha:Coxinha,
+  agua:agua,
+  kibe:kibe,
+  bauru:bauru,
+  fiambre:fiambre,
   batataFrita: 'https://images.unsplash.com/photo-1541592106381-b31e9677c0e5?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
   pastel: 'https://images.unsplash.com/photo-1631853551243-ca3d3b769de3?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
   bebida: 'https://images.unsplash.com/photo-1514362545857-3bc16c4c7d1b?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
   salgado: 'https://images.unsplash.com/photo-1601050690597-df0568f70950?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
   sobremesa: 'https://images.unsplash.com/photo-1551024506-0bccd828d307?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
-  background: logoBackground
+  background: logoBackground,
 };
 
 export const menu = {
@@ -125,29 +158,29 @@ export const menu = {
      { id: 56, name: 'Whiskey Jack Daniels', price: 3.50, image: foodImages.bebida },
      { id: 57, name: 'Whiskey Black Label', price: 4.00, image: foodImages.bebida },
      { id: 58, name: 'Vodka', price: 4.00, image: foodImages.bebida },
-     { id: 59, name: 'Somersby', price: 2.50, image: foodImages.bebida },
-     { id: 60, name: 'Imperial Heineken (0.20)', price: 1.50, image: foodImages.bebida },
-     { id: 61, name: 'Caneca Heineken (0.50)', price: 3.00, image: foodImages.bebida },
-     { id: 62, name: 'Cerveja Garrafa (0.33ml)', price: 1.40, image: foodImages.bebida },
-     { id: 63, name: 'Cerveja Mini (0.20ml)', price: 1.10, image: foodImages.bebida },
-     { id: 64, name: 'Taça de Sangria', description: 'Sangria branca, rosé ou tinta', price: 6.00, image: foodImages.bebida },
-     { id: 65, name: 'Refrigerante Lata', price: 1.60, image: foodImages.bebida },
-     { id: 66, name: 'Água 1.5L', price: 1.50, image: foodImages.bebida },
-     { id: 67, name: 'Água 0.5L', price: 1.00, image: foodImages.bebida },
-     { id: 68, name: 'Água 0.33L', price: 0.60, image: foodImages.bebida },
-     { id: 69, name: 'Água Castelo', price: 1.40, image: foodImages.bebida },
-     { id: 70, name: 'Água das Pedras', price: 1.40, image: foodImages.bebida },
+     { id: 59, name: 'Somersby', price: 2.50, image: foodImages.Somersby },
+     { id: 60, name: 'Imperial Heineken (0.20)', price: 1.50, image: foodImages.Imperial },
+     { id: 61, name: 'Caneca Heineken (0.50)', price: 3.00, image: foodImages.Imperial },
+     { id: 62, name: 'Cerveja Garrafa (0.33ml)', price: 1.40, image: foodImages.cerveja },
+     { id: 63, name: 'Cerveja Mini (0.20ml)', price: 1.10, image: foodImages.cerveja },
+     { id: 64, name: 'Taça de Sangria', description: 'Sangria branca, rosé ou tinta', price: 6.00, image: foodImages.sangria },
+     { id: 65, name: 'Refrigerante Lata', price: 1.60, image: foodImages.cocacola },
+     { id: 66, name: 'Água 1.5L', price: 1.50, image: foodImages.agua },
+     { id: 67, name: 'Água 0.5L', price: 1.00, image: foodImages.agua },
+     { id: 68, name: 'Água 0.33L', price: 0.60, image: foodImages.agua },
+     { id: 69, name: 'Água Castelo', price: 1.40, image: foodImages.agua },
+     { id: 70, name: 'Água das Pedras', price: 1.40, image: foodImages.agua },
      { id: 71, name: 'Balde de Heineken', price: 10.00, image: foodImages.baldedecerveja }
    ],
    salgados: [
      { id: 72, name: 'Pão de Queijo', price: 1.60, image: foodImages.salgado },
      { id: 73, name: 'Pastel de Nata', price: 1.30, image: foodImages.salgado },
      { id: 74, name: 'Empada de Frango', price: 2.00, image: foodImages.salgado },
-     { id: 75, name: 'Kibe', price: 2.20, image: foodImages.salgado },
-     { id: 76, name: 'Fiambre e Queijo', price: 2.20, image: foodImages.salgado },
-     { id: 77, name: 'Bauru', price: 2.20, image: foodImages.salgado },
+     { id: 75, name: 'Kibe', price: 2.20, image: foodImages.kibe },
+     { id: 76, name: 'Fiambre e Queijo', price: 2.20, image: foodImages.fiambre },
+     { id: 77, name: 'Bauru', price: 2.20, image: foodImages.bauru },
      { id: 78, name: 'Bola de Queijo', price: 2.20, image: foodImages.salgado },
-     { id: 79, name: 'Coxinha de Frango', price: 2.20, image: foodImages.salgado },
+     { id: 79, name: 'Coxinha de Frango', price: 2.20, image: foodImages.Coxinha },
      { id: 80, name: 'Coxinha com Catupiry', price: 3.00, image: foodImages.salgado },
      { id: 81, name: 'Hamburgão', price: 3.50, image: foodImages.salgado }
    ],

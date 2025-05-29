@@ -42,6 +42,52 @@ svg {
   }
 }
 
+/* Responsividade e PWA enhancements */
+@media (max-width: 768px) {
+  html {
+    font-size: 14px;
+  }
+}
+
+@media (max-width: 480px) {
+  html {
+    font-size: 12px;
+  }
+}
+
+/* Ajustes para telas muito pequenas (iPhone 5/SE) */
+@media (max-width: 320px) {
+  html {
+    font-size: 11px;
+  }
+}
+
+/* Ajuste para evitar zoom em inputs no iOS */
+@media screen and (max-width: 767px) {
+  input,
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
+}
+
+/* Notificações responsivas */
+.notification-container {
+  position: fixed;
+  top: 4.5rem;
+  right: 1rem;
+  z-index: 9999;
+  width: calc(100% - 2rem);
+  max-width: 20rem;
+}
+
+@media (min-width: 640px) {
+  .notification-container {
+    top: 5rem;
+    right: 1.5rem;
+  }
+}
+
 /* Em seu arquivo CSS global */
 .font-alto-astral {
   font-family: 'SuaFonte', sans-serif;

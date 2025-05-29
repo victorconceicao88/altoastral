@@ -256,17 +256,21 @@ const UltraFooter = () => {
           <div className="space-y-6 md:space-y-8">
             <h4 className="text-lg md:text-xl font-semibold uppercase tracking-wider border-b border-[#b8b4ae]/40 pb-2 md:pb-3 text-center md:text-left text-[#fffaf1]">Conecte-se</h4>
             <div className="flex justify-center md:justify-start gap-4 md:gap-5">
-              <motion.a 
-                href="#" 
+                <motion.a 
+                href="https://www.instagram.com/altoastralsnackbar?igsh=MXUzMHVmamx6MDFvbA==" 
                 whileHover={{ y: -3 }}
                 className="bg-gradient-to-br from-[#f09433] to-[#bc1888] w-10 h-10 md:w-12 md:h-12 rounded-lg md:rounded-xl flex items-center justify-center text-white shadow-lg hover:shadow-xl transition-all"
+                target="_blank"
+                rel="noopener noreferrer"
               >
                 <FiInstagram className="text-xl md:text-2xl" />
               </motion.a>
+
               <motion.a 
-                href="#" 
+                href="https://www.facebook.com/p/Alto-Astral-Snack-Bar-100083351294242/" 
                 whileHover={{ y: -3 }}
                 className="bg-[#3b5998] w-10 h-10 md:w-12 md:h-12 rounded-lg md:rounded-xl flex items-center justify-center text-white shadow-lg hover:shadow-xl transition-all"
+                target='_blank'
               >
                 <FiFacebook className="text-xl md:text-2xl" />
               </motion.a>
