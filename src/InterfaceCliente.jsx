@@ -1244,7 +1244,7 @@ const InterfaceCliente = () => {
                       </motion.a>
 
                       <p className="mt-3 md:mt-4 text-xs md:text-sm text-gray-700">
-                        📲 Ao clicar no botão, o WhatsApp será aberto automaticamente em outra aba. Basta revisar e clicar em <strong>“Enviar”</strong> para concluir seu pedido.
+                        📲 Ao clicar no botão, o WhatsApp será aberto automaticamente em outra aba. clicar em <strong>“Enviar”</strong> para concluir seu pedido.
                       </p>
                     </div>
                     
