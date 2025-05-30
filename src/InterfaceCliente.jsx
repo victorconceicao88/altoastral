@@ -409,7 +409,7 @@ const InterfaceCliente = () => {
 
       await push(orderRef, newOrder);
       
-      const phoneNumber = '351933737672';
+      const phoneNumber = '351282038830';
       const message = `*Novo Pedido Alto Astral*%0A%0A` +
         `*Tipo:* ${orderType === 'takeaway' ? 'Retirada' : 'Entrega'}%0A` +
         `*Cliente:* ${customerInfo.name} ${customerInfo.surname}%0A` +
