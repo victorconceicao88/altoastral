@@ -1453,7 +1453,7 @@ const InterfaceCliente = () => {
                     </p>
                     <p className="text-sm text-gray-500 mt-1">
                       {currentHour >= 15 
-                        ? "Aproveite o resto do nosso cardápio regular!" 
+                        ? "Aproveite o nosso cardápio regular!" 
                         : "Volte mais tarde!"
                       }
                     </p>
