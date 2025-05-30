@@ -1471,7 +1471,7 @@ const InterfaceCliente = () => {
                             src={item.image || cafe} 
                             alt={item.name} 
                             onError={(e) => { e.target.onerror = null; e.target.src = cafe }}
-                            className="w-full h-full object-contain transition-transform duration-500 group-hover:scale-105"
+                            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                           />
                           <button 
                             onClick={() => toggleFavorite(item.id)}
@@ -1493,12 +1493,12 @@ const InterfaceCliente = () => {
                             <h3 className="font-bold text-base md:text-lg text-black">{item.name}</h3>
                             <span className="font-bold text-base md:text-lg text-black bg-white px-1 md:px-2 py-0.5 md:py-1 rounded-lg">€{item.price.toFixed(2)}</span>
                           </div>
-                          {item.description && <p className="text-gray-600 text-sm md:text-sm mt-1 md:mt-2">{item.description}</p>}
+                          {item.description && <p className="text-gray-600 text-xs md:text-sm mt-1 md:mt-2">{item.description}</p>}
                           <motion.button
                             whileHover={{ scale: 1.02 }}
                             whileTap={{ scale: 0.98 }}
                             onClick={() => addToCart(item)}
-                            className="mt-3 md:mt-4 w-full bg-[#918e89] text-[#e6be44] font-bold px-3 py-2 md:px-4 md:py-2 rounded-lg transition flex items-center justify-center text-sm md:text-base"
+                            className="mt-3 md:mt-4 w-full bg-[#918e89] text-[#e6be44] font-bold px-3 py-1 md:px-4 md:py-2 rounded-lg transition flex items-center justify-center text-sm md:text-base"
                           >
                             <FiPlus className="mr-1" />
                             Adicionar
@@ -1522,7 +1522,7 @@ const InterfaceCliente = () => {
                         src={item.image || cafe} 
                         alt={item.name} 
                         onError={(e) => { e.target.onerror = null; e.target.src = cafe }}
-                        className="w-full h-full object-contain transition-transform duration-500 group-hover:scale-105"
+                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                       />
                       <button 
                         onClick={() => toggleFavorite(item.id)}
@@ -1544,12 +1544,12 @@ const InterfaceCliente = () => {
                         <h3 className="font-bold text-base md:text-lg text-black">{item.name}</h3>
                         <span className="font-bold text-base md:text-lg text-black bg-white px-1 md:px-2 py-0.5 md:py-1 rounded-lg">€{item.price.toFixed(2)}</span>
                       </div>
-                      {item.description && <p className="text-gray-600 text-sm md:text-sm mt-1 md:mt-2">{item.description}</p>}
+                      {item.description && <p className="text-gray-600 text-xs md:text-sm mt-1 md:mt-2">{item.description}</p>}
                       <motion.button
                         whileHover={{ scale: 1.02 }}
                         whileTap={{ scale: 0.98 }}
                         onClick={() => addToCart(item)}
-                        className="mt-3 md:mt-4 w-full bg-[#918e89] text-[#e6be44] font-bold px-3 py-2 md:px-4 md:py-2 rounded-lg transition flex items-center justify-center text-sm md:text-base"
+                        className="mt-3 md:mt-4 w-full bg-[#918e89] text-[#e6be44] font-bold px-3 py-1 md:px-4 md:py-2 rounded-lg transition flex items-center justify-center text-sm md:text-base"
                       >
                         <FiPlus className="mr-1" />
                         Adicionar
@@ -1576,7 +1576,7 @@ const InterfaceCliente = () => {
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
             onClick={proceedToCheckout}
-            className="w-full bg-[#b0aca6] text-[#e6be44] py-3 rounded-lg flex items-center justify-center text-base"
+            className="w-full bg-[#b0aca6] text-[#e6be44] font-bold py-2 md:py-3 rounded-lg flex items-center justify-center text-sm md:text-base"
           >
             <FiShoppingCart className="mr-2" />
             Ver Carrinho ({cart.reduce((sum, item) => sum + item.quantity, 0)})
