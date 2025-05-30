@@ -13,11 +13,10 @@ const Login = () => {
   const handleLogin = (e) => {
     e.preventDefault();
     
-    // Credenciais simples (em produção, use autenticação segura)
+
     if (username === 'admin' && password === '2320') {
       localStorage.setItem('adminLoggedIn', 'true');
-      navigate('/admin', { replace: true }); // Redireciona forçadamente para /admin
-    } else {
+      navigate('/admin', { replace: true }); 
       setError('Credenciais inválidas. Tente novamente.');
     }
   };

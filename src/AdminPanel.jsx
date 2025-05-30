@@ -472,87 +472,95 @@ const AdminPanel = () => {
   };
 
 const formatOrderForPrint = (order) => {
-  const customer = normalizeCustomerData(order.customer);
-  
-  const ESC = '\x1B';
-  const CENTER = `${ESC}a1`;
-  const BOLD_ON = `${ESC}!${String.fromCharCode(8)}`;
-  const BOLD_OFF = `${ESC}!${String.fromCharCode(0)}`;
-  const DOUBLE_HEIGHT = `${ESC}!${String.fromCharCode(16)}`;
-  const NORMAL_HEIGHT = `${ESC}!${String.fromCharCode(0)}`;
-  const LINE = '================================\n';
-  const THIN_LINE = '--------------------------------\n';
-  
-  // Função para sanitizar texto removendo caracteres especiais
-  const sanitizeText = (text) => {
-    if (!text) return '';
-    return text.toString().replace(/[^\x20-\x7E]/g, '');
-  };
+    const customer = normalizeCustomerData(order.customer);
+    
+    const ESC = '\x1B';
+    const CENTER = `${ESC}a1`;
+    const BOLD_ON = `${ESC}!${String.fromCharCode(8)}`;
+    const BOLD_OFF = `${ESC}!${String.fromCharCode(0)}`;
+    const LINE = '--------------------------------\n';
+    const DOUBLE_LINE = '================================\n';  // Linha dupla para destacar seções importantes
+    const DOTTED_LINE = '..........\n';  // Linha pontilhada para separar detalhes
 
-  let receipt = '';
-  
-  // Cabeçalho
-  receipt += `${ESC}@`; // Reset printer
-  receipt += `${CENTER}${DOUBLE_HEIGHT}${BOLD_ON}ALTO ASTRAL${BOLD_OFF}${NORMAL_HEIGHT}\n`;
-  receipt += `${CENTER}${BOLD_ON}${order.orderType === 'delivery' ? 'ENTREGA' : 'RETIRADA'}${BOLD_OFF}\n`;
-  receipt += `${CENTER}${THIN_LINE}`;
-  
-  // Informações do pedido
-  receipt += `${BOLD_ON}Pedido #:${BOLD_OFF} ${order.id?.slice(0, 8) || ''}\n`;
-  receipt += `${BOLD_ON}Data:${BOLD_OFF} ${new Date().toLocaleString('pt-BR')}\n`;
-  receipt += `${LINE}`;
-  
-  // Informações do cliente
-  receipt += `${BOLD_ON}CLIENTE${BOLD_OFF}\n`;
-  receipt += `${sanitizeText(customer.name)}\n`;
-  receipt += `Tel: ${sanitizeText(customer.phone || 'Não informado')}\n`;
-  
-  if (order.orderType === 'delivery') {
-    receipt += `\n${BOLD_ON}ENDEREÇO${BOLD_OFF}\n`;
-    receipt += `${sanitizeText(customer.address.street)}, ${sanitizeText(customer.address.number)}\n`;
-    if (customer.address.complement) {
-      receipt += `Complemento: ${sanitizeText(customer.address.complement)}\n`;
+    // Função para substituir caracteres especiais conforme OEM 860
+    const replaceSpecialChars = (str) => {
+        return str
+            .replace(/ç/g, '\xE7')  // OEM860: ç → \xE7
+            .replace(/á/g, '\xE1')  // OEM860: á → \xE1
+            .replace(/é/g, '\xE9')  // OEM860: é → \xE9
+            .replace(/í/g, '\xED')  // OEM860: í → \xED
+            .replace(/ó/g, '\xF3')  // OEM860: ó → \xF3
+            .replace(/ú/g, '\xFA')  // OEM860: ú → \xFA
+            .replace(/ã/g, '\xE3')  // OEM860: ã → \xE3
+            .replace(/õ/g, '\xF5')  // OEM860: õ → \xF5
+            .replace(/à/g, '\xE0')  // OEM860: à → \xE0
+            .replace(/è/g, '\xE8')  // OEM860: è → \xE8
+            .replace(/ì/g, '\xEC')  // OEM860: ì → \xEC
+            .replace(/ò/g, '\xF2')  // OEM860: ò → \xF2
+            .replace(/ù/g, '\xF9')  // OEM860: ù → \xF9
+            .replace(/â/g, '\xE2')  // OEM860: â → \xE2
+            .replace(/ê/g, '\xEA')  // OEM860: ê → \xEA
+            .replace(/î/g, '\xEE')  // OEM860: î → \xEE
+            .replace(/ô/g, '\xF4')  // OEM860: ô → \xF4
+            .replace(/û/g, '\xFB')  // OEM860: û → \xFB
+            .replace(/~e/g, '\xE3') // OEM860: ~e (til) → \xE3 (ã)
+            .replace(/€/g, '\xA4');  // Substitui o símbolo do euro (€) pelo código \xA4 (comum em OEM860)
+    };
+
+    let receipt = `${ESC}@${CENTER}${BOLD_ON}ALTO ASTRAL${BOLD_OFF}\n`;
+    receipt += `${CENTER}${BOLD_ON}Pedido ${order.id || 'N/A'}${BOLD_OFF}\n`;  // ID do pedido para identificação
+    receipt += `${CENTER}${BOLD_ON}${order.orderType === 'delivery' ? 'ENTREGA' : 'RETIRADA'}${BOLD_OFF}\n`;
+    receipt += `${DOTTED_LINE}\n`;
+
+    // Detalhes do cliente
+    receipt += `${BOLD_ON}Cliente:${BOLD_OFF} ${replaceSpecialChars(customer.name)}\n`;
+    receipt += `${BOLD_ON}Tel:${BOLD_OFF} ${customer.phone || 'Não informado'}\n`;
+
+    if (order.orderType === 'delivery') {
+        receipt += `${BOLD_ON}Endereco de Entrega:${BOLD_OFF}\n`;
+        receipt += `${replaceSpecialChars(customer.address.street)}, ${customer.address.number}\n`;
+        if (customer.address.complement) {
+            receipt += `${replaceSpecialChars(customer.address.complement)}\n`;
+        }
+        receipt += `${replaceSpecialChars(customer.address.neighborhood)}\n`;
+        receipt += `${replaceSpecialChars(customer.address.city)} - ${customer.address.postalCode}\n`;
     }
-    receipt += `${sanitizeText(customer.address.neighborhood)}\n`;
-    receipt += `${sanitizeText(customer.address.city)} - ${sanitizeText(customer.address.postalCode)}\n`;
-  }
-  
-  receipt += `\n${BOLD_ON}PAGAMENTO${BOLD_OFF}\n`;
-  receipt += `${sanitizeText(customer.paymentMethod || 'Não informado')}\n`;
-  
-  if (customer.notes) {
-    receipt += `\n${BOLD_ON}OBSERVAÇÕES${BOLD_OFF}\n`;
-    receipt += `${sanitizeText(customer.notes)}\n`;
-  }
-  
-  receipt += `${LINE}`;
-  
-  // Itens do pedido
-  receipt += `${CENTER}${BOLD_ON}ITENS DO PEDIDO${BOLD_OFF}\n\n`;
-  
-  (order.items || []).forEach(item => {
-    receipt += `${item.quantity}x ${sanitizeText(item.name || 'Produto')}\n`;
-    receipt += `  ${BOLD_ON}€${(item.price * item.quantity).toFixed(2)}${BOLD_OFF}\n`;
-    if (item.notes) {
-      receipt += `  OBS: ${sanitizeText(item.notes)}\n`;
+
+    receipt += `${BOLD_ON}Forma de Pagamento:${BOLD_OFF} ${replaceSpecialChars(customer.paymentMethod || 'Não informado')}\n`;
+    
+    if (customer.notes) {
+        receipt += `${BOLD_ON}Obs:${BOLD_OFF} ${replaceSpecialChars(customer.notes)}\n`;
     }
-    receipt += `${THIN_LINE}`;
-  });
-  
-  // Total
-  receipt += `\n${BOLD_ON}TOTAL: €${order.total?.toFixed(2) || '0.00'}${BOLD_OFF}\n`;
-  
-  // Rodapé
-  receipt += `${LINE}`;
-  receipt += `${CENTER}Obrigado pela preferência!\n`;
-  receipt += `${CENTER}${new Date().toLocaleTimeString('pt-BR')}\n\n\n\n`;
-  
-  // Comandos para cortar papel (se a impressora suportar)
-  receipt += `${ESC}d3`; // Avança 3 linhas
-  receipt += `${ESC}i`; // Corta papel (em algumas impressoras)
-  
-  return receipt;
+
+    receipt += `${DOTTED_LINE}\n`;
+    receipt += `${BOLD_ON}ITENS:${BOLD_OFF}\n`;
+    receipt += `${DOUBLE_LINE}\n`;
+
+    // Listagem dos itens
+    (order.items || []).forEach(item => {
+        receipt += `${item.quantity}x ${replaceSpecialChars(item.name || 'Produto')}\n`;
+        if (item.notes) receipt += `  OBS: ${replaceSpecialChars(item.notes)}\n`;
+    });
+
+    receipt += `${DOUBLE_LINE}\n`;
+
+    // Taxa de entrega e total
+    const deliveryFee = 2.50;
+    const totalWithFee = order.total + deliveryFee;
+
+    receipt += `${BOLD_ON}Taxa de Entrega:${BOLD_OFF} ${deliveryFee.toFixed(2)}\n`;  // Substituí o símbolo do euro
+    receipt += `${LINE}\n`;
+    receipt += `${BOLD_ON}TOTAL:${BOLD_OFF} ${totalWithFee.toFixed(2)}\n\n`;  // Substituí o símbolo do euro
+
+    // Data e hora
+    const date = new Date();
+    receipt += `${CENTER}${date.toLocaleTimeString('pt-BR')} - ${date.toLocaleDateString('pt-BR')}\n`;
+    receipt += `${CENTER}Obrigado e Volte Sempre!${BOLD_OFF}\n`;
+    receipt += `${DOUBLE_LINE}\n`;
+
+    return receipt;
 };
+
 
   const connectToPrinter = async () => {
     try {

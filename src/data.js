@@ -18,8 +18,7 @@ import costelaporco from './assets/costelaporco.jpg';
 import pastelfeira from './assets/pastelfeira.jpg';
 import abatanado from './assets/abatanado.png';
 import chocolatequente from './assets/chocolatequente.jpg';
-import caipirinha from './assets/caipirinha.png';
-import caipiblack from './assets/caipiblack.png';
+import caipirinha from './assets/caipirinha.jpg';
 import logoBackground from './assets/fotodecapa.jpeg';
 import cafe from './assets/cafe.jpg';
 import pedras from './assets/pedras.jpg';
@@ -27,13 +26,17 @@ import Somersby from './assets/somersby.jpg';
 import Imperial from './assets/imperial.jpg';
 import cerveja from './assets/cerveja.jpg';
 import sangria from './assets/sangria.jpg';
-import cocacola from './assets/cocacola.jpg';
+import refrigerantes from './assets/refrigerantes.jpg';
 import Coxinha from './assets/coxinha.jpg';
 import agua from './assets/agua.jpg';
 import kibe from './assets/kibe.jpg';
 import bauru from './assets/bauru.jpg';
 import fiambre from './assets/fiambre.jpg';
 import ovosebacon from './assets/ovosebacon.jpg';
+import tosta from './assets/tosta.jpg';
+import croissant from './assets/croissant.jpg';
+import paodequeijo from './assets/paodequeijo.jpg';
+import doces from './assets/doces.jpg';
 const drinkImages = {
   caipirinha: 'https://images.unsplash.com/photo-1516684669134-de6f7c473a2a?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=80',
   whiskey: 'https://images.unsplash.com/photo-1554866585-cd94860890b7?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=80',
@@ -68,24 +71,25 @@ export const foodImages = {
   abatanado: abatanado,
   chocolatequente: chocolatequente,
   caipirinha: caipirinha,
-  caipiblack: caipiblack,
   pedras:pedras,
   Somersby:Somersby,
   Imperial:Imperial,
   cerveja:cerveja,
   sangria:sangria,
-  cocacola:cocacola,
+  refrigerantes:refrigerantes,
   Coxinha:Coxinha,
   agua:agua,
   kibe:kibe,
   bauru:bauru,
   fiambre:fiambre,
   ovosebacaon:ovosebacon,
+  tosta:tosta,
+  croissant:croissant,
+  paodequeijo:paodequeijo,
+  doces:doces,
   batataFrita: 'https://images.unsplash.com/photo-1541592106381-b31e9677c0e5?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
-  pastel: 'https://images.unsplash.com/photo-1631853551243-ca3d3b769de3?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
   bebida: 'https://images.unsplash.com/photo-1514362545857-3bc16c4c7d1b?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
   salgado: 'https://images.unsplash.com/photo-1601050690597-df0568f70950?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
-  sobremesa: 'https://images.unsplash.com/photo-1551024506-0bccd828d307?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
   background: logoBackground,
 };
 
@@ -129,8 +133,8 @@ export const menu = {
      { id: 30, name: 'Pastel de Banana com Nutela', description: 'Queijo, banana e nutella', price: 6.00, image: foodImages.pastelfeira }
    ],
    cafe: [
-     { id: 31, name: 'Café Expresso', price: 1.00, image: foodImages.pastel },
-     { id: 32, name: 'Café Descafeinado', price: 1.00, image: foodImages.pastel },
+     { id: 31, name: 'Café Expresso', price: 1.00, image: foodImages.cafe },
+     { id: 32, name: 'Café Descafeinado', price: 1.00, image: foodImages.cafe },
      { id: 33, name: 'Café Duplo', price: 2.00, image: foodImages.pastel },
      { id: 34, name: 'Garoto', price: 1.00, image: foodImages.pastel },
      { id: 35, name: 'Abatanado', price: 1.10, image: foodImages.abatanado },
@@ -143,17 +147,17 @@ export const menu = {
      { id: 42, name: 'Torrada com Pão Caseiro', price: 2.00, image: foodImages.cafe },
      { id: 43, name: 'Torrada com Pão de Forma', price: 1.50, image: foodImages.cafe },
      { id: 44, name: 'Meia Torrada', price: 1.00, image: foodImages.cafe },
-     { id: 45, name: 'Croissant Misto', price: 3.00, image: foodImages.cafe },
-     { id: 46, name: 'Croissant Misto Tostado', price: 3.20, image: foodImages.cafe },
-     { id: 47, name: 'Tosta Mista', price: 3.20, image: foodImages.cafe },
-     { id: 48, name: 'Tosta Mista (Pão de Forma)', price: 2.80, image: foodImages.cafe },
+     { id: 45, name: 'Croissant Misto', price: 3.00, image: foodImages.croissant },
+     { id: 46, name: 'Croissant Misto Tostado', price: 3.20, image: foodImages.croissant },
+     { id: 47, name: 'Tosta Mista', price: 3.20, image: foodImages.tosta },
+     { id: 48, name: 'Tosta Mista (Pão de Forma)', price: 2.80, image: foodImages.tosta },
      { id: 49, name: 'Sandes Mista', price: 2.20, image: foodImages.cafe },
      { id: 50, name: 'Pão com Ovo', price: 2.20, image: foodImages.cafe },
      { id: 51, name: 'Ovos com Bacon', price: 4.00, image: foodImages.ovosebacaon }
    ],
    bebidas: [
      { id: 52, name: 'Caipirinha', description: 'Cachaça 51 ou Velho Barreiro, lima, açúcar e gelo', price: 6.00, image: foodImages.caipirinha },
-     { id: 53, name: 'Caipiblack', description: 'Cachaça preta, lima, açúcar e gelo', price: 6.00, image: foodImages.caipiblack },
+     { id: 53, name: 'Caipiblack', description: 'Cachaça preta, lima, açúcar e gelo', price: 6.00, image: foodImages.caipirinha },
      { id: 54, name: 'Whiskey Jamenson', price: 3.50, image: foodImages.bebida },
      { id: 55, name: 'Whiskey J&B', price: 3.00, image: foodImages.bebida },
      { id: 56, name: 'Whiskey Jack Daniels', price: 3.50, image: foodImages.bebida },
@@ -165,7 +169,7 @@ export const menu = {
      { id: 62, name: 'Cerveja Garrafa (0.33ml)', price: 1.40, image: foodImages.cerveja },
      { id: 63, name: 'Cerveja Mini (0.20ml)', price: 1.10, image: foodImages.cerveja },
      { id: 64, name: 'Taça de Sangria', description: 'Sangria branca, rosé ou tinta', price: 6.00, image: foodImages.sangria },
-     { id: 65, name: 'Refrigerante Lata', price: 1.60, image: foodImages.cocacola },
+     { id: 65, name: 'Refrigerante Lata', price: 1.60, image: foodImages.refrigerantes },
      { id: 66, name: 'Água 1.5L', price: 1.50, image: foodImages.agua },
      { id: 67, name: 'Água 0.5L', price: 1.00, image: foodImages.agua },
      { id: 68, name: 'Água 0.33L', price: 0.60, image: foodImages.agua },
@@ -174,7 +178,7 @@ export const menu = {
      { id: 71, name: 'Balde de Heineken', price: 10.00, image: foodImages.baldedecerveja }
    ],
    salgados: [
-     { id: 72, name: 'Pão de Queijo', price: 1.60, image: foodImages.salgado },
+     { id: 72, name: 'Pão de Queijo', price: 1.60, image: foodImages.paodequeijo },
      { id: 73, name: 'Pastel de Nata', price: 1.30, image: foodImages.salgado },
      { id: 74, name: 'Empada de Frango', price: 2.00, image: foodImages.salgado },
      { id: 75, name: 'Kibe', price: 2.20, image: foodImages.kibe },
@@ -186,19 +190,19 @@ export const menu = {
      { id: 81, name: 'Hamburgão', price: 3.50, image: foodImages.salgado }
    ],
    sobremesas: [
-     { id: 82, name: 'Bolo no Pote - Prestígio', description: 'Chocolate com coco', price: 4.00, image: foodImages.sobremesa },
-     { id: 83, name: 'Bolo no Pote - Chocolate', description: 'Massa de chocolate com recheio de chocolate', price: 4.00, image: foodImages.sobremesa },
-     { id: 84, name: 'Bolo no Pote - Ananás', description: 'Creme de ninho com pedaços de ananás', price: 4.00, image: foodImages.sobremesa },
-     { id: 85, name: 'Bolo no Pote - Choco Misto', description: 'Chocolate preto com ninho', price: 4.00, image: foodImages.sobremesa },
-     { id: 86, name: 'Cheesecake - Goiabada', price: 3.50, image: foodImages.sobremesa },
-     { id: 87, name: 'Cheesecake - Frutos Vermelhos', price: 3.50, image: foodImages.sobremesa },
-     { id: 88, name: 'Brigadeiro Tradicional', price: 1.50, image: foodImages.sobremesa },
-     { id: 89, name: 'Brigadeiro Beijinho', price: 1.50, image: foodImages.sobremesa },
-     { id: 90, name: 'Brigadeiro Ninho', price: 2.00, image: foodImages.sobremesa },
-     { id: 91, name: 'Brigadeiro Paçoca', price: 2.00, image: foodImages.sobremesa },
-     { id: 92, name: 'Brigadeiro Morango', price: 2.00, image: foodImages.sobremesa },
-     { id: 93, name: 'Brigadeiro Churros', price: 2.00, image: foodImages.sobremesa },
-     { id: 94, name: 'Tarte de Toblerone', price: 2.20, image: foodImages.sobremesa },
-     { id: 95, name: 'Bolo de Brigadeiro (fatia)', price: 2.20, image: foodImages.sobremesa }
+     { id: 82, name: 'Bolo no Pote - Prestígio', description: 'Chocolate com coco', price: 4.00, image: foodImages.doces },
+     { id: 83, name: 'Bolo no Pote - Chocolate', description: 'Massa de chocolate com recheio de chocolate', price: 4.00, image: foodImages.doces },
+     { id: 84, name: 'Bolo no Pote - Ananás', description: 'Creme de ninho com pedaços de ananás', price: 4.00, image: foodImages.doces },
+     { id: 85, name: 'Bolo no Pote - Choco Misto', description: 'Chocolate preto com ninho', price: 4.00, image: foodImages.doces },
+     { id: 86, name: 'Cheesecake - Goiabada', price: 3.50, image: foodImages.doces},
+     { id: 87, name: 'Cheesecake - Frutos Vermelhos', price: 3.50, image: foodImages.doces },
+     { id: 88, name: 'Brigadeiro Tradicional', price: 1.50, image: foodImages.doces },
+     { id: 89, name: 'Brigadeiro Beijinho', price: 1.50, image: foodImages.doces},
+     { id: 90, name: 'Brigadeiro Ninho', price: 2.00, image: foodImages.doces},
+     { id: 91, name: 'Brigadeiro Paçoca', price: 2.00, image: foodImages.doces},
+     { id: 92, name: 'Brigadeiro Morango', price: 2.00, image: foodImages.doces},
+     { id: 93, name: 'Brigadeiro Churros', price: 2.00, image: foodImages.doces },
+     { id: 94, name: 'Tarte de Toblerone', price: 2.20, image: foodImages.doces },
+     { id: 95, name: 'Bolo de Brigadeiro (fatia)', price: 2.20, image: foodImages.doces }
    ]
  };
