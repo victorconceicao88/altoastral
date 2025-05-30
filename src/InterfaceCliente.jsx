@@ -302,11 +302,11 @@ const InterfaceCliente = () => {
   const [isMobile, setIsMobile] = useState(false);
   const [selectedOrderForWhatsApp, setSelectedOrderForWhatsApp] = useState(null);
   const currentHour = new Date().getHours();
-  const isMenuClosed = currentHour >= 15;
+  const isMenuClosed = currentHour >= 15; // Fecha após 15h
 
   useEffect(() => {
     const checkMobile = () => {
-      setIsMobile(window.innerWidth < 768);
+      setIsMobile(/iPhone|iPad|iPod|Android|webOS|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent));
     };
     checkMobile();
     window.addEventListener('resize', checkMobile);
@@ -586,7 +586,7 @@ const InterfaceCliente = () => {
                           <img 
                             src={item.image} 
                             alt={item.name}
-                            className="w-full h-full object-contain"
+                            className="w-full h-full object-cover"
                             onError={(e) => { e.target.onerror = null; e.target.src = cafe }}
                           />
                           <div className="absolute inset-0 bg-black/5"></div>
@@ -596,7 +596,7 @@ const InterfaceCliente = () => {
                           <div className="flex justify-between items-start">
                             <div>
                               <h4 className="font-medium text-sm md:text-base text-gray-800">{item.name}</h4>
-                              <p className="text-xs text-gray-500 mt-1 line-clamp-2">{item.description}</p>
+                              <p className="text-xs md:text-sm text-gray-500 mt-1 line-clamp-2">{item.description}</p>
                             </div>
                             <span className="font-medium text-sm md:text-base text-gray-800 ml-2 md:ml-4 whitespace-nowrap">
                               €{(item.price * item.quantity).toFixed(2)}
@@ -931,7 +931,7 @@ const InterfaceCliente = () => {
                 <div className="space-y-4">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Nome *</label>
+                      <label className="block text-xs md:text-sm font-medium text-gray-700 mb-1 md:mb-2">Nome *</label>
                       <div className="relative">
                         <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                           <FiUser className="text-gray-400" />
@@ -940,19 +940,19 @@ const InterfaceCliente = () => {
                           type="text"
                           value={customerInfo.name}
                           onChange={(e) => setCustomerInfo({...customerInfo, name: e.target.value})}
-                          className="w-full pl-10 p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#b0aca6] focus:border-[#b0aca6] text-base"
+                          className="w-full pl-10 p-2 md:p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#b0aca6] focus:border-[#b0aca6] text-sm md:text-base"
                           required
                           placeholder="Seu nome"
                         />
                       </div>
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Sobrenome *</label>
+                      <label className="block text-xs md:text-sm font-medium text-gray-700 mb-1 md:mb-2">Sobrenome *</label>
                       <input
                         type="text"
                         value={customerInfo.surname}
                         onChange={(e) => setCustomerInfo({...customerInfo, surname: e.target.value})}
-                        className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#b0aca6] focus:border-[#b0aca6] text-base"
+                        className="w-full p-2 md:p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#b0aca6] focus:border-[#b0aca6] text-sm md:text-base"
                         required
                         placeholder="Seu sobrenome"
                       />
@@ -960,7 +960,7 @@ const InterfaceCliente = () => {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Telemóvel *</label>
+                    <label className="block text-xs md:text-sm font-medium text-gray-700 mb-1 md:mb-2">Telemóvel *</label>
                     <div className="relative">
                       <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                         <FiPhone className="text-gray-400" />
@@ -969,7 +969,7 @@ const InterfaceCliente = () => {
                         type="tel"
                         value={customerInfo.phone}
                         onChange={(e) => setCustomerInfo({...customerInfo, phone: e.target.value})}
-                        className="w-full pl-10 p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#b0aca6] focus:border-[#b0aca6] text-base"
+                        className="w-full pl-10 p-2 md:p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#b0aca6] focus:border-[#b0aca6] text-sm md:text-base"
                         required
                         placeholder="Seu número de telefone"
                       />
@@ -980,7 +980,7 @@ const InterfaceCliente = () => {
                     <>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-2">Código Postal *</label>
+                          <label className="block text-xs md:text-sm font-medium text-gray-700 mb-1 md:mb-2">Código Postal *</label>
                           <div className="relative">
                             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                               <FiMapPin className="text-gray-400" />
@@ -989,19 +989,19 @@ const InterfaceCliente = () => {
                               type="text"
                               value={customerInfo.postalCode}
                               onChange={(e) => setCustomerInfo({...customerInfo, postalCode: e.target.value})}
-                              className="w-full pl-10 p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#b0aca6] focus:border-[#b0aca6] text-base"
+                              className="w-full pl-10 p-2 md:p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#b0aca6] focus:border-[#b0aca6] text-sm md:text-base"
                               required
                               placeholder="Ex: 8500-826"
                             />
                           </div>
                         </div>
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-2">Localidade *</label>
+                          <label className="block text-xs md:text-sm font-medium text-gray-700 mb-1 md:mb-2">Localidade *</label>
                           <input
                             type="text"
                             value={customerInfo.city}
                             onChange={(e) => setCustomerInfo({...customerInfo, city: e.target.value})}
-                            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#b0aca6] focus:border-[#b0aca6] text-base"
+                            className="w-full p-2 md:p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#b0aca6] focus:border-[#b0aca6] text-sm md:text-base"
                             required
                             placeholder="Sua cidade"
                           />
@@ -1009,7 +1009,7 @@ const InterfaceCliente = () => {
                       </div>
 
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Endereço Completo *</label>
+                        <label className="block text-xs md:text-sm font-medium text-gray-700 mb-1 md:mb-2">Endereço Completo *</label>
                         <div className="relative">
                           <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                             <FiMapPin className="text-gray-400" />
@@ -1018,7 +1018,7 @@ const InterfaceCliente = () => {
                             type="text"
                             value={customerInfo.address}
                             onChange={(e) => setCustomerInfo({...customerInfo, address: e.target.value})}
-                            className="w-full pl-10 p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#b0aca6] focus:border-[#b0aca6] text-base"
+                            className="w-full pl-10 p-2 md:p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#b0aca6] focus:border-[#b0aca6] text-sm md:text-base"
                             required
                             placeholder="Rua, número, bairro, apartamento"
                           />
@@ -1110,7 +1110,7 @@ const InterfaceCliente = () => {
                     transition={{ duration: 0.3 }}
                     className="mt-3 md:mt-4"
                   >
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Troco para quanto? *</label>
+                    <label className="block text-xs md:text-sm font-medium text-gray-700 mb-1 md:mb-2">Troco para quanto? *</label>
                     <div className="relative">
                       <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                         <span className="text-gray-500">€</span>
@@ -1121,7 +1121,7 @@ const InterfaceCliente = () => {
                         min={calculateTotal()}
                         value={customerInfo.changeFor}
                         onChange={(e) => setCustomerInfo({...customerInfo, changeFor: e.target.value})}
-                        className="w-full pl-10 p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#b0aca6] focus:border-[#b0aca6] text-base"
+                        className="w-full pl-10 p-2 md:p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#b0aca6] focus:border-[#b0aca6] text-sm md:text-base"
                         required
                         placeholder="Valor que irá pagar"
                       />
@@ -1138,15 +1138,15 @@ const InterfaceCliente = () => {
               className="bg-white rounded-xl shadow-sm border border-gray-200 mb-4 md:mb-6"
             >
               <div className="p-4 md:p-6">
-                <label className="block text-sm font-medium text-gray-700 mb-2">Observações</label>
+                <label className="block text-xs md:text-sm font-medium text-gray-700 mb-1 md:mb-2">Observações</label>
                 <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3 pt-3 pointer-events-none">
+                  <div className="absolute inset-y-0 left-0 pl-3 pt-2 md:pt-3 pointer-events-none">
                     <FiEdit2 className="text-gray-400" />
                   </div>
                   <textarea
                     value={customerInfo.notes}
                     onChange={(e) => setCustomerInfo({...customerInfo, notes: e.target.value})}
-                    className="w-full pl-10 p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#b0aca6] focus:border-[#b0aca6] text-base"
+                    className="w-full pl-10 p-2 md:p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#b0aca6] focus:border-[#b0aca6] text-sm md:text-base"
                     rows="3"
                     placeholder="Alguma observação sobre seu pedido?"
                   />
@@ -1370,8 +1370,8 @@ const InterfaceCliente = () => {
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
                     onClick={() => setActiveTab(tab)}
-                    disabled={tab === 'semana' && isMenuClosed}
-                    className={`px-3 py-2 rounded-lg whitespace-nowrap flex items-center transition border font-medium md:font-bold text-sm ${
+                    disabled={tab === 'semana' && isMenuClosed} // Desativa se for "semana" e após 15h
+                    className={`px-3 py-2 rounded-lg whitespace-nowrap flex items-center transition border font-medium md:font-bold text-xs md:text-sm ${
                       activeTab === tab
                         ? 'border-[#e6be44] bg-[#b0aca6] text-black'
                         : 'border-gray-200 bg-[#918e89] text-[#FFFAF1]'
@@ -1453,7 +1453,7 @@ const InterfaceCliente = () => {
                     </p>
                     <p className="text-sm text-gray-500 mt-1">
                       {currentHour >= 15 
-                        ? "Aproveite o nosso cardápio regular!" 
+                        ? "Aproveite nosso cardápio regular!" 
                         : "Volte mais tarde!"
                       }
                     </p>
@@ -1576,7 +1576,7 @@ const InterfaceCliente = () => {
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
             onClick={proceedToCheckout}
-            className="w-full bg-[#b0aca6] text-[#e6be44] font-bold py-2 md:py-3 rounded-lg flex items-center justify-center text-sm md:text-base"
+            className="w-full bg-[#b0aca6] text-[#e6be44] py-2 md:py-3 rounded-lg flex items-center justify-center text-sm md:text-base"
           >
             <FiShoppingCart className="mr-2" />
             Ver Carrinho ({cart.reduce((sum, item) => sum + item.quantity, 0)})
