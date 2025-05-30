@@ -471,49 +471,88 @@ const AdminPanel = () => {
     }
   };
 
-  const formatOrderForPrint = (order) => {
-    const customer = normalizeCustomerData(order.customer);
-    
-    const ESC = '\x1B';
-    const CENTER = `${ESC}a1`;
-    const BOLD_ON = `${ESC}!${String.fromCharCode(8)}`;
-    const BOLD_OFF = `${ESC}!${String.fromCharCode(0)}`;
-    const LINE = '--------------------------------\n';
-    
-    let receipt = `${ESC}@${CENTER}${BOLD_ON}ALTO ASTRAL${BOLD_OFF}\n`;
-    receipt += `${CENTER}${order.orderType === 'delivery' ? 'ENTREGA' : 'RETIRADA'}\n\n`;
-    
-    receipt += `${BOLD_ON}CLIENTE:${BOLD_OFF} ${customer.name}\n`;
-    receipt += `${BOLD_ON}TEL:${BOLD_OFF} ${customer.phone || 'Não informado'}\n`;
-
-    if (order.orderType === 'delivery') {
-      receipt += `${BOLD_ON}ENDEREÇO:${BOLD_OFF}\n`;
-      receipt += `${customer.address.street}, ${customer.address.number}\n`;
-      receipt += `${customer.address.complement ? `${customer.address.complement}\n` : ''}`;
-      receipt += `${customer.address.neighborhood}\n`;
-      receipt += `${customer.address.city} - ${customer.address.postalCode}\n`;
-    }
-
-    receipt += `${BOLD_ON}PAGAMENTO:${BOLD_OFF} ${customer.paymentMethod || 'Não informado'}\n`;
-    
-    if (customer.notes) {
-      receipt += `${BOLD_ON}OBS:${BOLD_OFF} ${customer.notes}\n`;
-    }
-
-    receipt += `${LINE}\n${BOLD_ON}ITENS:${BOLD_OFF}\n`;
-
-    (order.items || []).forEach(item => {
-      receipt += `${item.quantity}x ${item.name || 'Produto'}\n`;
-      if (item.notes) receipt += `  OBS: ${item.notes}\n`;
-    });
-
-    receipt += `${LINE}\n`;
-    receipt += `${BOLD_ON}TOTAL:${BOLD_OFF} €${order.total?.toFixed(2) || '0.00'}\n\n`;
-    receipt += `${CENTER}${new Date().toLocaleTimeString('pt-BR')}\n`;
-    receipt += `${CENTER}Obrigado!\n`;
-
-    return receipt;
+const formatOrderForPrint = (order) => {
+  const customer = normalizeCustomerData(order.customer);
+  
+  const ESC = '\x1B';
+  const CENTER = `${ESC}a1`;
+  const BOLD_ON = `${ESC}!${String.fromCharCode(8)}`;
+  const BOLD_OFF = `${ESC}!${String.fromCharCode(0)}`;
+  const DOUBLE_HEIGHT = `${ESC}!${String.fromCharCode(16)}`;
+  const NORMAL_HEIGHT = `${ESC}!${String.fromCharCode(0)}`;
+  const LINE = '================================\n';
+  const THIN_LINE = '--------------------------------\n';
+  
+  // Função para sanitizar texto removendo caracteres especiais
+  const sanitizeText = (text) => {
+    if (!text) return '';
+    return text.toString().replace(/[^\x20-\x7E]/g, '');
   };
+
+  let receipt = '';
+  
+  // Cabeçalho
+  receipt += `${ESC}@`; // Reset printer
+  receipt += `${CENTER}${DOUBLE_HEIGHT}${BOLD_ON}ALTO ASTRAL${BOLD_OFF}${NORMAL_HEIGHT}\n`;
+  receipt += `${CENTER}${BOLD_ON}${order.orderType === 'delivery' ? 'ENTREGA' : 'RETIRADA'}${BOLD_OFF}\n`;
+  receipt += `${CENTER}${THIN_LINE}`;
+  
+  // Informações do pedido
+  receipt += `${BOLD_ON}Pedido #:${BOLD_OFF} ${order.id?.slice(0, 8) || ''}\n`;
+  receipt += `${BOLD_ON}Data:${BOLD_OFF} ${new Date().toLocaleString('pt-BR')}\n`;
+  receipt += `${LINE}`;
+  
+  // Informações do cliente
+  receipt += `${BOLD_ON}CLIENTE${BOLD_OFF}\n`;
+  receipt += `${sanitizeText(customer.name)}\n`;
+  receipt += `Tel: ${sanitizeText(customer.phone || 'Não informado')}\n`;
+  
+  if (order.orderType === 'delivery') {
+    receipt += `\n${BOLD_ON}ENDEREÇO${BOLD_OFF}\n`;
+    receipt += `${sanitizeText(customer.address.street)}, ${sanitizeText(customer.address.number)}\n`;
+    if (customer.address.complement) {
+      receipt += `Complemento: ${sanitizeText(customer.address.complement)}\n`;
+    }
+    receipt += `${sanitizeText(customer.address.neighborhood)}\n`;
+    receipt += `${sanitizeText(customer.address.city)} - ${sanitizeText(customer.address.postalCode)}\n`;
+  }
+  
+  receipt += `\n${BOLD_ON}PAGAMENTO${BOLD_OFF}\n`;
+  receipt += `${sanitizeText(customer.paymentMethod || 'Não informado')}\n`;
+  
+  if (customer.notes) {
+    receipt += `\n${BOLD_ON}OBSERVAÇÕES${BOLD_OFF}\n`;
+    receipt += `${sanitizeText(customer.notes)}\n`;
+  }
+  
+  receipt += `${LINE}`;
+  
+  // Itens do pedido
+  receipt += `${CENTER}${BOLD_ON}ITENS DO PEDIDO${BOLD_OFF}\n\n`;
+  
+  (order.items || []).forEach(item => {
+    receipt += `${item.quantity}x ${sanitizeText(item.name || 'Produto')}\n`;
+    receipt += `  ${BOLD_ON}€${(item.price * item.quantity).toFixed(2)}${BOLD_OFF}\n`;
+    if (item.notes) {
+      receipt += `  OBS: ${sanitizeText(item.notes)}\n`;
+    }
+    receipt += `${THIN_LINE}`;
+  });
+  
+  // Total
+  receipt += `\n${BOLD_ON}TOTAL: €${order.total?.toFixed(2) || '0.00'}${BOLD_OFF}\n`;
+  
+  // Rodapé
+  receipt += `${LINE}`;
+  receipt += `${CENTER}Obrigado pela preferência!\n`;
+  receipt += `${CENTER}${new Date().toLocaleTimeString('pt-BR')}\n\n\n\n`;
+  
+  // Comandos para cortar papel (se a impressora suportar)
+  receipt += `${ESC}d3`; // Avança 3 linhas
+  receipt += `${ESC}i`; // Corta papel (em algumas impressoras)
+  
+  return receipt;
+};
 
   const connectToPrinter = async () => {
     try {

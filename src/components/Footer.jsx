@@ -68,20 +68,22 @@ const UltraFooter = () => {
 
   return (
     <footer className="bg-[#918e89] text-white relative overflow-hidden">
-      <div className="w-full h-16 md:h-24 lg:h-32 -mt-px overflow-hidden">
+      {/* Wave pattern top */}
+      <div className="w-full h-12 sm:h-16 md:h-20 lg:h-24 xl:h-28 -mt-px overflow-hidden">
         <img 
           src={WavePattern} 
           alt=""
-          className="w-full h-full object-cover object-bottom scale-105"
-          style={{ transform: 'scaleX(1.05) translateY(1px)' }}
+          className="w-full h-full object-cover object-bottom"
+          style={{ transform: 'scale(1.05) translateY(1px)' }}
         />
       </div>
 
-      <div className="pt-8 md:pt-12 lg:pt-16"></div>
+      <div className="pt-6 sm:pt-8 md:pt-10 lg:pt-12 xl:pt-16"></div>
 
-      <div className="container mx-auto px-4 sm:px-6 pb-8 md:pb-12">
+      <div className="container mx-auto px-4 sm:px-6 pb-6 sm:pb-8 md:pb-10 lg:pb-12">
+        {/* Events slider */}
         <div 
-          className="relative rounded-xl md:rounded-2xl mb-10 md:mb-16 mx-2 sm:mx-0 shadow-2xl overflow-hidden border border-[#b8b4ae]/20"
+          className="relative rounded-lg sm:rounded-xl md:rounded-2xl mb-8 sm:mb-10 md:mb-12 lg:mb-16 mx-2 sm:mx-0 shadow-lg sm:shadow-xl md:shadow-2xl overflow-hidden border border-[#b8b4ae]/20"
           onMouseEnter={() => setIsHovering(true)}
           onMouseLeave={() => setIsHovering(false)}
         >
@@ -107,17 +109,17 @@ const UltraFooter = () => {
             </AnimatePresence>
           </div>
 
-          <div className="relative z-10 p-6 md:p-8 lg:p-12">
-            <div className="flex flex-col lg:flex-row items-start justify-between gap-8">
-              <div className="flex-1 space-y-6">
+          <div className="relative z-10 p-4 sm:p-6 md:p-8 lg:p-10 xl:p-12">
+            <div className="flex flex-col lg:flex-row items-start justify-between gap-4 sm:gap-6 md:gap-8">
+              <div className="flex-1 space-y-4 sm:space-y-6">
                 <motion.div
                   initial={{ y: 20, opacity: 0 }}
                   animate={{ y: 0, opacity: 1 }}
                   transition={{ delay: 0.2, duration: 1 }}
                 >
-                  <div className="inline-flex items-center text-[#d5c8b6] px-4 py-2 rounded-full border border-[#d5c8b6]/50 mb-4">
-                    <FiCalendar className="text-xl text-[#d5c8b6] mr-2" />
-                    <span className="font-sans-serif text-[#d5c8b6] font-medium">Eventos Exclusivos</span>
+                  <div className="inline-flex items-center text-[#d5c8b6] px-3 py-1 sm:px-4 sm:py-2 rounded-full border border-[#d5c8b6]/50 mb-2 sm:mb-3 md:mb-4">
+                    <FiCalendar className="text-lg sm:text-xl text-[#d5c8b6] mr-2" />
+                    <span className="font-sans-serif text-[#d5c8b6] text-sm sm:text-base font-medium">Eventos Exclusivos</span>
                   </div>
                 </motion.div>
 
@@ -129,7 +131,7 @@ const UltraFooter = () => {
                     exit={{ y: -20, opacity: 0 }}
                     transition={{ duration: 1.2 }}
                   >
-                    <h3 className="text-2xl md:text-4xl lg:text-5xl font-bold font-sans-serif text-[#fffaf1] leading-tight">
+                    <h3 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl font-bold font-sans-serif text-[#fffaf1] leading-tight">
                       {events[activeEvent].title}
                     </h3>
                   </motion.div>
@@ -143,13 +145,13 @@ const UltraFooter = () => {
                     exit={{ y: -20, opacity: 0 }}
                     transition={{ duration: 1.4, delay: 0.2 }}
                   >
-                    <p className="text-lg md:text-xl text-[#fffaf1] mt-2 md:mt-4 max-w-2xl">
+                    <p className="text-base sm:text-lg md:text-xl text-[#fffaf1] mt-1 sm:mt-2 md:mt-3 lg:mt-4 max-w-2xl">
                       {events[activeEvent].description}
                     </p>
                   </motion.div>
                 </AnimatePresence>
 
-                <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="mt-4 sm:mt-5 md:mt-6 grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3">
                   <AnimatePresence>
                     {events[activeEvent].features.map((feature, index) => (
                       <motion.div
@@ -157,46 +159,47 @@ const UltraFooter = () => {
                         initial={{ x: -20, opacity: 0 }}
                         animate={{ x: 0, opacity: 1 }}
                         transition={{ duration: 0.8, delay: 0.4 + index * 0.2 }}
-                        className="flex items-center"
+                        className="flex items-start sm:items-center"
                       >
-                        <div className="bg-[#d5c8b6]/40 p-1 rounded-full mr-3">
-                          <FiCheck className="text-[#d5c8b6] text-sm" />
+                        <div className="bg-[#d5c8b6]/40 p-1 rounded-full mr-2 sm:mr-3 mt-0.5 sm:mt-0">
+                          <FiCheck className="text-[#d5c8b6] text-xs sm:text-sm" />
                         </div>
-                        <span className="text-[[#fffaf1]] text-sm md:text-base">{feature}</span>
+                        <span className="text-[#fffaf1] text-xs sm:text-sm md:text-base">{feature}</span>
                       </motion.div>
                     ))}
                   </AnimatePresence>
                 </div>
               </div>
 
-              <div className="w-full lg:w-auto flex flex-col items-start lg:items-end space-y-6">
-                <div className="flex space-x-2">
+              <div className="w-full lg:w-auto flex flex-col items-start lg:items-end space-y-4 sm:space-y-5 md:space-y-6 mt-4 sm:mt-0">
+                <div className="flex space-x-2 self-center lg:self-auto">
                   {events.map((_, index) => (
                     <button
                       key={index}
                       onClick={() => setActiveEvent(index)}
-                      className={`w-3 h-3 rounded-full transition-all ${activeEvent === index ? 'bg-[#d5c8b6] w-6' : 'bg-white/30'}`}
+                      className={`w-2 h-2 sm:w-3 sm:h-3 rounded-full transition-all ${activeEvent === index ? 'bg-[#d5c8b6] w-4 sm:w-6' : 'bg-white/30'}`}
                       aria-label={`Mostrar evento ${index + 1}`}
                     />
                   ))}
                 </div>
 
                 <motion.div
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                    transition={{ type: "spring", stiffness: 400, damping: 10 }}
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  transition={{ type: "spring", stiffness: 400, damping: 10 }}
+                  className="w-full sm:w-auto"
+                >
+                  <a
+                    href="https://wa.me/351282038830?text=Ol%C3%A1%2C%20gostaria%20de%20obter%20mais%20informa%C3%A7%C3%B5es%20sobre%20os%20eventos."
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="bg-[#d5c8b6] text-black px-6 sm:px-8 md:px-10 py-3 sm:py-4 md:py-5 rounded-lg sm:rounded-xl font-bold flex items-center justify-center sm:justify-start transition-all duration-300 shadow-md sm:shadow-lg group w-full"
                   >
-                    <a
-                      href="https://wa.me/351282038830?text=Ol%C3%A1%2C%20gostaria%20de%20obter%20mais%20informa%C3%A7%C3%B5es%20sobre%20os%20eventos."
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="bg-[#d5c8b6] text-black px-8 md:px-10 py-4 md:py-5 rounded-xl font-bold flex items-center transition-all duration-300 shadow-lg group"
-                    >
-                      <span className="font-sans-serif md:text-lg font- mr-3">Saber Mais</span>
-                      <FiArrowRight className="text-black transition-transform group-hover:translate-x-1" />
-                    </a>
-                  </motion.div>
-                <p className=" font-sans-serif text-[#fffaf1]/80 text-sm md:text-base text-right hidden lg:block">
+                    <span className="font-sans-serif text-sm sm:text-base md:text-lg mr-2 sm:mr-3">Saber Mais</span>
+                    <FiArrowRight className="text-black transition-transform group-hover:translate-x-1" />
+                  </a>
+                </motion.div>
+                <p className="font-sans-serif text-[#fffaf1]/80 text-xs sm:text-sm md:text-base text-center lg:text-right hidden sm:block">
                   Entre em contato para orçamentos personalizados
                 </p>
               </div>
@@ -205,85 +208,85 @@ const UltraFooter = () => {
         </div>
 
         {/* Grid responsivo */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 md:gap-10 lg:gap-12 text-[#fffaf1] px-2 sm:px-0">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8 md:gap-10 lg:gap-12 text-[#fffaf1] px-2 sm:px-0">
           {/* Branding e contato */}
-          <div className="space-y-6 md:space-y-8">
-            <div className="text-center md:text-left">
-              <h3 className=" font-sans-serif text-3xl md:text-4xl font-bold  tracking-tight text-[[#fffaf1]]">Alto Astral</h3>
-              <p className="font-sans-serif text-[#d1cfcc] text-base md:text-lg mt-1 md:mt-2">Experiências Gastronômicas Memoráveis</p>
+          <div className="space-y-4 sm:space-y-5 md:space-y-6 lg:space-y-8 order-1">
+            <div className="text-center sm:text-left">
+              <h3 className="font-sans-serif text-2xl sm:text-3xl md:text-4xl font-bold tracking-tight text-[#fffaf1]">Alto Astral</h3>
+              <p className="font-sans-serif text-[#d1cfcc] text-sm sm:text-base md:text-lg mt-1 sm:mt-2">Experiências Gastronômicas Memoráveis</p>
             </div>
             
-            <div className="space-y-4 md:space-y-5">
-              <div className="flex flex-col sm:flex-row items-center sm:items-start text-center sm:text-left gap-3">
-                <div className="bg-[#f4df86]/20 p-2 rounded-lg flex-shrink-0">
-                  <FiMapPin className="text-xl text-[#f4df86]" />
+            <div className="space-y-3 sm:space-y-4 md:space-y-5">
+              <div className="flex flex-col sm:flex-row items-center sm:items-start text-center sm:text-left gap-2 sm:gap-3">
+                <div className="bg-[#f4df86]/20 p-1.5 sm:p-2 rounded-lg flex-shrink-0">
+                  <FiMapPin className="text-lg sm:text-xl text-[#f4df86]" />
                 </div>
                 <a 
                   href="https://www.google.com/maps?q=Rua+Agostinho+Da+Silva+Lote+20,+Loja+2,+8500-826+Portimão,+Portugal,+Urb.+Horta+De+São+Pedro" 
                   target="_blank" 
                   rel="noopener noreferrer"
-                  className="font-sans-serif text-[[#fffaf1]] leading-relaxed hover:text-white transition-colors"
+                  className="font-sans-serif text-[#fffaf1] text-sm sm:text-base leading-relaxed hover:text-white transition-colors"
                 >
                   Rua Agostinho Da Silva Lote 20, Loja 2<br />
                   8500-826 Portimão, Portugal<br />
                   Urb. Horta De São Pedro
                 </a>
               </div>
-              <div className="flex items-center justify-center sm:justify-start gap-3">
-                <div className="bg-[#f4df86]/20 p-2 rounded-lg">
-                  <FiPhone className="text-xl text-[#f4df86]" />
+              <div className="flex items-center justify-center sm:justify-start gap-2 sm:gap-3">
+                <div className="bg-[#f4df86]/20 p-1.5 sm:p-2 rounded-lg">
+                  <FiPhone className="text-lg sm:text-xl text-[#f4df86]" />
                 </div>
-                <a href="tel:+351282038830" className="hover:text-white transition-colors text-base md:text-lg">(+351) 282 038 830</a>
+                <a href="tel:+351282038830" className="hover:text-white transition-colors text-sm sm:text-base md:text-lg">(+351) 282 038 830</a>
               </div>
             </div>
           </div>
 
           {/* Horário - centralizado em mobile */}
-          <div className="flex justify-center">
-            <div className="bg-[#a09b94]/90 border border-[#b8b4ae]/30 rounded-xl md:rounded-2xl p-6 md:p-8 w-full max-w-xs shadow-xl">
-              <div className="bg-[#f4df86]/20 w-16 h-16 md:w-20 md:h-20 rounded-xl md:rounded-2xl flex items-center justify-center mx-auto mb-4 md:mb-6 border border-[#f4df86]/30">
-                <FiClock className="text-2xl md:text-3xl text-[#f4df86]" />
+          <div className="flex justify-center order-3 lg:order-2">
+            <div className="bg-[#a09b94]/90 border border-[#b8b4ae]/30 rounded-lg sm:rounded-xl md:rounded-2xl p-4 sm:p-5 md:p-6 lg:p-8 w-full max-w-xs sm:max-w-sm shadow-lg sm:shadow-xl">
+              <div className="bg-[#f4df86]/20 w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 lg:w-20 lg:h-20 rounded-lg sm:rounded-xl md:rounded-2xl flex items-center justify-center mx-auto mb-3 sm:mb-4 md:mb-5 lg:mb-6 border border-[#f4df86]/30">
+                <FiClock className="text-xl sm:text-2xl md:text-3xl text-[#f4df86]" />
               </div>
-              <h4 className="text-xl md:text-2xl font-sans-serif font-semibold mb-3 md:mb-4 text-center text-[#f8f5f0]">Horário</h4>
-              <div className="text-center space-y-1 md:space-y-2">
-                <p className="font-sans-serif font-medium text-base md:text-lg">8:30 - 20:00</p>
-                <p className=" font-sans-serif text-[#d1cfcc] text-sm md:text-base">Segunda a Sábado</p>
+              <h4 className="text-lg sm:text-xl md:text-2xl font-sans-serif font-semibold mb-2 sm:mb-3 md:mb-4 text-center text-[#f8f5f0]">Horário</h4>
+              <div className="text-center space-y-1 sm:space-y-2">
+                <p className="font-sans-serif font-medium text-sm sm:text-base md:text-lg">8:30 - 20:00</p>
+                <p className="font-sans-serif text-[#d1cfcc] text-xs sm:text-sm md:text-base">Segunda a Sábado</p>
               </div>
             </div>
           </div>
 
           {/* Redes sociais */}
-          <div className="space-y-6 md:space-y-8">
-            <h4 className="text-lg md:text-xl font-semibold uppercase tracking-wider border-b border-[#b8b4ae]/40 pb-2 md:pb-3 text-center md:text-left text-[#fffaf1]">Conecte-se</h4>
-            <div className="flex justify-center md:justify-start gap-4 md:gap-5">
-                <motion.a 
+          <div className="space-y-4 sm:space-y-5 md:space-y-6 lg:space-y-8 order-2 lg:order-3">
+            <h4 className="text-base sm:text-lg md:text-xl font-semibold uppercase tracking-wider border-b border-[#b8b4ae]/40 pb-2 sm:pb-3 text-center sm:text-left text-[#fffaf1]">Conecte-se</h4>
+            <div className="flex justify-center sm:justify-start gap-3 sm:gap-4 md:gap-5">
+              <motion.a 
                 href="https://www.instagram.com/altoastralsnackbar?igsh=MXUzMHVmamx6MDFvbA==" 
                 whileHover={{ y: -3 }}
-                className="bg-gradient-to-br from-[#f09433] to-[#bc1888] w-10 h-10 md:w-12 md:h-12 rounded-lg md:rounded-xl flex items-center justify-center text-white shadow-lg hover:shadow-xl transition-all"
+                className="bg-gradient-to-br from-[#f09433] to-[#bc1888] w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 rounded-md sm:rounded-lg md:rounded-xl flex items-center justify-center text-white shadow-md sm:shadow-lg hover:shadow-xl transition-all"
                 target="_blank"
                 rel="noopener noreferrer"
               >
-                <FiInstagram className="text-xl md:text-2xl" />
+                <FiInstagram className="text-lg sm:text-xl md:text-2xl" />
               </motion.a>
 
               <motion.a 
                 href="https://www.facebook.com/p/Alto-Astral-Snack-Bar-100083351294242/" 
                 whileHover={{ y: -3 }}
-                className="bg-[#3b5998] w-10 h-10 md:w-12 md:h-12 rounded-lg md:rounded-xl flex items-center justify-center text-white shadow-lg hover:shadow-xl transition-all"
+                className="bg-[#3b5998] w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 rounded-md sm:rounded-lg md:rounded-xl flex items-center justify-center text-white shadow-md sm:shadow-lg hover:shadow-xl transition-all"
                 target='_blank'
               >
-                <FiFacebook className="text-xl md:text-2xl" />
+                <FiFacebook className="text-lg sm:text-xl md:text-2xl" />
               </motion.a>
             </div>
 
             {!isLoggedIn && (
-              <div className="pt-4 md:pt-6 flex justify-center md:justify-start">
+              <div className="pt-3 sm:pt-4 md:pt-5 lg:pt-6 flex justify-center sm:justify-start">
                 <Link
                   to="/login"
-                  className="inline-flex items-center border-2 border-[#b8b4ae]/40 hover:border-[#f4df86] px-4 py-2 md:px-6 md:py-3 rounded-lg md:rounded-xl hover:text-[#f4df86] transition-all duration-300 group bg-[#a09b94]/20"
+                  className="inline-flex items-center border-2 border-[#b8b4ae]/40 hover:border-[#f4df86] px-3 py-1.5 sm:px-4 sm:py-2 md:px-5 md:py-2.5 lg:px-6 lg:py-3 rounded-md sm:rounded-lg md:rounded-xl hover:text-[#f4df86] transition-all duration-300 group bg-[#a09b94]/20"
                 >
-                  <FiLock className="mr-2 md:mr-3 text-lg md:text-xl" />
-                  <span className="font-medium text-sm md:text-base">Acesso Exclusivo</span>
+                  <FiLock className="mr-2 text-base sm:text-lg md:text-xl" />
+                  <span className="font-medium text-xs sm:text-sm md:text-base">Acesso Exclusivo</span>
                 </Link>
               </div>
             )}
@@ -291,9 +294,9 @@ const UltraFooter = () => {
         </div>
 
         {/* Rodapé inferior */}
-        <div className="border-t border-[#b8b4ae]/30 mt-12 md:mt-16 pt-6 md:pt-8">
-          <div className="flex flex-col md:flex-row justify-between items-center gap-4">
-            <p className="text-[#d1cfcc] text-sm md:text-base text-center md:text-left">
+        <div className="border-t border-[#b8b4ae]/30 mt-8 sm:mt-10 md:mt-12 lg:mt-14 xl:mt-16 pt-4 sm:pt-5 md:pt-6 lg:pt-7 xl:pt-8">
+          <div className="flex flex-col sm:flex-row justify-between items-center gap-2 sm:gap-3 md:gap-4">
+            <p className="text-[#d1cfcc] text-xs sm:text-sm md:text-base text-center sm:text-left">
               © {new Date().getFullYear()} <span className="text-[#fffaf1]">Alto Astral</span>. Todos os direitos reservados.
             </p>
           </div>
