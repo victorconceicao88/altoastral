@@ -10,7 +10,7 @@ import cafe from './assets/cafe.jpg';
 import mbwayLogo from './assets/images.png';
 import { foodImages, menu } from './data.js';
 import { FiShoppingCart, FiX, FiCheck, FiClock, FiTruck, FiHome, FiCalendar, FiCoffee, FiMeh, FiPlus, FiMinus, FiInfo, FiStar, FiHeart, FiShare2, FiUser, FiMapPin, FiPhone, FiEdit2, FiCreditCard, FiMail } from 'react-icons/fi';
-import { FaCalendarAlt, FaCoffee, FaHamburger, FaDrumstickBite, FaCocktail, FaIceCream } from 'react-icons/fa';
+import { FaCalendarAlt, FaCoffee, FaHamburger, FaDrumstickBite, FaCocktail, FaIceCream, FaBitcoin } from 'react-icons/fa';
 import { GiMeal, GiSandwich, GiChickenOven, GiPieSlice, GiCoffeeCup, GiWineBottle, GiHotMeal, GiCakeSlice } from 'react-icons/gi';
 
 const logoWhite = logo;
@@ -329,7 +329,7 @@ const InterfaceCliente = () => {
       notes: ''
     };
     setCart([...cart, newItem]);
-    addNotification(`${item.name} adicionado ao carrinho com sucesso`, 'success');
+    addNotification(`${item.name} pedido adicionado com sucesso`, 'success');
     controls.start({
       scale: [1, 1.2, 1],
       transition: { duration: 0.5 }
@@ -370,74 +370,86 @@ const InterfaceCliente = () => {
     );
   };
 
-  const handleCheckout = async () => {
-    try {
-      await loginAnonimo();
-      
-      const orderRef = ref(database, 'orders');
-      const newOrder = {
-        items: cart,
-        customer: {
-          name: customerInfo.name,
-          surname: customerInfo.surname,
-          phone: customerInfo.phone,
-          address: orderType === 'delivery' ? customerInfo.address : null,
-          postalCode: orderType === 'delivery' ? customerInfo.postalCode : null,
-          city: orderType === 'delivery' ? customerInfo.city : null,
-          reference: orderType === 'delivery' ? customerInfo.reference : null,
-          notes: customerInfo.notes,
-          paymentMethod: customerInfo.paymentMethod,
-          changeFor: customerInfo.paymentMethod === 'cash' ? customerInfo.changeFor : null
-        },
-        orderType: orderType,
-        total: calculateTotal(),
-        status: 'pending',
-        timestamp: Date.now()
-      };
+const handleCheckout = async () => {
+  try {
+    await loginAnonimo();
+    
+    const orderRef = ref(database, 'orders');
+    const newOrder = {
+      items: cart,
+      customer: {
+        name: customerInfo.name,
+        surname: customerInfo.surname,
+        phone: customerInfo.phone,
+        address: orderType === 'delivery' ? customerInfo.address : null,
+        postalCode: orderType === 'delivery' ? customerInfo.postalCode : null,
+        city: orderType === 'delivery' ? customerInfo.city : null,
+        reference: orderType === 'delivery' ? customerInfo.reference : null,
+        notes: customerInfo.notes,
+        paymentMethod: customerInfo.paymentMethod,
+        changeFor: customerInfo.paymentMethod === 'cash' ? customerInfo.changeFor : null
+      },
+      orderType: orderType,
+      total: calculateTotal(),
+      status: 'pending',
+      timestamp: Date.now()
+    };
 
-      if (newOrder.items.length === 0) {
-        throw new Error('O carrinho está vazio');
-      }
-      
-      if (orderType === 'delivery' && (!customerInfo.name || !customerInfo.phone || !customerInfo.address || !customerInfo.postalCode || !customerInfo.city)) {
-        throw new Error('Informações do cliente incompletas para entrega');
-      }
-      
-      if (orderType === 'takeaway' && (!customerInfo.name || !customerInfo.phone)) {
-        throw new Error('Informações do cliente incompletas para retirada');
-      }
-
-      await push(orderRef, newOrder);
-      
-      const phoneNumber = '351282038830';
-      const message = `*Novo Pedido Alto Astral*%0A%0A` +
-        `*Tipo:* ${orderType === 'takeaway' ? 'Retirada' : 'Entrega'}%0A` +
-        `*Cliente:* ${customerInfo.name} ${customerInfo.surname}%0A` +
-        `*Telefone:* ${customerInfo.phone}%0A` +
-        (orderType === 'delivery' ? 
-          `*Endereço:* ${customerInfo.address}%0A` +
-          `*Código Postal:* ${customerInfo.postalCode}%0A` +
-          `*Cidade:* ${customerInfo.city}%0A` +
-          `*Referência:* ${customerInfo.reference}%0A` : '') +
-        `*Itens:*%0A${cart.map(item => `- ${item.quantity}x ${item.name} (€${(item.price * item.quantity).toFixed(2)})${item.notes ? ` - Obs: ${item.notes}` : ''}`).join('%0A')}%0A` +
-        `*Taxa de Entrega:* €${orderType === 'delivery' ? '2.50' : '0.00'}%0A` +
-        `*Total:* €${calculateTotal().toFixed(2)}%0A` +
-        `*Método de Pagamento:* ${customerInfo.paymentMethod || 'Não especificado'}%0A` +
-        (customerInfo.paymentMethod === 'cash' && customerInfo.changeFor ? `*Troco para:* €${customerInfo.changeFor}%0A` : '') +
-        `*Observações:* ${customerInfo.notes || 'Nenhuma'}`;
-      
-      setWhatsAppLink(`https://wa.me/${phoneNumber}?text=${message}`);
-      setShowWhatsAppModal(true);
-      setCountdown(40);
-      
-      if (isMobile) {
-        window.location.href = `whatsapp://send?phone=${phoneNumber}&text=${message}`;
-      }
-    } catch (error) {
-      console.error("Erro ao enviar pedido:", error);
-      addNotification(error.message || 'Erro ao enviar pedido. Tente novamente.', 'error');
+    if (newOrder.items.length === 0) {
+      throw new Error('O carrinho está vazio');
     }
-  };
+    
+    if (orderType === 'delivery' && (!customerInfo.name || !customerInfo.phone || !customerInfo.address || !customerInfo.postalCode || !customerInfo.city)) {
+      throw new Error('Informações do cliente incompletas para entrega');
+    }
+    
+    if (orderType === 'takeaway' && (!customerInfo.name || !customerInfo.phone)) {
+      throw new Error('Informações do cliente incompletas para retirada');
+    }
+
+    await push(orderRef, newOrder);
+    
+    // Preparar mensagem para WhatsApp
+    const phoneNumber = '351282038830';
+    let message = `*Novo Pedido Alto Astral*%0A%0A` +
+      `*Tipo:* ${orderType === 'takeaway' ? 'Retirada' : 'Entrega'}%0A` +
+      `*Cliente:* ${customerInfo.name} ${customerInfo.surname}%0A` +
+      `*Telefone:* ${customerInfo.phone}%0A` +
+      (orderType === 'delivery' ? 
+        `*Endereço:* ${customerInfo.address}%0A` +
+        `*Código Postal:* ${customerInfo.postalCode}%0A` +
+        `*Cidade:* ${customerInfo.city}%0A` +
+        `*Referência:* ${customerInfo.reference}%0A` : '') +
+      `*Itens:*%0A${cart.map(item => `- ${item.quantity}x ${item.name} (€${(item.price * item.quantity).toFixed(2)})${item.notes ? ` - Obs: ${item.notes}` : ''}`).join('%0A')}%0A` +
+      `*Taxa de Entrega:* €${orderType === 'delivery' ? '2.50' : '0.00'}%0A` +
+      `*Total:* €${calculateTotal().toFixed(2)}%0A` +
+      `*Método de Pagamento:* ${customerInfo.paymentMethod || 'Não especificado'}%0A` +
+      (customerInfo.paymentMethod === 'cash' && customerInfo.changeFor ? `*Troco para:* €${customerInfo.changeFor}%0A` : '') +
+      `*Observações:* ${customerInfo.notes || 'Nenhuma'}`;
+    
+    // Se for Bitcoin, adiciona informações específicas
+    if (customerInfo.paymentMethod === 'bitcoin') {
+      message += `%0A%0A*Pagamento Bitcoin:*%0A` +
+        `Por favor, complete o pagamento em: https://coinos.io/AltoAstralBTC%0A` +
+        `Valor em BTC: ${(calculateTotal() * 0.000025).toFixed(8)} BTC (taxa atual)%0A` +
+        `Após o pagamento, envie o comprovante aqui. Obrigado!`;
+      
+      // Abre o link de pagamento em nova aba
+      window.open('https://coinos.io/AltoAstralBTC', '_blank');
+    }
+    
+    setWhatsAppLink(`https://wa.me/${phoneNumber}?text=${message}`);
+    setShowWhatsAppModal(true);
+    setCountdown(40);
+    
+    if (isMobile && customerInfo.paymentMethod !== 'bitcoin') {
+      window.location.href = `whatsapp://send?phone=${phoneNumber}&text=${message}`;
+    }
+  } catch (error) {
+    console.error("Erro ao enviar pedido:", error);
+    addNotification(error.message || 'Erro ao enviar pedido. Tente novamente.', 'error');
+  }
+};
 
   useEffect(() => {
     let timer;
@@ -1044,7 +1056,7 @@ const InterfaceCliente = () => {
                   <h3 className="text-base md:text-lg font-semibold text-gray-800">Método de Pagamento *</h3>
                 </div>
 
-                <div className="grid grid-cols-3 gap-2 md:gap-3">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 md:gap-3">
                   <motion.button
                     whileHover={{ scale: 1.03 }}
                     whileTap={{ scale: 0.98 }}
@@ -1101,6 +1113,23 @@ const InterfaceCliente = () => {
                     </svg>
                     <span className="text-xs font-medium text-gray-700">Dinheiro</span>
                   </motion.button>
+
+                  <motion.button
+                    whileHover={{ scale: 1.03 }}
+                    whileTap={{ scale: 0.98 }}
+                    type="button"
+                    onClick={() => setCustomerInfo({...customerInfo, paymentMethod: 'bitcoin'})}
+                    className={`p-3 md:p-4 rounded-xl border-2 flex flex-col items-center transition-all ${
+                      customerInfo.paymentMethod === 'bitcoin' 
+                        ? 'border-[#b0aca6] bg-[#b0aca6]/10' 
+                        : 'border-gray-200 hover:border-gray-300'
+                    }`}
+                  >
+                    <FaBitcoin className={`text-lg md:text-xl mb-1 md:mb-2 ${
+                      customerInfo.paymentMethod === 'bitcoin' ? 'text-[#F7931A]' : 'text-gray-500'
+                    }`} />
+                    <span className="text-xs font-medium text-gray-700">Bitcoin</span>
+                  </motion.button>
                 </div>
 
                 {customerInfo.paymentMethod === 'cash' && (
@@ -1126,6 +1155,20 @@ const InterfaceCliente = () => {
                         placeholder="Valor que irá pagar"
                       />
                     </div>
+                  </motion.div>
+                )}
+
+                {customerInfo.paymentMethod === 'bitcoin' && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: 'auto' }}
+                    transition={{ duration: 0.3 }}
+                    className="mt-3 md:mt-4 p-3 bg-[#f8f5ed] rounded-lg border border-[#e6be44]/20"
+                  >
+                    <p className="text-xs text-gray-600 flex items-start">
+                      <FiInfo className="mr-2 mt-0.5 flex-shrink-0 text-[#e6be44]" />
+                      Ao selecionar Bitcoin, você será redirecionado para nossa página de pagamentos cripto após confirmar o pedido.
+                    </p>
                   </motion.div>
                 )}
               </div>
@@ -1183,6 +1226,7 @@ const InterfaceCliente = () => {
                     !customerInfo.name || 
                     !customerInfo.phone
                   )) ||
+                  !customerInfo.paymentMethod ||
                   cart.length === 0
                     ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
                     : 'bg-[#b0aca6] hover:bg-[#918e89] text-[#e6be44] cursor-pointer'
