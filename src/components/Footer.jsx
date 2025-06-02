@@ -5,6 +5,10 @@ import {
   FiInstagram, FiFacebook, FiArrowRight, FiCheck
 } from 'react-icons/fi';
 import { motion, AnimatePresence } from 'framer-motion';
+import evento1 from '../assets/evento1.jpg';
+import evento2 from '../assets/evento2.jpg';
+import evento3 from '../assets/evento3.jpg';
+
 
 const UltraFooter = () => {
   const isLoggedIn = localStorage.getItem('adminLoggedIn') === 'true';
@@ -12,7 +16,6 @@ const UltraFooter = () => {
   const [isHovering, setIsHovering] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
 
-  // Check if mobile on mount and resize
   useEffect(() => {
     const checkMobile = () => {
       setIsMobile(window.innerWidth < 640);
@@ -22,46 +25,46 @@ const UltraFooter = () => {
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
-  const events = [
-    {
-      id: 1,
-      title: "Ambiente Acolhedor para Eventos",
-      description: "Oferecemos um serviço completo para tornar seu evento ainda mais especial. Nosso buffet conta com um espaço acolhedor, bem estruturado e preparado para receber festas, eventos corporativos e confraternizações com conforto e elegância.",
-      image: "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1470&q=80",
-      features: [
-        "Espaço versátil para eventos",
-        "Ambiente climatizado e organizado",
-        "Ideal para confraternizações e celebrações",
-        "Equipe pronta para atender"
-      ]
-    },
-    {
-      id: 2,
-      title: "Gastronomia Variada e de Qualidade",
-      description: "Trabalhamos com uma ampla variedade de salgadinhos, docinhos e petiscos preparados com ingredientes selecionados. Nossas opções são pensadas para agradar todos os paladares, oferecendo sabor, qualidade e apresentação impecável.",
-      image: "https://images.unsplash.com/photo-1544025162-d76694265947?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1469&q=80",
-      features: [
-        "Salgados e doces artesanais",
-        "Petiscos variados e saborosos",
-        "Apresentação impecável",
-        "Qualidade garantida"
-      ]
-    },
-    {
-      id: 3,
-      title: "Atendimento e Experiência Personalizada",
-      description: "Nosso atendimento é totalmente personalizado, com foco em praticidade e atenção aos detalhes. Buscamos proporcionar uma experiência inesquecível aos nossos clientes, cuidando de cada momento com dedicação.",
-      image: "https://images.unsplash.com/photo-1555244162-803834f70033?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1470&q=80",
-      features: [
-        "Equipe atenciosa e dedicada",
-        "Organização do início ao fim",
-        "Foco na satisfação do cliente",
-        "Experiência marcante para todos"
-      ]
-    }
-  ];
+ const events = [
+  {
+    id: 1,
+    title: "Ambiente Acolhedor para Eventos",
+    description: "Oferecemos um serviço completo para tornar seu evento ainda mais especial. Nosso buffet conta com um espaço acolhedor, bem estruturado e preparado para receber festas, eventos corporativos e confraternizações com conforto e elegância.",
+    image: evento1,
+    features: [
+      "Espaço versátil para eventos",
+      "Ambiente climatizado e organizado",
+      "Ideal para confraternizações e celebrações",
+      "Equipe pronta para atender"
+    ]
+  },
+  {
+    id: 2,
+    title: "Gastronomia Variada e de Qualidade",
+    description: "Trabalhamos com uma ampla variedade de salgadinhos, docinhos e petiscos preparados com ingredientes selecionados. Nossas opções são pensadas para agradar todos os paladares, oferecendo sabor, qualidade e apresentação impecável.",
+    image: evento2,
+    features: [
+      "Salgados e doces artesanais",
+      "Petiscos variados e saborosos",
+      "Apresentação impecável",
+      "Qualidade garantida"
+    ]
+  },
+  {
+    id: 3,
+    title: "Atendimento e Experiência Personalizada",
+    description: "Nosso atendimento é totalmente personalizado, com foco em praticidade e atenção aos detalhes. Buscamos proporcionar uma experiência inesquecível aos nossos clientes, cuidando de cada momento com dedicação.",
+    image: evento3,
+    features: [
+      "Equipe atenciosa e dedicada",
+      "Organização do início ao fim",
+      "Foco na satisfação do cliente",
+      "Experiência marcante para todos"
+    ]
+  }
+];
 
-  // Auto-rotate events if not hovering (desktop only)
+
   useEffect(() => {
     if (!isHovering && !isMobile) {
       const interval = setInterval(() => {
