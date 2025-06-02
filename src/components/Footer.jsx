@@ -207,7 +207,7 @@ const UltraFooter = () => {
                     </a>
                   </motion.div>
                   <p className="font-sans-serif text-[#fffaf1]/80 text-xs sm:text-sm md:text-base text-center lg:text-right">
-                    Entre em contato para orçamentos personalizado
+                    Entre em contato para orçamentos personalizados
                   </p>
                 </div>
               </div>
