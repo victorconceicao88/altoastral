@@ -1471,6 +1471,7 @@ const InterfaceCliente = () => {
                   className="absolute -top-1 -right-1 md:-top-2 md:-right-2 bg-black text-white text-xs rounded-full h-5 w-5 md:h-6 md:w-6 flex items-center justify-center"
                 >
                   {cart.reduce((sum, item) => sum + item.quantity, 0)}
+
                 </motion.span>
               )}
             </motion.button>
@@ -1618,7 +1619,7 @@ const InterfaceCliente = () => {
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.5, ease: "easeOut", delay: 0.1 }}
                         whileHover={{ y: -8, boxShadow: "0 20px 40px rgba(0,0,0,0.15)", scale: 1.01 }}
-                        className="bg-white rounded-3xl shadow-lg overflow-hidden border-2 border-yellow-200 flex flex-col transform transition-all duration-300 ease-in-out group hover:border-yellow-400"
+                        className="bg-white rounded-3xl shadow-lg overflow-hidden border-2 border-yellow-200 flex flex-col transform transition-all duration-300 ease-in-out group hover:border-[#e6be44]"
                       >
                         <div className="relative w-full h-64 sm:h-72 md:h-80 overflow-hidden">
                           <img 
@@ -1669,13 +1670,13 @@ const InterfaceCliente = () => {
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 md:gap-8">
                 {filteredMenu(category).map(item => (
                   <motion.div 
-                    key={item.id}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.5, ease: "easeOut", delay: 0.1 }}
-                    whileHover={{ y: -8, boxShadow: "0 20px 40px rgba(0,0,0,0.15)", scale: 1.01 }}
-                    className="bg-white rounded-3xl shadow-lg overflow-hidden border-2 border-yellow-200 flex flex-col transform transition-all duration-300 ease-in-out group hover:border-yellow-400"
-                  >
+                        key={item.id}
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.5, ease: "easeOut", delay: 0.1 }}
+                        whileHover={{ y: -8, boxShadow: "0 20px 40px rgba(0,0,0,0.15)", scale: 1.01 }}
+                        className="bg-white rounded-3xl shadow-lg overflow-hidden border-2 border-[#e6be44] flex flex-col transform transition-all duration-300 ease-in-out group hover:border-[#e6be44]"
+                      >
                     <div className="relative w-full h-64 sm:h-72 md:h-80 overflow-hidden">
                       <img 
                         src={item.image || cafe} 
