@@ -8,7 +8,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import evento1 from '../assets/evento1.jpg';
 import evento2 from '../assets/evento2.jpg';
 import evento3 from '../assets/evento3.jpg';
-
+import altoastralFoto from '../assets/altoastral-foto.jpeg';
 
 const UltraFooter = () => {
   const isLoggedIn = localStorage.getItem('adminLoggedIn') === 'true';
@@ -25,45 +25,44 @@ const UltraFooter = () => {
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
- const events = [
-  {
-    id: 1,
-    title: "Ambiente Acolhedor para Eventos",
-    description: "Oferecemos um serviço completo para tornar seu evento ainda mais especial. Nosso buffet conta com um espaço acolhedor, bem estruturado e preparado para receber festas, eventos corporativos e confraternizações com conforto e elegância.",
-    image: evento1,
-    features: [
-      "Espaço versátil para eventos",
-      "Ambiente climatizado e organizado",
-      "Ideal para confraternizações e celebrações",
-      "Equipe pronta para atender"
-    ]
-  },
-  {
-    id: 2,
-    title: "Gastronomia Variada e de Qualidade",
-    description: "Trabalhamos com uma ampla variedade de salgadinhos, docinhos e petiscos preparados com ingredientes selecionados. Nossas opções são pensadas para agradar todos os paladares, oferecendo sabor, qualidade e apresentação impecável.",
-    image: evento2,
-    features: [
-      "Salgados e doces artesanais",
-      "Petiscos variados e saborosos",
-      "Apresentação impecável",
-      "Qualidade garantida"
-    ]
-  },
-  {
-    id: 3,
-    title: "Atendimento e Experiência Personalizada",
-    description: "Nosso atendimento é totalmente personalizado, com foco em praticidade e atenção aos detalhes. Buscamos proporcionar uma experiência inesquecível aos nossos clientes, cuidando de cada momento com dedicação.",
-    image: evento3,
-    features: [
-      "Equipe atenciosa e dedicada",
-      "Organização do início ao fim",
-      "Foco na satisfação do cliente",
-      "Experiência marcante para todos"
-    ]
-  }
-];
-
+  const events = [
+    {
+      id: 1,
+      title: "Ambiente Acolhedor para Eventos",
+      description: "Oferecemos um serviço completo para tornar seu evento ainda mais especial. Nosso buffet conta com um espaço acolhedor, bem estruturado e preparado para receber festas, eventos corporativos e confraternizações com conforto e elegância.",
+      image: evento1,
+      features: [
+        "Espaço versátil para eventos",
+        "Ambiente climatizado e organizado",
+        "Ideal para confraternizações e celebrações",
+        "Equipe pronta para atender"
+      ]
+    },
+    {
+      id: 2,
+      title: "Gastronomia Variada e de Qualidade",
+      description: "Trabalhamos com uma ampla variedade de salgadinhos, docinhos e petiscos preparados com ingredientes selecionados. Nossas opções são pensadas para agradar todos os paladares, oferecendo sabor, qualidade e apresentação impecável.",
+      image: evento2,
+      features: [
+        "Salgados e doces artesanais",
+        "Petiscos variados e saborosos",
+        "Apresentação impecável",
+        "Qualidade garantida"
+      ]
+    },
+    {
+      id: 3,
+      title: "Atendimento e Experiência Personalizada",
+      description: "Nosso atendimento é totalmente personalizado, com foco em praticidade e atenção aos detalhes. Buscamos proporcionar uma experiência inesquecível aos nossos clientes, cuidando de cada momento com dedicação.",
+      image: evento3,
+      features: [
+        "Equipe atenciosa e dedicada",
+        "Organização do início ao fim",
+        "Foco na satisfação do cliente",
+        "Experiência marcante para todos"
+      ]
+    }
+  ];
 
   useEffect(() => {
     if (!isHovering && !isMobile) {
@@ -76,13 +75,18 @@ const UltraFooter = () => {
 
   return (
     <footer className="bg-[#918e89] text-white relative overflow-hidden">
-      {/* Wave pattern top - using CSS instead of image for better performance */}
-      <div className="w-full h-12 sm:h-16 md:h-20 lg:h-24 xl:h-28 -mt-px overflow-hidden bg-gradient-to-b from-[#b0aca6] to-[#918e89]">
-        <div className="w-full h-full bg-[url('https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1470&q=80')] bg-cover bg-bottom opacity-20"></div>
+      {/* Top image section - completely clean without any effects */}
+      <div className="w-full h-32 sm:h-40 md:h-48 lg:h-56 xl:h-64 -mt-px overflow-hidden">
+        <img 
+          src={altoastralFoto} 
+          alt="Alto Astral" 
+          className="w-full h-full object-cover object-center"
+          loading="lazy"
+        />
       </div>
 
       <div className="container mx-auto px-4 sm:px-6 pb-6 sm:pb-8 md:pb-10 lg:pb-12">
-        {/* Events slider - only show on desktop */}
+        {/* Events slider */}
         {!isMobile && (
           <div 
             className="relative rounded-lg sm:rounded-xl md:rounded-2xl mb-8 sm:mb-10 md:mb-12 lg:mb-16 mx-2 sm:mx-0 shadow-lg sm:shadow-xl md:shadow-2xl overflow-hidden border border-[#b8b4ae]/20"
@@ -211,7 +215,7 @@ const UltraFooter = () => {
           </div>
         )}
 
-        {/* Mobile events section - simplified */}
+        {/* Mobile events section */}
         {isMobile && (
           <div className="mb-8 rounded-xl overflow-hidden shadow-lg border border-[#b8b4ae]/30">
             <div className="relative h-64">
@@ -240,9 +244,9 @@ const UltraFooter = () => {
           </div>
         )}
 
-        {/* Grid responsivo */}
+        {/* Main footer content */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8 md:gap-10 lg:gap-12 text-[#fffaf1] px-2 sm:px-0">
-          {/* Branding e contato */}
+          {/* Brand info */}
           <div className="space-y-4 sm:space-y-5 md:space-y-6 lg:space-y-8 order-1">
             <div className="text-center sm:text-left">
               <h3 className="font-sans-serif text-2xl sm:text-3xl md:text-4xl font-bold tracking-tight text-[#fffaf1]">Alto Astral</h3>
@@ -274,7 +278,7 @@ const UltraFooter = () => {
             </div>
           </div>
 
-          {/* Horário - centralizado em mobile */}
+          {/* Opening hours */}
           <div className="flex justify-center order-3 lg:order-2">
             <div className="bg-[#a09b94]/90 border border-[#b8b4ae]/30 rounded-lg sm:rounded-xl md:rounded-2xl p-4 sm:p-5 md:p-6 lg:p-8 w-full max-w-xs sm:max-w-sm shadow-lg sm:shadow-xl">
               <div className="bg-[#f4df86]/20 w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 lg:w-20 lg:h-20 rounded-lg sm:rounded-xl md:rounded-2xl flex items-center justify-center mx-auto mb-3 sm:mb-4 md:mb-5 lg:mb-6 border border-[#f4df86]/30">
@@ -288,7 +292,7 @@ const UltraFooter = () => {
             </div>
           </div>
 
-          {/* Redes sociais */}
+          {/* Social media */}
           <div className="space-y-4 sm:space-y-5 md:space-y-6 lg:space-y-8 order-2 lg:order-3">
             <h4 className="text-base sm:text-lg md:text-xl font-semibold uppercase tracking-wider border-b border-[#b8b4ae]/40 pb-2 sm:pb-3 text-center sm:text-left text-[#fffaf1]">Conecte-se</h4>
             <div className="flex justify-center sm:justify-start gap-3 sm:gap-4 md:gap-5">
@@ -326,7 +330,7 @@ const UltraFooter = () => {
           </div>
         </div>
 
-        {/* Rodapé inferior */}
+        {/* Bottom footer */}
         <div className="border-t border-[#b8b4ae]/30 mt-8 sm:mt-10 md:mt-12 lg:mt-14 xl:mt-16 pt-4 sm:pt-5 md:pt-6 lg:pt-7 xl:pt-8">
           <div className="flex flex-col sm:flex-row justify-between items-center gap-2 sm:gap-3 md:gap-4">
             <p className="text-[#d1cfcc] text-xs sm:text-sm md:text-base text-center sm:text-left">
