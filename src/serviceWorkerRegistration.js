@@ -9,17 +9,14 @@ export function register(config) {
 
           registration.onupdatefound = () => {
             const installingWorker = registration.installing;
-            if (installingWorker == null) {
-              return;
-            }
+            if (installingWorker == null) return;
+
             installingWorker.onstatechange = () => {
               if (installingWorker.state === 'installed') {
                 if (navigator.serviceWorker.controller) {
-                  console.log('Novo conteúdo disponível; por favor atualize.');
-
-                  if (config && config.onUpdate) {
-                    config.onUpdate(registration);
-                  }
+                  // ⚠️ Atualização automática ao detectar nova versão
+                  console.log('Nova versão detectada. Atualizando automaticamente...');
+                  window.location.reload();
                 } else {
                   console.log('Conteúdo armazenado em cache para uso offline.');
 
@@ -34,14 +31,6 @@ export function register(config) {
         .catch(error => {
           console.error('Erro durante o registro do Service Worker:', error);
         });
-    });
-  }
-}
-
-export function unregister() {
-  if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.ready.then(registration => {
-      registration.unregister();
     });
   }
 }
