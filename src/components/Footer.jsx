@@ -200,14 +200,14 @@ const UltraFooter = () => {
                       href="https://wa.me/351282038830?text=Ol%C3%A1%2C%20gostaria%20de%20obter%20mais%20informa%C3%A7%C3%B5es%20sobre%20os%20eventos."
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="bg-[#d5c8b6] text-black px-6 sm:px-8 md:px-10 py-3 sm:py-4 md:py-5 rounded-lg sm:rounded-xl font-bold flex items-center justify-center sm:justify-start transition-all duration-300 shadow-md sm:shadow-lg group w-full"
+                      className="bg-[#d5c8b6] text-black px-6 sm:px-8 md:px-10 py-3 sm:py-4 md:py-5 rounded-lnpm g sm:rounded-xl font-bold flex items-center justify-center sm:justify-start transition-all duration-300 shadow-md sm:shadow-lg group w-full"
                     >
                       <span className="font-sans-serif text-sm sm:text-base md:text-lg mr-2 sm:mr-3">Saber Mais</span>
                       <FiArrowRight className="text-black transition-transform group-hover:translate-x-1" />
                     </a>
                   </motion.div>
                   <p className="font-sans-serif text-[#fffaf1]/80 text-xs sm:text-sm md:text-base text-center lg:text-right">
-                    Entre em contato para orçamentos personalizados
+                    Entre em contato para orçamentos personalizado
                   </p>
                 </div>
               </div>
