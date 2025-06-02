@@ -1464,7 +1464,7 @@ const InterfaceCliente = () => {
             >
               {/* Ajuste para o tamanho do ícone em dispositivos móveis */}
               <FiShoppingCart className="text-xl sm:text-2xl md:text-3xl lg:text-4xl text-black" /> 
-              <span className="hidden sm:inline text-black ml-1 md:ml-2">Carrinh</span>
+              <span className="hidden sm:inline text-black ml-1 md:ml-2">Carrinho</span>
               {cart.length > 0 && (
                 <motion.span 
                   animate={controls}
