@@ -1,27 +1,33 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import {
-  FiMapPin, FiPhone, FiClock, FiLock, FiMail, FiCalendar, FiInstagram, FiFacebook, FiArrowRight, FiCheck
+  FiMapPin, FiPhone, FiClock, FiLock, FiMail, FiCalendar, 
+  FiInstagram, FiFacebook, FiArrowRight, FiCheck
 } from 'react-icons/fi';
 import { motion, AnimatePresence } from 'framer-motion';
-
-import WavePattern from '../assets/altoastral-foto.jpeg';
-import EventImage1 from '../assets/eventos/evento1.jpg';
-import EventImage2 from '../assets/eventos/evento2.jpg';
-import EventImage3 from '../assets/eventos/evento3.jpg';
 
 const UltraFooter = () => {
   const isLoggedIn = localStorage.getItem('adminLoggedIn') === 'true';
   const [activeEvent, setActiveEvent] = useState(0);
   const [isHovering, setIsHovering] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+
+  // Check if mobile on mount and resize
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 640);
+    };
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   const events = [
     {
       id: 1,
       title: "Ambiente Acolhedor para Eventos",
-      description:
-        "Oferecemos um serviço completo para tornar seu evento ainda mais especial. Nosso buffet conta com um espaço acolhedor, bem estruturado e preparado para receber festas, eventos corporativos e confraternizações com conforto e elegância.",
-      image: EventImage1,
+      description: "Oferecemos um serviço completo para tornar seu evento ainda mais especial. Nosso buffet conta com um espaço acolhedor, bem estruturado e preparado para receber festas, eventos corporativos e confraternizações com conforto e elegância.",
+      image: "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1470&q=80",
       features: [
         "Espaço versátil para eventos",
         "Ambiente climatizado e organizado",
@@ -32,9 +38,8 @@ const UltraFooter = () => {
     {
       id: 2,
       title: "Gastronomia Variada e de Qualidade",
-      description:
-        "Trabalhamos com uma ampla variedade de salgadinhos, docinhos e petiscos preparados com ingredientes selecionados. Nossas opções são pensadas para agradar todos os paladares, oferecendo sabor, qualidade e apresentação impecável.",
-      image: EventImage2,
+      description: "Trabalhamos com uma ampla variedade de salgadinhos, docinhos e petiscos preparados com ingredientes selecionados. Nossas opções são pensadas para agradar todos os paladares, oferecendo sabor, qualidade e apresentação impecável.",
+      image: "https://images.unsplash.com/photo-1544025162-d76694265947?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1469&q=80",
       features: [
         "Salgados e doces artesanais",
         "Petiscos variados e saborosos",
@@ -45,9 +50,8 @@ const UltraFooter = () => {
     {
       id: 3,
       title: "Atendimento e Experiência Personalizada",
-      description:
-        "Nosso atendimento é totalmente personalizado, com foco em praticidade e atenção aos detalhes. Buscamos proporcionar uma experiência inesquecível aos nossos clientes, cuidando de cada momento com dedicação.",
-      image: EventImage3,
+      description: "Nosso atendimento é totalmente personalizado, com foco em praticidade e atenção aos detalhes. Buscamos proporcionar uma experiência inesquecível aos nossos clientes, cuidando de cada momento com dedicação.",
+      image: "https://images.unsplash.com/photo-1555244162-803834f70033?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1470&q=80",
       features: [
         "Equipe atenciosa e dedicada",
         "Organização do início ao fim",
@@ -57,155 +61,181 @@ const UltraFooter = () => {
     }
   ];
 
+  // Auto-rotate events if not hovering (desktop only)
   useEffect(() => {
-    if (!isHovering) {
+    if (!isHovering && !isMobile) {
       const interval = setInterval(() => {
         setActiveEvent((prev) => (prev + 1) % events.length);
       }, 8000);
       return () => clearInterval(interval);
     }
-  }, [isHovering, events.length]);
+  }, [isHovering, isMobile, events.length]);
 
   return (
     <footer className="bg-[#918e89] text-white relative overflow-hidden">
-      {/* Wave pattern top */}
-      <div className="w-full h-12 sm:h-16 md:h-20 lg:h-24 xl:h-28 -mt-px overflow-hidden">
-        <img 
-          src={WavePattern} 
-          alt=""
-          className="w-full h-full object-cover object-bottom"
-          style={{ transform: 'scale(1.05) translateY(1px)' }}
-        />
+      {/* Wave pattern top - using CSS instead of image for better performance */}
+      <div className="w-full h-12 sm:h-16 md:h-20 lg:h-24 xl:h-28 -mt-px overflow-hidden bg-gradient-to-b from-[#b0aca6] to-[#918e89]">
+        <div className="w-full h-full bg-[url('https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1470&q=80')] bg-cover bg-bottom opacity-20"></div>
       </div>
 
-      <div className="pt-6 sm:pt-8 md:pt-10 lg:pt-12 xl:pt-16"></div>
-
       <div className="container mx-auto px-4 sm:px-6 pb-6 sm:pb-8 md:pb-10 lg:pb-12">
-        {/* Events slider */}
-        <div 
-          className="relative rounded-lg sm:rounded-xl md:rounded-2xl mb-8 sm:mb-10 md:mb-12 lg:mb-16 mx-2 sm:mx-0 shadow-lg sm:shadow-xl md:shadow-2xl overflow-hidden border border-[#b8b4ae]/20"
-          onMouseEnter={() => setIsHovering(true)}
-          onMouseLeave={() => setIsHovering(false)}
-        >
-          <div className="absolute inset-0 bg-gradient-to-r from-[#7a6d5d]/90 to-[#5a5148]/90 z-0"></div>
-          
-          <div className="absolute inset-0 overflow-hidden z-0">
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={events[activeEvent].id}
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 2 }}
-                className="absolute inset-0"
-              >
-                <img 
-                  src={events[activeEvent].image} 
-                  alt={events[activeEvent].title}
-                  className="w-full h-full object-cover object-center"
-                />
-                <div className="absolute inset-0 bg-black/40"></div>
-              </motion.div>
-            </AnimatePresence>
-          </div>
-
-          <div className="relative z-10 p-4 sm:p-6 md:p-8 lg:p-10 xl:p-12">
-            <div className="flex flex-col lg:flex-row items-start justify-between gap-4 sm:gap-6 md:gap-8">
-              <div className="flex-1 space-y-4 sm:space-y-6">
+        {/* Events slider - only show on desktop */}
+        {!isMobile && (
+          <div 
+            className="relative rounded-lg sm:rounded-xl md:rounded-2xl mb-8 sm:mb-10 md:mb-12 lg:mb-16 mx-2 sm:mx-0 shadow-lg sm:shadow-xl md:shadow-2xl overflow-hidden border border-[#b8b4ae]/20"
+            onMouseEnter={() => setIsHovering(true)}
+            onMouseLeave={() => setIsHovering(false)}
+          >
+            <div className="absolute inset-0 bg-gradient-to-r from-[#7a6d5d]/90 to-[#5a5148]/90 z-0"></div>
+            
+            <div className="absolute inset-0 overflow-hidden z-0">
+              <AnimatePresence mode="wait">
                 <motion.div
-                  initial={{ y: 20, opacity: 0 }}
-                  animate={{ y: 0, opacity: 1 }}
-                  transition={{ delay: 0.2, duration: 1 }}
+                  key={events[activeEvent].id}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 1.5 }}
+                  className="absolute inset-0"
                 >
-                  <div className="inline-flex items-center text-[#d5c8b6] px-3 py-1 sm:px-4 sm:py-2 rounded-full border border-[#d5c8b6]/50 mb-2 sm:mb-3 md:mb-4">
-                    <FiCalendar className="text-lg sm:text-xl text-[#d5c8b6] mr-2" />
-                    <span className="font-sans-serif text-[#d5c8b6] text-sm sm:text-base font-medium">Eventos Exclusivos</span>
-                  </div>
+                  <img 
+                    src={events[activeEvent].image} 
+                    alt={events[activeEvent].title}
+                    className="w-full h-full object-cover object-center"
+                    loading="lazy"
+                  />
+                  <div className="absolute inset-0 bg-black/40"></div>
                 </motion.div>
+              </AnimatePresence>
+            </div>
 
-                <AnimatePresence mode="wait">
+            <div className="relative z-10 p-4 sm:p-6 md:p-8 lg:p-10 xl:p-12">
+              <div className="flex flex-col lg:flex-row items-start justify-between gap-4 sm:gap-6 md:gap-8">
+                <div className="flex-1 space-y-4 sm:space-y-6">
                   <motion.div
-                    key={`title-${events[activeEvent].id}`}
                     initial={{ y: 20, opacity: 0 }}
                     animate={{ y: 0, opacity: 1 }}
-                    exit={{ y: -20, opacity: 0 }}
-                    transition={{ duration: 1.2 }}
+                    transition={{ delay: 0.2, duration: 1 }}
                   >
-                    <h3 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl font-bold font-sans-serif text-[#fffaf1] leading-tight">
-                      {events[activeEvent].title}
-                    </h3>
+                    <div className="inline-flex items-center text-[#d5c8b6] px-3 py-1 sm:px-4 sm:py-2 rounded-full border border-[#d5c8b6]/50 mb-2 sm:mb-3 md:mb-4">
+                      <FiCalendar className="text-lg sm:text-xl text-[#d5c8b6] mr-2" />
+                      <span className="font-sans-serif text-[#d5c8b6] text-sm sm:text-base font-medium">Eventos Exclusivos</span>
+                    </div>
                   </motion.div>
-                </AnimatePresence>
 
-                <AnimatePresence mode="wait">
-                  <motion.div
-                    key={`desc-${events[activeEvent].id}`}
-                    initial={{ y: 20, opacity: 0 }}
-                    animate={{ y: 0, opacity: 1 }}
-                    exit={{ y: -20, opacity: 0 }}
-                    transition={{ duration: 1.4, delay: 0.2 }}
-                  >
-                    <p className="text-base sm:text-lg md:text-xl text-[#fffaf1] mt-1 sm:mt-2 md:mt-3 lg:mt-4 max-w-2xl">
-                      {events[activeEvent].description}
-                    </p>
-                  </motion.div>
-                </AnimatePresence>
-
-                <div className="mt-4 sm:mt-5 md:mt-6 grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3">
-                  <AnimatePresence>
-                    {events[activeEvent].features.map((feature, index) => (
-                      <motion.div
-                        key={`feature-${events[activeEvent].id}-${index}`}
-                        initial={{ x: -20, opacity: 0 }}
-                        animate={{ x: 0, opacity: 1 }}
-                        transition={{ duration: 0.8, delay: 0.4 + index * 0.2 }}
-                        className="flex items-start sm:items-center"
-                      >
-                        <div className="bg-[#d5c8b6]/40 p-1 rounded-full mr-2 sm:mr-3 mt-0.5 sm:mt-0">
-                          <FiCheck className="text-[#d5c8b6] text-xs sm:text-sm" />
-                        </div>
-                        <span className="text-[#fffaf1] text-xs sm:text-sm md:text-base">{feature}</span>
-                      </motion.div>
-                    ))}
+                  <AnimatePresence mode="wait">
+                    <motion.div
+                      key={`title-${events[activeEvent].id}`}
+                      initial={{ y: 20, opacity: 0 }}
+                      animate={{ y: 0, opacity: 1 }}
+                      exit={{ y: -20, opacity: 0 }}
+                      transition={{ duration: 1.2 }}
+                    >
+                      <h3 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl font-bold font-sans-serif text-[#fffaf1] leading-tight">
+                        {events[activeEvent].title}
+                      </h3>
+                    </motion.div>
                   </AnimatePresence>
-                </div>
-              </div>
 
-              <div className="w-full lg:w-auto flex flex-col items-start lg:items-end space-y-4 sm:space-y-5 md:space-y-6 mt-4 sm:mt-0">
-                <div className="flex space-x-2 self-center lg:self-auto">
-                  {events.map((_, index) => (
-                    <button
-                      key={index}
-                      onClick={() => setActiveEvent(index)}
-                      className={`w-2 h-2 sm:w-3 sm:h-3 rounded-full transition-all ${activeEvent === index ? 'bg-[#d5c8b6] w-4 sm:w-6' : 'bg-white/30'}`}
-                      aria-label={`Mostrar evento ${index + 1}`}
-                    />
-                  ))}
+                  <AnimatePresence mode="wait">
+                    <motion.div
+                      key={`desc-${events[activeEvent].id}`}
+                      initial={{ y: 20, opacity: 0 }}
+                      animate={{ y: 0, opacity: 1 }}
+                      exit={{ y: -20, opacity: 0 }}
+                      transition={{ duration: 1.4, delay: 0.2 }}
+                    >
+                      <p className="text-base sm:text-lg md:text-xl text-[#fffaf1] mt-1 sm:mt-2 md:mt-3 lg:mt-4 max-w-2xl">
+                        {events[activeEvent].description}
+                      </p>
+                    </motion.div>
+                  </AnimatePresence>
+
+                  <div className="mt-4 sm:mt-5 md:mt-6 grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3">
+                    <AnimatePresence>
+                      {events[activeEvent].features.map((feature, index) => (
+                        <motion.div
+                          key={`feature-${events[activeEvent].id}-${index}`}
+                          initial={{ x: -20, opacity: 0 }}
+                          animate={{ x: 0, opacity: 1 }}
+                          transition={{ duration: 0.8, delay: 0.4 + index * 0.2 }}
+                          className="flex items-start sm:items-center"
+                        >
+                          <div className="bg-[#d5c8b6]/40 p-1 rounded-full mr-2 sm:mr-3 mt-0.5 sm:mt-0">
+                            <FiCheck className="text-[#d5c8b6] text-xs sm:text-sm" />
+                          </div>
+                          <span className="text-[#fffaf1] text-xs sm:text-sm md:text-base">{feature}</span>
+                        </motion.div>
+                      ))}
+                    </AnimatePresence>
+                  </div>
                 </div>
 
-                <motion.div
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  transition={{ type: "spring", stiffness: 400, damping: 10 }}
-                  className="w-full sm:w-auto"
-                >
-                  <a
-                    href="https://wa.me/351282038830?text=Ol%C3%A1%2C%20gostaria%20de%20obter%20mais%20informa%C3%A7%C3%B5es%20sobre%20os%20eventos."
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="bg-[#d5c8b6] text-black px-6 sm:px-8 md:px-10 py-3 sm:py-4 md:py-5 rounded-lg sm:rounded-xl font-bold flex items-center justify-center sm:justify-start transition-all duration-300 shadow-md sm:shadow-lg group w-full"
+                <div className="w-full lg:w-auto flex flex-col items-start lg:items-end space-y-4 sm:space-y-5 md:space-y-6 mt-4 sm:mt-0">
+                  <div className="flex space-x-2 self-center lg:self-auto">
+                    {events.map((_, index) => (
+                      <button
+                        key={index}
+                        onClick={() => setActiveEvent(index)}
+                        className={`w-2 h-2 sm:w-3 sm:h-3 rounded-full transition-all ${activeEvent === index ? 'bg-[#d5c8b6] w-4 sm:w-6' : 'bg-white/30'}`}
+                        aria-label={`Mostrar evento ${index + 1}`}
+                      />
+                    ))}
+                  </div>
+
+                  <motion.div
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    transition={{ type: "spring", stiffness: 400, damping: 10 }}
+                    className="w-full sm:w-auto"
                   >
-                    <span className="font-sans-serif text-sm sm:text-base md:text-lg mr-2 sm:mr-3">Saber Mais</span>
-                    <FiArrowRight className="text-black transition-transform group-hover:translate-x-1" />
-                  </a>
-                </motion.div>
-                <p className="font-sans-serif text-[#fffaf1]/80 text-xs sm:text-sm md:text-base text-center lg:text-right hidden sm:block">
-                  Entre em contato para orçamentos personalizados
-                </p>
+                    <a
+                      href="https://wa.me/351282038830?text=Ol%C3%A1%2C%20gostaria%20de%20obter%20mais%20informa%C3%A7%C3%B5es%20sobre%20os%20eventos."
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="bg-[#d5c8b6] text-black px-6 sm:px-8 md:px-10 py-3 sm:py-4 md:py-5 rounded-lg sm:rounded-xl font-bold flex items-center justify-center sm:justify-start transition-all duration-300 shadow-md sm:shadow-lg group w-full"
+                    >
+                      <span className="font-sans-serif text-sm sm:text-base md:text-lg mr-2 sm:mr-3">Saber Mais</span>
+                      <FiArrowRight className="text-black transition-transform group-hover:translate-x-1" />
+                    </a>
+                  </motion.div>
+                  <p className="font-sans-serif text-[#fffaf1]/80 text-xs sm:text-sm md:text-base text-center lg:text-right">
+                    Entre em contato para orçamentos personalizados
+                  </p>
+                </div>
               </div>
             </div>
           </div>
-        </div>
+        )}
+
+        {/* Mobile events section - simplified */}
+        {isMobile && (
+          <div className="mb-8 rounded-xl overflow-hidden shadow-lg border border-[#b8b4ae]/30">
+            <div className="relative h-64">
+              <img 
+                src={events[0].image} 
+                alt={events[0].title}
+                className="w-full h-full object-cover"
+                loading="lazy"
+              />
+              <div className="absolute inset-0 bg-black/40"></div>
+              <div className="absolute inset-0 flex flex-col justify-end p-4">
+                <div className="inline-flex items-center text-[#d5c8b6] px-3 py-1 rounded-full border border-[#d5c8b6]/50 mb-2 self-center">
+                  <FiCalendar className="text-[#d5c8b6] mr-2" />
+                  <span className="font-sans-serif text-[#d5c8b6] text-sm font-medium">Eventos</span>
+                </div>
+                <h3 className="text-xl font-bold text-center text-white mb-2">{events[0].title}</h3>
+                <a
+                  href="https://wa.me/351282038830?text=Ol%C3%A1%2C%20gostaria%20de%20obter%20mais%20informa%C3%A7%C3%B5es%20sobre%20os%20eventos."
+                  className="bg-[#d5c8b6] text-black py-2 px-4 rounded-lg font-bold flex items-center justify-center mt-2"
+                >
+                  <span className="mr-2">Saber Mais</span>
+                  <FiArrowRight />
+                </a>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Grid responsivo */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8 md:gap-10 lg:gap-12 text-[#fffaf1] px-2 sm:px-0">
@@ -299,6 +329,10 @@ const UltraFooter = () => {
             <p className="text-[#d1cfcc] text-xs sm:text-sm md:text-base text-center sm:text-left">
               © {new Date().getFullYear()} <span className="text-[#fffaf1]">Alto Astral</span>. Todos os direitos reservados.
             </p>
+            <div className="flex space-x-4">
+              <a href="#" className="text-[#d1cfcc] hover:text-[#fffaf1] text-xs sm:text-sm">Termos</a>
+              <a href="#" className="text-[#d1cfcc] hover:text-[#fffaf1] text-xs sm:text-sm">Privacidade</a>
+            </div>
           </div>
         </div>
       </div>

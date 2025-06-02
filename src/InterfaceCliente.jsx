@@ -8,10 +8,12 @@ import WelcomeModal from './components/welcomemodal';
 import logo from './assets/logo-alto-astral.png';
 import cafe from './assets/cafe.jpg';
 import mbwayLogo from './assets/images.png';
+import bitcoinLogo from './assets/bitcoin-logo.png';
 import { foodImages, menu } from './data.js';
 import { FiShoppingCart, FiX, FiCheck, FiClock, FiTruck, FiHome, FiCalendar, FiCoffee, FiMeh, FiPlus, FiMinus, FiInfo, FiStar, FiHeart, FiShare2, FiUser, FiMapPin, FiPhone, FiEdit2, FiCreditCard, FiMail } from 'react-icons/fi';
-import { FaCalendarAlt, FaCoffee, FaHamburger, FaDrumstickBite, FaCocktail, FaIceCream, FaBitcoin } from 'react-icons/fa';
+import { FaCalendarAlt, FaCoffee, FaHamburger, FaDrumstickBite, FaCocktail, FaIceCream, FaBitcoin, FaWhatsapp } from 'react-icons/fa';
 import { GiMeal, GiSandwich, GiChickenOven, GiPieSlice, GiCoffeeCup, GiWineBottle, GiHotMeal, GiCakeSlice } from 'react-icons/gi';
+import QRCode from 'react-qr-code';
 
 const logoWhite = logo;
 
@@ -301,8 +303,10 @@ const InterfaceCliente = () => {
   const [orderType, setOrderType] = useState('takeaway');
   const [isMobile, setIsMobile] = useState(false);
   const [selectedOrderForWhatsApp, setSelectedOrderForWhatsApp] = useState(null);
+  const [showBitcoinModal, setShowBitcoinModal] = useState(false);
+  const [bitcoinPaymentLink, setBitcoinPaymentLink] = useState('https://coinos.io/AltoAstralBTC');
   const currentHour = new Date().getHours();
-  const isMenuClosed = currentHour >= 15; // Fecha após 15h
+  const isMenuClosed = currentHour >= 15;
 
   useEffect(() => {
     const checkMobile = () => {
@@ -370,86 +374,83 @@ const InterfaceCliente = () => {
     );
   };
 
-const handleCheckout = async () => {
-  try {
-    await loginAnonimo();
-    
-    const orderRef = ref(database, 'orders');
-    const newOrder = {
-      items: cart,
-      customer: {
-        name: customerInfo.name,
-        surname: customerInfo.surname,
-        phone: customerInfo.phone,
-        address: orderType === 'delivery' ? customerInfo.address : null,
-        postalCode: orderType === 'delivery' ? customerInfo.postalCode : null,
-        city: orderType === 'delivery' ? customerInfo.city : null,
-        reference: orderType === 'delivery' ? customerInfo.reference : null,
-        notes: customerInfo.notes,
-        paymentMethod: customerInfo.paymentMethod,
-        changeFor: customerInfo.paymentMethod === 'cash' ? customerInfo.changeFor : null
-      },
-      orderType: orderType,
-      total: calculateTotal(),
-      status: 'pending',
-      timestamp: Date.now()
-    };
-
-    if (newOrder.items.length === 0) {
-      throw new Error('O carrinho está vazio');
-    }
-    
-    if (orderType === 'delivery' && (!customerInfo.name || !customerInfo.phone || !customerInfo.address || !customerInfo.postalCode || !customerInfo.city)) {
-      throw new Error('Informações do cliente incompletas para entrega');
-    }
-    
-    if (orderType === 'takeaway' && (!customerInfo.name || !customerInfo.phone)) {
-      throw new Error('Informações do cliente incompletas para retirada');
-    }
-
-    await push(orderRef, newOrder);
-    
-    // Preparar mensagem para WhatsApp
-    const phoneNumber = '351282038830';
-    let message = `*Novo Pedido Alto Astral*%0A%0A` +
-      `*Tipo:* ${orderType === 'takeaway' ? 'Retirada' : 'Entrega'}%0A` +
-      `*Cliente:* ${customerInfo.name} ${customerInfo.surname}%0A` +
-      `*Telefone:* ${customerInfo.phone}%0A` +
-      (orderType === 'delivery' ? 
-        `*Endereço:* ${customerInfo.address}%0A` +
-        `*Código Postal:* ${customerInfo.postalCode}%0A` +
-        `*Cidade:* ${customerInfo.city}%0A` +
-        `*Referência:* ${customerInfo.reference}%0A` : '') +
-      `*Itens:*%0A${cart.map(item => `- ${item.quantity}x ${item.name} (€${(item.price * item.quantity).toFixed(2)})${item.notes ? ` - Obs: ${item.notes}` : ''}`).join('%0A')}%0A` +
-      `*Taxa de Entrega:* €${orderType === 'delivery' ? '2.50' : '0.00'}%0A` +
-      `*Total:* €${calculateTotal().toFixed(2)}%0A` +
-      `*Método de Pagamento:* ${customerInfo.paymentMethod || 'Não especificado'}%0A` +
-      (customerInfo.paymentMethod === 'cash' && customerInfo.changeFor ? `*Troco para:* €${customerInfo.changeFor}%0A` : '') +
-      `*Observações:* ${customerInfo.notes || 'Nenhuma'}`;
-    
-    // Se for Bitcoin, adiciona informações específicas
-    if (customerInfo.paymentMethod === 'bitcoin') {
-      message += `%0A%0A*Pagamento Bitcoin:*%0A` +
-        `Por favor, complete o pagamento em: https://coinos.io/AltoAstralBTC%0A` +
-        `Valor em BTC: ${(calculateTotal() * 0.000025).toFixed(8)} BTC (taxa atual)%0A` +
-        `Após o pagamento, envie o comprovante aqui. Obrigado!`;
+  const handleCheckout = async () => {
+    try {
+      await loginAnonimo();
       
-      // Abre o link de pagamento em nova aba
-      window.open('https://coinos.io/AltoAstralBTC', '_blank');
+      const orderRef = ref(database, 'orders');
+      const newOrder = {
+        items: cart,
+        customer: {
+          name: customerInfo.name,
+          surname: customerInfo.surname,
+          phone: customerInfo.phone,
+          address: orderType === 'delivery' ? customerInfo.address : null,
+          postalCode: orderType === 'delivery' ? customerInfo.postalCode : null,
+          city: orderType === 'delivery' ? customerInfo.city : null,
+          reference: orderType === 'delivery' ? customerInfo.reference : null,
+          notes: customerInfo.notes,
+          paymentMethod: customerInfo.paymentMethod,
+          changeFor: customerInfo.paymentMethod === 'cash' ? customerInfo.changeFor : null
+        },
+        orderType: orderType,
+        total: calculateTotal(),
+        status: 'pending',
+        timestamp: Date.now()
+      };
+
+      if (newOrder.items.length === 0) {
+        throw new Error('O carrinho está vazio');
+      }
+      
+      if (orderType === 'delivery' && (!customerInfo.name || !customerInfo.phone || !customerInfo.address || !customerInfo.postalCode || !customerInfo.city)) {
+        throw new Error('Informações do cliente incompletas para entrega');
+      }
+      
+      if (orderType === 'takeaway' && (!customerInfo.name || !customerInfo.phone)) {
+        throw new Error('Informações do cliente incompletas para retirada');
+      }
+
+      const orderPush = await push(orderRef, newOrder);
+      const orderId = orderPush.key;
+      
+      // Create WhatsApp message
+      const phoneNumber = '351282038830';
+      const message = `*Novo Pedido Alto Astral*%0A%0A` +
+        `*Nº Pedido:* ${orderId}%0A` +
+        `*Tipo:* ${orderType === 'takeaway' ? 'Retirada' : 'Entrega'}%0A` +
+        `*Cliente:* ${customerInfo.name} ${customerInfo.surname}%0A` +
+        `*Telefone:* ${customerInfo.phone}%0A` +
+        (orderType === 'delivery' ? 
+          `*Endereço:* ${customerInfo.address}%0A` +
+          `*Código Postal:* ${customerInfo.postalCode}%0A` +
+          `*Cidade:* ${customerInfo.city}%0A` +
+          `*Referência:* ${customerInfo.reference}%0A` : '') +
+        `*Itens:*%0A${cart.map(item => `- ${item.quantity}x ${item.name} (€${(item.price * item.quantity).toFixed(2)})${item.notes ? ` - Obs: ${item.notes}` : ''}`).join('%0A')}%0A` +
+        `*Taxa de Entrega:* €${orderType === 'delivery' ? '2.50' : '0.00'}%0A` +
+        `*Total:* €${calculateTotal().toFixed(2)}%0A` +
+        `*Método de Pagamento:* ${customerInfo.paymentMethod || 'Não especificado'}%0A` +
+        (customerInfo.paymentMethod === 'cash' && customerInfo.changeFor ? `*Troco para:* €${customerInfo.changeFor}%0A` : '') +
+        `*Observações:* ${customerInfo.notes || 'Nenhuma'}`;
+      
+      setWhatsAppLink(`https://wa.me/${phoneNumber}?text=${message}`);
+      
+      if (customerInfo.paymentMethod === 'bitcoin') {
+        setShowBitcoinModal(true);
+        setBitcoinPaymentLink(`https://coinos.io/AltoAstralBTC?amount=${calculateTotal().toFixed(2)}&order=${orderId}`);
+      } else {
+        setShowWhatsAppModal(true);
+        setCountdown(40);
+        
+        if (isMobile) {
+          window.location.href = `whatsapp://send?phone=${phoneNumber}&text=${message}`;
+        }
+      }
+    } catch (error) {
+      console.error("Erro ao enviar pedido:", error);
+      addNotification(error.message || 'Erro ao enviar pedido. Tente novamente.', 'error');
     }
-    
-    setWhatsAppLink(`https://wa.me/${phoneNumber}?text=${message}`);
-    setShowWhatsAppModal(true);
-    setCountdown(40);
-    
-    if (isMobile && customerInfo.paymentMethod !== 'bitcoin') {
-      window.location.href = `whatsapp://send?phone=${phoneNumber}&text=${message}`;
-    }
-  } catch (error) {
-    console.error("Erro ao enviar pedido:", error);
-    addNotification(error.message || 'Erro ao enviar pedido. Tente novamente.', 'error');
-  }
-};
+  };
 
   useEffect(() => {
     let timer;
@@ -608,7 +609,7 @@ const handleCheckout = async () => {
                           <div className="flex justify-between items-start">
                             <div>
                               <h4 className="font-medium text-sm md:text-base text-gray-800">{item.name}</h4>
-                              <p className="text-xs md:text-sm text-gray-500 mt-1 line-clamp-2">{item.description}</p>
+                              <p className="text-xs text-gray-500 mt-1 line-clamp-2">{item.description}</p>
                             </div>
                             <span className="font-medium text-sm md:text-base text-gray-800 ml-2 md:ml-4 whitespace-nowrap">
                               €{(item.price * item.quantity).toFixed(2)}
@@ -1236,6 +1237,105 @@ const handleCheckout = async () => {
                 </button>
               </div>
             </div>
+            
+            {/* Modal de Bitcoin */}
+            {showBitcoinModal && (
+              <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 p-4">
+                <motion.div 
+                  initial={{ scale: 0.9, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  className="bg-white rounded-xl max-w-md w-full overflow-hidden shadow-2xl"
+                >
+                  <div className="p-4 md:p-6">
+                    <div className="flex justify-between items-center mb-4">
+                      <h3 className="text-lg md:text-xl font-bold text-gray-800 flex items-center">
+                        <FaBitcoin className="text-[#F7931A] mr-2" />
+                        Pagamento com Bitcoin
+                      </h3>
+                      <button 
+                        onClick={() => {
+                          setShowBitcoinModal(false);
+                          setCheckoutStep('confirmation');
+                          setCart([]);
+                        }}
+                        className="text-gray-500 hover:text-gray-700"
+                      >
+                        <FiX size={20} className="md:size-6" />
+                      </button>
+                    </div>
+                    
+                    <div className="mb-4 md:mb-6 text-center">
+                      <div className="flex justify-center mb-4">
+                        <div className="bg-[#F7931A]/10 p-4 rounded-lg">
+                          <QRCode 
+                            value={bitcoinPaymentLink}
+                            size={160}
+                            bgColor="transparent"
+                            fgColor="#F7931A"
+                            level="H"
+                          />
+                        </div>
+                      </div>
+                      
+                      <p className="text-base md:text-lg mb-2">Escaneie o QR Code ou clique no link abaixo</p>
+                      <p className="text-sm md:text-base text-gray-600 mb-3 md:mb-4">Valor: €{calculateTotal().toFixed(2)}</p>
+                      
+                      <motion.a
+                        whileHover={{ scale: 1.03 }}
+                        whileTap={{ scale: 0.97 }}
+                        href={bitcoinPaymentLink}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-block bg-[#F7931A] hover:bg-[#e68a00] text-white font-bold py-2 md:py-3 px-4 md:px-6 rounded-lg text-base md:text-lg mb-4"
+                      >
+                        Pagar com Bitcoin
+                      </motion.a>
+
+                      <div className="bg-gray-100 p-3 md:p-4 rounded-lg mb-4">
+                        <h4 className="font-medium mb-1 md:mb-2 text-sm md:text-base">Resumo do Pedido:</h4>
+                        <ul className="space-y-1 text-xs md:text-sm">
+                          {cart.map(item => (
+                            <li key={item.id} className="flex justify-between">
+                              <span>{item.quantity}x {item.name}</span>
+                              <span>€{(item.price * item.quantity).toFixed(2)}</span>
+                            </li>
+                          ))}
+                        </ul>
+                        <div className="border-t border-gray-300 mt-2 pt-2 font-bold flex justify-between text-sm md:text-base">
+                          <span>Total:</span>
+                          <span>€{calculateTotal().toFixed(2)}</span>
+                        </div>
+                      </div>
+
+                      <motion.button
+                        whileHover={{ scale: 1.03 }}
+                        whileTap={{ scale: 0.97 }}
+                        onClick={() => {
+                          if (isMobile) {
+                            window.location.href = whatsAppLink;
+                          } else {
+                            window.open(whatsAppLink, '_blank');
+                          }
+                          setShowBitcoinModal(false);
+                          setCheckoutStep('confirmation');
+                          setCart([]);
+                        }}
+                        className="inline-flex items-center justify-center bg-green-500 hover:bg-green-600 text-white font-bold py-2 md:py-3 px-4 md:px-6 rounded-lg text-base md:text-lg w-full"
+                      >
+                        <FaWhatsapp className="mr-2" />
+                        Enviar Pedido para WhatsApp
+                      </motion.button>
+
+                      <p className="mt-3 text-xs text-gray-600">
+                        Após realizar o pagamento, envie seu comprovante via WhatsApp.
+                      </p>
+                    </div>
+                  </div>
+                </motion.div>
+              </div>
+            )}
+
+            {/* Modal de WhatsApp (para outros métodos de pagamento) */}
             {showWhatsAppModal && (
               <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 p-4">
                 <motion.div 
@@ -1414,7 +1514,7 @@ const handleCheckout = async () => {
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
                     onClick={() => setActiveTab(tab)}
-                    disabled={tab === 'semana' && isMenuClosed} // Desativa se for "semana" e após 15h
+                    disabled={tab === 'semana' && isMenuClosed}
                     className={`px-3 py-2 rounded-lg whitespace-nowrap flex items-center transition border font-medium md:font-bold text-xs md:text-sm ${
                       activeTab === tab
                         ? 'border-[#e6be44] bg-[#b0aca6] text-black'
