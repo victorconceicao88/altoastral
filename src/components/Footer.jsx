@@ -1,33 +1,26 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import {
-  FiMapPin, FiPhone, FiClock, FiLock, FiMail, FiCalendar, 
-  FiInstagram, FiFacebook, FiArrowRight, FiCheck
+  FiMapPin, FiPhone, FiClock, FiLock, FiCalendar,
+  FiInstagram, FiFacebook, FiArrowRight, FiCheck, FiShoppingBag
 } from 'react-icons/fi';
 import { motion, AnimatePresence } from 'framer-motion';
 import evento1 from '../assets/evento1.jpg';
-import evento2 from '../assets/evento2.jpg';
-import evento3 from '../assets/evento3.jpg';
 import altoastralFoto from '../assets/altoastral-foto.jpeg';
+import salgadosDocesFoto from '../assets/salgados-doces.jpg'; // Certifique-se de que esta imagem existe
 
 const UltraFooter = () => {
   const isLoggedIn = localStorage.getItem('adminLoggedIn') === 'true';
-  const [activeEvent, setActiveEvent] = useState(0);
+  const [activeContentIndex, setActiveContentIndex] = useState(0); // 0 for events, 1 for orders
   const [isHovering, setIsHovering] = useState(false);
-  const [isMobile, setIsMobile] = useState(false);
 
-  useEffect(() => {
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth < 640);
-    };
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
-  }, []);
-
-  const events = [
+  // Conteúdos dinâmicos para eventos e encomendas
+  const contents = [
     {
-      id: 1,
+      id: 'events',
+      type: 'eventos',
+      label: 'Eventos Exclusivos',
+      icon: FiCalendar,
       title: "Ambiente Acolhedor para Eventos",
       description: "Oferecemos um serviço completo para tornar seu evento ainda mais especial. Nosso buffet conta com um espaço acolhedor, bem estruturado e preparado para receber festas, eventos corporativos e confraternizações com conforto e elegância.",
       image: evento1,
@@ -36,213 +29,180 @@ const UltraFooter = () => {
         "Ambiente climatizado e organizado",
         "Ideal para confraternizações e celebrações",
         "Equipe pronta para atender"
-      ]
+      ],
+      ctaText: "Saber Mais sobre Eventos",
+      whatsappMessage: "Olá, gostaria de obter mais informações sobre os eventos."
     },
     {
-      id: 2,
-      title: "Gastronomia Variada e de Qualidade",
-      description: "Trabalhamos com uma ampla variedade de salgadinhos, docinhos e petiscos preparados com ingredientes selecionados. Nossas opções são pensadas para agradar todos os paladares, oferecendo sabor, qualidade e apresentação impecável.",
-      image: evento2,
+      id: 'orders',
+      type: 'encomendas',
+      label: 'Encomendas Personalizadas',
+      icon: FiShoppingBag,
+      title: "Salgados e Doces Fresquinhos para sua Festa!",
+      description: "Desfrute da nossa variedade de salgados e doces artesanais, feitos com ingredientes frescos e muito carinho. Perfeitos para aniversários, reuniões ou para adoçar o seu dia. Faça sua encomenda e surpreenda-se com o sabor e a qualidade!",
+      image: salgadosDocesFoto,
       features: [
-        "Salgados e doces artesanais",
-        "Petiscos variados e saborosos",
-        "Apresentação impecável",
-        "Qualidade garantida"
-      ]
-    },
-    {
-      id: 3,
-      title: "Atendimento e Experiência Personalizada",
-      description: "Nosso atendimento é totalmente personalizado, com foco em praticidade e atenção aos detalhes. Buscamos proporcionar uma experiência inesquecível aos nossos clientes, cuidando de cada momento com dedicação.",
-      image: evento3,
-      features: [
-        "Equipe atenciosa e dedicada",
-        "Organização do início ao fim",
-        "Foco na satisfação do cliente",
-        "Experiência marcante para todos"
-      ]
+        "Variedade de salgados e doces",
+        "Ingredientes frescos e de qualidade",
+        "Opções personalizadas para seu evento",
+        "Entrega e retirada facilitadas"
+      ],
+      ctaText: "Encomendar Agora",
+      whatsappMessage: "Olá, gostaria de fazer uma encomenda de salgados/doces."
     }
   ];
 
+  // Efeito para alternar o conteúdo automaticamente quando não estiver com o mouse em cima
   useEffect(() => {
-    if (!isHovering && !isMobile) {
+    if (!isHovering) {
       const interval = setInterval(() => {
-        setActiveEvent((prev) => (prev + 1) % events.length);
-      }, 8000);
+        setActiveContentIndex((prev) => (prev + 1) % contents.length);
+      }, 8000); // Alterna a cada 8 segundos
       return () => clearInterval(interval);
     }
-  }, [isHovering, isMobile, events.length]);
+  }, [isHovering, contents.length]);
+
+  const CurrentIcon = contents[activeContentIndex].icon; // Seleciona o ícone dinamicamente
 
   return (
     <footer className="bg-[#918e89] text-white relative overflow-hidden">
       {/* Top image section - completely clean without any effects */}
       <div className="w-full h-32 sm:h-40 md:h-48 lg:h-56 xl:h-64 -mt-px overflow-hidden">
-        <img 
-          src={altoastralFoto} 
-          alt="Alto Astral" 
+        <img
+          src={altoastralFoto}
+          alt="Alto Astral"
           className="w-full h-full object-cover object-center"
           loading="lazy"
         />
       </div>
 
       <div className="container mx-auto px-4 sm:px-6 pb-6 sm:pb-8 md:pb-10 lg:pb-12">
-        {/* Events slider */}
-        {!isMobile && (
-          <div 
-            className="relative rounded-lg sm:rounded-xl md:rounded-2xl mb-8 sm:mb-10 md:mb-12 lg:mb-16 mx-2 sm:mx-0 shadow-lg sm:shadow-xl md:shadow-2xl overflow-hidden border border-[#b8b4ae]/20"
-            onMouseEnter={() => setIsHovering(true)}
-            onMouseLeave={() => setIsHovering(false)}
-          >
-            <div className="absolute inset-0 bg-gradient-to-r from-[#7a6d5d]/90 to-[#5a5148]/90 z-0"></div>
-            
-            <div className="absolute inset-0 overflow-hidden z-0">
-              <AnimatePresence mode="wait">
-                <motion.div
-                  key={events[activeEvent].id}
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  transition={{ duration: 1.5 }}
-                  className="absolute inset-0"
-                >
-                  <img 
-                    src={events[activeEvent].image} 
-                    alt={events[activeEvent].title}
-                    className="w-full h-full object-cover object-center"
-                    loading="lazy"
-                  />
-                  <div className="absolute inset-0 bg-black/40"></div>
-                </motion.div>
-              </AnimatePresence>
-            </div>
+        {/* Dynamic content slider for Events and Orders - now responsive for all devices */}
+        <div
+          className="relative rounded-lg sm:rounded-xl md:rounded-2xl mb-8 sm:mb-10 md:mb-12 lg:mb-16 mx-0 shadow-lg sm:shadow-xl md:shadow-2xl overflow-hidden border border-[#b8b4ae]/20"
+          onMouseEnter={() => setIsHovering(true)}
+          onMouseLeave={() => setIsHovering(false)}
+        >
+          <div className="absolute inset-0 bg-gradient-to-r from-[#7a6d5d]/90 to-[#5a5148]/90 z-0"></div>
 
-            <div className="relative z-10 p-4 sm:p-6 md:p-8 lg:p-10 xl:p-12">
-              <div className="flex flex-col lg:flex-row items-start justify-between gap-4 sm:gap-6 md:gap-8">
-                <div className="flex-1 space-y-4 sm:space-y-6">
+          <div className="absolute inset-0 overflow-hidden z-0">
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={contents[activeContentIndex].id}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 1.5 }}
+                className="absolute inset-0"
+              >
+                <img
+                  src={contents[activeContentIndex].image}
+                  alt={contents[activeContentIndex].title}
+                  className="w-full h-full object-cover object-center"
+                  loading="lazy"
+                />
+                <div className="absolute inset-0 bg-black/40"></div>
+              </motion.div>
+            </AnimatePresence>
+          </div>
+
+          <div className="relative z-10 p-4 sm:p-6 md:p-8 lg:p-10 xl:p-12">
+            <div className="flex flex-col lg:flex-row items-start justify-between gap-4 sm:gap-6 md:gap-8">
+              <div className="flex-1 space-y-4 sm:space-y-6">
+                <motion.div
+                  initial={{ y: 20, opacity: 0 }}
+                  animate={{ y: 0, opacity: 1 }}
+                  transition={{ delay: 0.2, duration: 1 }}
+                >
+                  <div className="inline-flex items-center text-[#d5c8b6] px-3 py-1 sm:px-4 sm:py-2 rounded-full border border-[#d5c8b6]/50 mb-2 sm:mb-3 md:mb-4">
+                    <CurrentIcon className="text-lg sm:text-xl text-[#d5c8b6] mr-2" />
+                    <span className="font-sans-serif text-[#d5c8b6] text-sm sm:text-base font-medium">{contents[activeContentIndex].label}</span>
+                  </div>
+                </motion.div>
+
+                <AnimatePresence mode="wait">
                   <motion.div
+                    key={`title-${contents[activeContentIndex].id}`}
                     initial={{ y: 20, opacity: 0 }}
                     animate={{ y: 0, opacity: 1 }}
-                    transition={{ delay: 0.2, duration: 1 }}
+                    exit={{ y: -20, opacity: 0 }}
+                    transition={{ duration: 1.2 }}
                   >
-                    <div className="inline-flex items-center text-[#d5c8b6] px-3 py-1 sm:px-4 sm:py-2 rounded-full border border-[#d5c8b6]/50 mb-2 sm:mb-3 md:mb-4">
-                      <FiCalendar className="text-lg sm:text-xl text-[#d5c8b6] mr-2" />
-                      <span className="font-sans-serif text-[#d5c8b6] text-sm sm:text-base font-medium">Eventos Exclusivos</span>
-                    </div>
+                    <h3 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl font-bold font-sans-serif text-[#fffaf1] leading-tight">
+                      {contents[activeContentIndex].title}
+                    </h3>
                   </motion.div>
+                </AnimatePresence>
 
-                  <AnimatePresence mode="wait">
-                    <motion.div
-                      key={`title-${events[activeEvent].id}`}
-                      initial={{ y: 20, opacity: 0 }}
-                      animate={{ y: 0, opacity: 1 }}
-                      exit={{ y: -20, opacity: 0 }}
-                      transition={{ duration: 1.2 }}
-                    >
-                      <h3 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl font-bold font-sans-serif text-[#fffaf1] leading-tight">
-                        {events[activeEvent].title}
-                      </h3>
-                    </motion.div>
-                  </AnimatePresence>
-
-                  <AnimatePresence mode="wait">
-                    <motion.div
-                      key={`desc-${events[activeEvent].id}`}
-                      initial={{ y: 20, opacity: 0 }}
-                      animate={{ y: 0, opacity: 1 }}
-                      exit={{ y: -20, opacity: 0 }}
-                      transition={{ duration: 1.4, delay: 0.2 }}
-                    >
-                      <p className="text-base sm:text-lg md:text-xl text-[#fffaf1] mt-1 sm:mt-2 md:mt-3 lg:mt-4 max-w-2xl">
-                        {events[activeEvent].description}
-                      </p>
-                    </motion.div>
-                  </AnimatePresence>
-
-                  <div className="mt-4 sm:mt-5 md:mt-6 grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3">
-                    <AnimatePresence>
-                      {events[activeEvent].features.map((feature, index) => (
-                        <motion.div
-                          key={`feature-${events[activeEvent].id}-${index}`}
-                          initial={{ x: -20, opacity: 0 }}
-                          animate={{ x: 0, opacity: 1 }}
-                          transition={{ duration: 0.8, delay: 0.4 + index * 0.2 }}
-                          className="flex items-start sm:items-center"
-                        >
-                          <div className="bg-[#d5c8b6]/40 p-1 rounded-full mr-2 sm:mr-3 mt-0.5 sm:mt-0">
-                            <FiCheck className="text-[#d5c8b6] text-xs sm:text-sm" />
-                          </div>
-                          <span className="text-[#fffaf1] text-xs sm:text-sm md:text-base">{feature}</span>
-                        </motion.div>
-                      ))}
-                    </AnimatePresence>
-                  </div>
-                </div>
-
-                <div className="w-full lg:w-auto flex flex-col items-start lg:items-end space-y-4 sm:space-y-5 md:space-y-6 mt-4 sm:mt-0">
-                  <div className="flex space-x-2 self-center lg:self-auto">
-                    {events.map((_, index) => (
-                      <button
-                        key={index}
-                        onClick={() => setActiveEvent(index)}
-                        className={`w-2 h-2 sm:w-3 sm:h-3 rounded-full transition-all ${activeEvent === index ? 'bg-[#d5c8b6] w-4 sm:w-6' : 'bg-white/30'}`}
-                        aria-label={`Mostrar evento ${index + 1}`}
-                      />
-                    ))}
-                  </div>
-
+                <AnimatePresence mode="wait">
                   <motion.div
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                    transition={{ type: "spring", stiffness: 400, damping: 10 }}
-                    className="w-full sm:w-auto"
+                    key={`desc-${contents[activeContentIndex].id}`}
+                    initial={{ y: 20, opacity: 0 }}
+                    animate={{ y: 0, opacity: 1 }}
+                    exit={{ y: -20, opacity: 0 }}
+                    transition={{ duration: 1.4, delay: 0.2 }}
                   >
-                    <a
-                      href="https://wa.me/351282038830?text=Ol%C3%A1%2C%20gostaria%20de%20obter%20mais%20informa%C3%A7%C3%B5es%20sobre%20os%20eventos."
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="bg-[#d5c8b6] text-black px-6 sm:px-8 md:px-10 py-3 sm:py-4 md:py-5 rounded-lnpm g sm:rounded-xl font-bold flex items-center justify-center sm:justify-start transition-all duration-300 shadow-md sm:shadow-lg group w-full"
-                    >
-                      <span className="font-sans-serif text-sm sm:text-base md:text-lg mr-2 sm:mr-3">Saber Mais</span>
-                      <FiArrowRight className="text-black transition-transform group-hover:translate-x-1" />
-                    </a>
+                    <p className="text-base sm:text-lg md:text-xl text-[#fffaf1] mt-1 sm:mt-2 md:mt-3 lg:mt-4 max-w-2xl">
+                      {contents[activeContentIndex].description}
+                    </p>
                   </motion.div>
-                  <p className="font-sans-serif text-[#fffaf1]/80 text-xs sm:text-sm md:text-base text-center lg:text-right">
-                    Entre em contato para orçamentos personalizados
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
+                </AnimatePresence>
 
-        {/* Mobile events section */}
-        {isMobile && (
-          <div className="mb-8 rounded-xl overflow-hidden shadow-lg border border-[#b8b4ae]/30">
-            <div className="relative h-64">
-              <img 
-                src={events[0].image} 
-                alt={events[0].title}
-                className="w-full h-full object-cover"
-                loading="lazy"
-              />
-              <div className="absolute inset-0 bg-black/40"></div>
-              <div className="absolute inset-0 flex flex-col justify-end p-4">
-                <div className="inline-flex items-center text-[#d5c8b6] px-3 py-1 rounded-full border border-[#d5c8b6]/50 mb-2 self-center">
-                  <FiCalendar className="text-[#d5c8b6] mr-2" />
-                  <span className="font-sans-serif text-[#d5c8b6] text-sm font-medium">Eventos</span>
+                <div className="mt-4 sm:mt-5 md:mt-6 grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3">
+                  <AnimatePresence>
+                    {contents[activeContentIndex].features.map((feature, index) => (
+                      <motion.div
+                        key={`feature-${contents[activeContentIndex].id}-${index}`}
+                        initial={{ x: -20, opacity: 0 }}
+                        animate={{ x: 0, opacity: 1 }}
+                        transition={{ duration: 0.8, delay: 0.4 + index * 0.2 }}
+                        className="flex items-start sm:items-center"
+                      >
+                        <div className="bg-[#d5c8b6]/40 p-1 rounded-full mr-2 sm:mr-3 mt-0.5 sm:mt-0">
+                          <FiCheck className="text-[#d5c8b6] text-xs sm:text-sm" />
+                        </div>
+                        <span className="text-[#fffaf1] text-xs sm:text-sm md:text-base">{feature}</span>
+                      </motion.div>
+                    ))}
+                  </AnimatePresence>
                 </div>
-                <h3 className="text-xl font-bold text-center text-white mb-2">{events[0].title}</h3>
-                <a
-                  href="https://wa.me/351282038830?text=Ol%C3%A1%2C%20gostaria%20de%20obter%20mais%20informa%C3%A7%C3%B5es%20sobre%20os%20eventos."
-                  className="bg-[#d5c8b6] text-black py-2 px-4 rounded-lg font-bold flex items-center justify-center mt-2"
+              </div>
+
+              <div className="w-full lg:w-auto flex flex-col items-start lg:items-end space-y-4 sm:space-y-5 md:space-y-6 mt-4 sm:mt-0">
+                <div className="flex space-x-2 self-center lg:self-auto">
+                  {contents.map((_, index) => (
+                    <button
+                      key={index}
+                      onClick={() => setActiveContentIndex(index)}
+                      className={`w-2 h-2 sm:w-3 sm:h-3 rounded-full transition-all ${activeContentIndex === index ? 'bg-[#d5c8b6] w-4 sm:w-6' : 'bg-white/30'}`}
+                      aria-label={`Mostrar conteúdo ${index + 1}`}
+                    />
+                  ))}
+                </div>
+
+                <motion.div
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  transition={{ type: "spring", stiffness: 400, damping: 10 }}
+                  className="w-full sm:w-auto"
                 >
-                  <span className="mr-2">Saber Mais</span>
-                  <FiArrowRight />
-                </a>
+                  <a
+                    href={`https://wa.me/351282038830?text=${encodeURIComponent(contents[activeContentIndex].whatsappMessage)}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="bg-[#d5c8b6] text-black px-6 sm:px-8 md:px-10 py-3 sm:py-4 md:py-5 rounded-lg sm:rounded-xl font-bold flex items-center justify-center sm:justify-start transition-all duration-300 shadow-md sm:shadow-lg group w-full"
+                  >
+                    <span className="font-sans-serif text-sm sm:text-base md:text-lg mr-2 sm:mr-3">{contents[activeContentIndex].ctaText}</span>
+                    <FiArrowRight className="text-black transition-transform group-hover:translate-x-1" />
+                  </a>
+                </motion.div>
+                <p className="font-sans-serif text-[#fffaf1]/80 text-xs sm:text-sm md:text-base text-center lg:text-right">
+                  Entre em contato para {contents[activeContentIndex].type === 'eventos' ? 'orçamentos personalizados' : 'solicitar seu pedido'}
+                </p>
               </div>
             </div>
           </div>
-        )}
+        </div>
 
         {/* Main footer content */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8 md:gap-10 lg:gap-12 text-[#fffaf1] px-2 sm:px-0">
@@ -252,15 +212,15 @@ const UltraFooter = () => {
               <h3 className="font-sans-serif text-2xl sm:text-3xl md:text-4xl font-bold tracking-tight text-[#fffaf1]">Alto Astral</h3>
               <p className="font-sans-serif text-[#d1cfcc] text-sm sm:text-base md:text-lg mt-1 sm:mt-2">Experiências Gastronômicas Memoráveis</p>
             </div>
-            
+
             <div className="space-y-3 sm:space-y-4 md:space-y-5">
               <div className="flex flex-col sm:flex-row items-center sm:items-start text-center sm:text-left gap-2 sm:gap-3">
                 <div className="bg-[#f4df86]/20 p-1.5 sm:p-2 rounded-lg flex-shrink-0">
                   <FiMapPin className="text-lg sm:text-xl text-[#f4df86]" />
                 </div>
-                <a 
-                  href="https://www.google.com/maps?q=Rua+Agostinho+Da+Silva+Lote+20,+Loja+2,+8500-826+Portimão,+Portugal,+Urb.+Horta+De+São+Pedro" 
-                  target="_blank" 
+                <a
+                  href="https://www.google.com/maps/place/Rua+Agostinho+Da+Silva+Lote+20,+Loja+2,+8500-826+Portim%C3%A3o,+Portugal"
+                  target="_blank"
                   rel="noopener noreferrer"
                   className="font-sans-serif text-[#fffaf1] text-sm sm:text-base leading-relaxed hover:text-white transition-colors"
                 >
@@ -292,12 +252,12 @@ const UltraFooter = () => {
             </div>
           </div>
 
-          {/* Social media */}
+          {/* Social media and Admin Login */}
           <div className="space-y-4 sm:space-y-5 md:space-y-6 lg:space-y-8 order-2 lg:order-3">
             <h4 className="text-base sm:text-lg md:text-xl font-semibold uppercase tracking-wider border-b border-[#b8b4ae]/40 pb-2 sm:pb-3 text-center sm:text-left text-[#fffaf1]">Conecte-se</h4>
             <div className="flex justify-center sm:justify-start gap-3 sm:gap-4 md:gap-5">
-              <motion.a 
-                href="https://www.instagram.com/altoastralsnackbar?igsh=MXUzMHVmamx6MDFvbA==" 
+              <motion.a
+                href="https://www.instagram.com/altoastralsnackbar?igsh=MXUzMHVmamx6MDFvbA=="
                 whileHover={{ y: -3 }}
                 className="bg-gradient-to-br from-[#f09433] to-[#bc1888] w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 rounded-md sm:rounded-lg md:rounded-xl flex items-center justify-center text-white shadow-md sm:shadow-lg hover:shadow-xl transition-all"
                 target="_blank"
@@ -306,11 +266,12 @@ const UltraFooter = () => {
                 <FiInstagram className="text-lg sm:text-xl md:text-2xl" />
               </motion.a>
 
-              <motion.a 
-                href="https://www.facebook.com/p/Alto-Astral-Snack-Bar-100083351294242/" 
+              <motion.a
+                href="https://www.facebook.com/p/Alto-Astral-Snack-Bar-100083351294242/"
                 whileHover={{ y: -3 }}
                 className="bg-[#3b5998] w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 rounded-md sm:rounded-lg md:rounded-xl flex items-center justify-center text-white shadow-md sm:shadow-lg hover:shadow-xl transition-all"
                 target='_blank'
+                rel="noopener noreferrer"
               >
                 <FiFacebook className="text-lg sm:text-xl md:text-2xl" />
               </motion.a>
