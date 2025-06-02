@@ -1454,7 +1454,7 @@ const InterfaceCliente = () => {
           <div className="flex items-center">
             <img src={logo} alt="Alto Astral" className="h-16 md:h-20 lg:h-24 mr-2" />
           </div>
-          <div className="flex items-center space-x-2 md:space-x-4">
+            <div className="flex items-center space-x-2 md:space-x-4">
             <motion.button 
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
@@ -1462,7 +1462,8 @@ const InterfaceCliente = () => {
               className="relative bg-white hover:bg-gray-100 p-2 md:px-4 md:py-2 rounded-lg flex items-center transition"
               disabled={cart.length === 0}
             >
-              <FiShoppingCart className="text-xl md:text-2xl text-black" />
+              {/* Ajuste para o tamanho do ícone em dispositivos móveis */}
+              <FiShoppingCart className="text-xl sm:text-2xl md:text-3xl lg:text-4xl text-black" /> 
               <span className="hidden sm:inline text-black ml-1 md:ml-2">Carrinho</span>
               {cart.length > 0 && (
                 <motion.span 
@@ -1473,7 +1474,7 @@ const InterfaceCliente = () => {
                 </motion.span>
               )}
             </motion.button>
-          </div>
+        </div>
         </div>
       </header>
 
@@ -1546,105 +1547,115 @@ const InterfaceCliente = () => {
         </div>
       </div>
 
-   <main className="container mx-auto px-4 pb-16 md:pb-20">
+<main className="container mx-auto px-4 pb-16 md:pb-20">
   <AnimatePresence mode="wait">
     <motion.div
       key={activeTab}
-      initial={{ opacity: 0, y: 10 }}
+      initial={{ opacity: 0, y: 15 }}
       animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -10 }}
-      transition={{ duration: 0.3 }}
+      exit={{ opacity: 0, y: -15 }}
+      transition={{ duration: 0.4, ease: "easeOut" }}
     >
       {['semana', 'lanches', 'porcoes', 'pasteis', 'cafe', 'bebidas', 'salgados', 'sobremesas'].map((category) => (
         activeTab === category && (
           <div key={category}>
-            <div className="flex items-center justify-between mb-4 md:mb-6">
-              <h2 className="text-xl md:text-2xl font-bold text-black flex items-center">
-                {category === 'semana' && <GiMeal className="mr-2 text-black text-xl md:text-2xl" />}
-                {category === 'lanches' && <GiSandwich className="mr-2 text-black text-xl md:text-2xl" />}
-                {category === 'porcoes' && <GiChickenOven className="mr-2 text-black text-xl md:text-2xl" />}
-                {category === 'pasteis' && <GiPieSlice className="mr-2 text-black text-xl md:text-2xl" />}
-                {category === 'cafe' && <GiCoffeeCup className="mr-2 text-black text-xl md:text-2xl" />}
-                {category === 'bebidas' && <GiWineBottle className="mr-2 text-black text-xl md:text-2xl" />}
-                {category === 'salgados' && <GiHotMeal className="mr-2 text-black text-xl md:text-2xl" />}
-                {category === 'sobremesas' && <GiCakeSlice className="mr-2 text-black text-xl md:text-2xl" />}
+            <div className="flex items-center justify-between mb-8 md:mb-10">
+              <h2 className="text-3xl md:text-4xl font-extrabold text-gray-900 flex items-center tracking-tight">
+                {category === 'semana' && <GiMeal className="mr-3 text-black text-4xl md:text-5xl" />}
+                {category === 'lanches' && <GiSandwich className="mr-3  text-black text-4xl md:text-5xl" />}
+                {category === 'porcoes' && <GiChickenOven className="mr-3  text-black text-4xl md:text-5xl" />}
+                {category === 'pasteis' && <GiPieSlice className="mr-3  text-black text-4xl md:text-5xl" />}
+                {category === 'cafe' && <GiCoffeeCup className="mr-3  text-black text-4xl md:text-5xl" />}
+                {category === 'bebidas' && <GiWineBottle className="mr-3  text-black text-4xl md:text-5xl" />}
+                {category === 'salgados' && <GiHotMeal className="mr-3  text-black text-4xl md:text-5xl" />}
+                {category === 'sobremesas' && <GiCakeSlice className="mr-3 text-black text-4xl md:text-5xl" />}
 
                 {category === 'semana' && 'Cardápio da Semana'}
-                {category === 'lanches' && 'Lanches'}
-                {category === 'porcoes' && 'Porções'}
-                {category === 'pasteis' && 'Pasteis'}
-                {category === 'cafe' && 'Bom Dia'}
+                {category === 'lanches' && 'Lanches Exclusivos'}
+                {category === 'porcoes' && 'Porções Generosas'}
+                {category === 'pasteis' && 'Pastéis Artesanais'}
+                {category === 'cafe' && 'Despertar com Café'}
                 {category === 'bebidas' && 'Bebidas'}
-                {category === 'salgados' && 'Salgados'}
-                {category === 'sobremesas' && 'Sobremesas'}
+                {category === 'salgados' && 'Salgados Frescos'}
+                {category === 'sobremesas' && 'Sobremesas Gourmet'}
               </h2>
             </div>
 
             {category === 'semana' ? (
+              // Início do bloco condicional para 'semana'
               (() => {
                 const now = new Date();
                 const currentHour = now.getHours();
                 const isClosed = currentHour >= 15 || currentHour < 10;
                 
                 return isClosed ? (
-                  <div className="text-center p-8 bg-gray-100 rounded-lg">
-                    <FiClock className="mx-auto text-3xl text-gray-500 mb-3" />
-                    <p className="font-medium text-gray-700">
+                  <motion.div 
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ duration: 0.5, ease: "easeOut" }}
+                    className="text-center p-12 bg-gray-50 rounded-3xl shadow-xl border-t-4 border-yellow-500 flex flex-col items-center justify-center min-h-[200px]"
+                  >
+                    <FiClock className="mx-auto text-5xl text-gray-500 mb-5 animate-pulse" />
+                    <p className="font-bold text-xl text-gray-800 leading-relaxed">
                       {currentHour >= 15 
-                        ? "O cardápio da semana estará disponível amanhã às 10h" 
-                        : "O cardápio abre às 10h da manhã"
+                        ? "Prezado cliente, o cardápio da semana estará disponível apenas amanhã, a partir das 10h." 
+                        : "Aguarde! Nosso cardápio da semana abre pontualmente às 10h da manhã."
                       }
                     </p>
-                    <p className="text-sm text-gray-500 mt-1">
+                    <p className="text-md text-gray-600 mt-3 max-w-lg">
                       {currentHour >= 15 
-                        ? "Aproveite nosso cardápio regular!" 
-                        : "Volte mais tarde!"
+                        ? "Enquanto isso, delicie-se com as opções do nosso cardápio regular, sempre recheado de sabor!" 
+                        : "Prepare-se para uma experiência gastronômica! Volte em breve para descobrir as novidades!"
                       }
                     </p>
-                  </div>
+                  </motion.div>
                 ) : (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 md:gap-8">
                     {filteredMenu(category).map(item => (
                       <motion.div 
                         key={item.id}
-                        whileHover={{ y: -5 }}
-                        className="bg-white rounded-xl md:rounded-2xl shadow-sm overflow-hidden border-2 border-[#e6be44]"
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.5, ease: "easeOut", delay: 0.1 }}
+                        whileHover={{ y: -8, boxShadow: "0 20px 40px rgba(0,0,0,0.15)", scale: 1.01 }}
+                        className="bg-white rounded-3xl shadow-lg overflow-hidden border-2 border-yellow-200 flex flex-col transform transition-all duration-300 ease-in-out group hover:border-yellow-400"
                       >
-                        <div className="relative h-40 md:h-48 overflow-hidden group">
+                        <div className="relative w-full h-64 sm:h-72 md:h-80 overflow-hidden">
                           <img 
                             src={item.image || cafe} 
                             alt={item.name} 
                             onError={(e) => { e.target.onerror = null; e.target.src = cafe }}
-                            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                            className="w-full h-full object-cover object-center transition-transform duration-700 ease-in-out group-hover:scale-105"
                           />
                           <button 
                             onClick={() => toggleFavorite(item.id)}
-                            className="absolute top-2 right-2 p-1 md:p-2 bg-white/80 rounded-full backdrop-blur-sm hover:bg-white transition"
+                            className="absolute top-4 right-4 p-2.5 bg-white/85 rounded-full backdrop-blur-sm shadow-md hover:bg-white hover:scale-110 transition-all duration-300 focus:outline-none focus:ring-3 focus:ring-yellow-500 focus:ring-opacity-70"
+                            aria-label={favorites.includes(item.id) ? "Remover dos favoritos" : "Adicionar aos favoritos"}
                           >
-                            <FiHeart className={`w-4 h-4 md:w-5 md:h-5 ${favorites.includes(item.id) ? 'text-red-500 fill-red-500' : 'text-gray-400'}`} />
+                            <FiHeart className={`w-6 h-6 ${favorites.includes(item.id) ? 'text-red-500 fill-red-500' : 'text-gray-400'}`} />
                           </button>
                           {item.veg && (
-                            <span className="absolute top-2 left-2 text-xs font-medium px-2 py-0.5 rounded-full bg-green-100 text-green-800 flex items-center">
-                              <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                            <span className="absolute top-4 left-4 text-sm font-bold px-3.5 py-1.5 rounded-full bg-green-100 text-green-800 flex items-center shadow-sm">
+                              <svg xmlns="http://www.w3.org/2000/svg" className="h-4.5 w-4.5 mr-1.5" viewBox="0 0 20 20" fill="currentColor">
                                 <path fillRule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
                               </svg>
                               Vegetariano
                             </span>
                           )}
                         </div>
-                        <div className="p-3 md:p-4">
-                          <div className="flex justify-between items-start">
-                            <h3 className="font-bold text-base md:text-lg text-black">{item.name}</h3>
-                            <span className="font-bold text-base md:text-lg text-black bg-white px-1 md:px-2 py-0.5 md:py-1 rounded-lg">€{item.price.toFixed(2)}</span>
+                        <div className="p-5 flex flex-col justify-between flex-grow">
+                          <div className="flex justify-between items-start mb-3">
+                            <h3 className="font-bold text-xl md:text-2xl text-gray-900 leading-tight pr-3 min-w-0">{item.name}</h3>
+                            <span className="font-extrabold text-xl md:text-2xl text-black px-3 py-1.5 rounded-xl shadow-sm tracking-tight">€{item.price.toFixed(2)}</span>
                           </div>
-                          {item.description && <p className="text-gray-600 text-xs md:text-sm mt-1 md:mt-2">{item.description}</p>}
+                          {item.description && <p className="text-gray-700 text-sm md:text-base mt-2 flex-grow line-clamp-3">{item.description}</p>}
                           <motion.button
-                            whileHover={{ scale: 1.02 }}
+                            whileHover={{ scale: 1.02, backgroundColor: "#827f7a", boxShadow: "0 8px 15px rgba(0,0,0,0.2)" }}
                             whileTap={{ scale: 0.98 }}
                             onClick={() => addToCart(item)}
-                            className="mt-3 md:mt-4 w-full bg-[#918e89] text-[#e6be44] font-bold px-3 py-1 md:px-4 md:py-2 rounded-lg transition flex items-center justify-center text-sm md:text-base"
+                            className="mt-6 w-full bg-[#918e89] text-[#e6be44] font-bold px-5 py-3 rounded-xl transition-all duration-300 flex items-center justify-center text-lg md:text-xl shadow-md hover:shadow-xl focus:outline-none focus:ring-4 focus:ring-[#e6be44] focus:ring-opacity-50"
                           >
-                            <FiPlus className="mr-1" />
+                            <FiPlus className="mr-2 text-2xl" />
                             Adicionar
                           </motion.button>
                         </div>
@@ -1652,50 +1663,55 @@ const InterfaceCliente = () => {
                     ))}
                   </div>
                 );
-              })()
+              })() // Fim do bloco condicional para 'semana'
             ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+              // Início do bloco para outras categorias
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 md:gap-8">
                 {filteredMenu(category).map(item => (
                   <motion.div 
                     key={item.id}
-                    whileHover={{ y: -5 }}
-                    className="bg-white rounded-xl md:rounded-2xl shadow-sm overflow-hidden border-2 border-[#e6be44]"
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.5, ease: "easeOut", delay: 0.1 }}
+                    whileHover={{ y: -8, boxShadow: "0 20px 40px rgba(0,0,0,0.15)", scale: 1.01 }}
+                    className="bg-white rounded-3xl shadow-lg overflow-hidden border-2 border-yellow-200 flex flex-col transform transition-all duration-300 ease-in-out group hover:border-yellow-400"
                   >
-                    <div className="relative h-40 md:h-48 overflow-hidden group">
+                    <div className="relative w-full h-64 sm:h-72 md:h-80 overflow-hidden">
                       <img 
                         src={item.image || cafe} 
                         alt={item.name} 
                         onError={(e) => { e.target.onerror = null; e.target.src = cafe }}
-                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                        className="w-full h-full object-cover object-center transition-transform duration-700 ease-in-out group-hover:scale-105"
                       />
                       <button 
                         onClick={() => toggleFavorite(item.id)}
-                        className="absolute top-2 right-2 p-1 md:p-2 bg-white/80 rounded-full backdrop-blur-sm hover:bg-white transition"
+                        className="absolute top-4 right-4 p-2.5 bg-white/85 rounded-full backdrop-blur-sm shadow-md hover:bg-white hover:scale-110 transition-all duration-300 focus:outline-none focus:ring-3 focus:ring-yellow-500 focus:ring-opacity-70"
+                        aria-label={favorites.includes(item.id) ? "Remover dos favoritos" : "Adicionar aos favoritos"}
                       >
-                        <FiHeart className={`w-4 h-4 md:w-5 md:h-5 ${favorites.includes(item.id) ? 'text-red-500 fill-red-500' : 'text-gray-400'}`} />
+                        <FiHeart className={`w-6 h-6 ${favorites.includes(item.id) ? 'text-red-500 fill-red-500' : 'text-gray-400'}`} />
                       </button>
                       {item.veg && (
-                        <span className="absolute top-2 left-2 text-xs font-medium px-2 py-0.5 rounded-full bg-green-100 text-green-800 flex items-center">
-                          <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                        <span className="absolute top-4 left-4 text-sm font-bold px-3.5 py-1.5 rounded-full bg-green-100 text-green-800 flex items-center shadow-sm">
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-4.5 w-4.5 mr-1.5" viewBox="0 0 20 20" fill="currentColor">
                             <path fillRule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
                           </svg>
                           Vegetariano
                         </span>
                       )}
                     </div>
-                    <div className="p-3 md:p-4">
-                      <div className="flex justify-between items-start">
-                        <h3 className="font-bold text-base md:text-lg text-black">{item.name}</h3>
-                        <span className="font-bold text-base md:text-lg text-black bg-white px-1 md:px-2 py-0.5 md:py-1 rounded-lg">€{item.price.toFixed(2)}</span>
+                    <div className="p-5 flex flex-col justify-between flex-grow">
+                      <div className="flex justify-between items-start mb-3">
+                        <h3 className="font-bold text-xl md:text-2xl text-gray-900 leading-tight pr-3 min-w-0">{item.name}</h3>
+                        <span className="font-extrabold text-xl md:text-2xl text-black px-3 py-1.5 rounded-xl shadow-sm tracking-tight">€{item.price.toFixed(2)}</span>
                       </div>
-                      {item.description && <p className="text-gray-600 text-xs md:text-sm mt-1 md:mt-2">{item.description}</p>}
+                      {item.description && <p className="text-gray-700 text-sm md:text-base mt-2 flex-grow line-clamp-3">{item.description}</p>}
                       <motion.button
-                        whileHover={{ scale: 1.02 }}
+                        whileHover={{ scale: 1.02, backgroundColor: "#827f7a", boxShadow: "0 8px 15px rgba(0,0,0,0.2)" }}
                         whileTap={{ scale: 0.98 }}
                         onClick={() => addToCart(item)}
-                        className="mt-3 md:mt-4 w-full bg-[#918e89] text-[#e6be44] font-bold px-3 py-1 md:px-4 md:py-2 rounded-lg transition flex items-center justify-center text-sm md:text-base"
+                        className="mt-6 w-full bg-[#918e89] text-[#e6be44] font-bold px-5 py-3 rounded-xl transition-all duration-300 flex items-center justify-center text-lg md:text-xl shadow-md hover:shadow-xl focus:outline-none focus:ring-4 focus:ring-[#e6be44] focus:ring-opacity-50"
                       >
-                        <FiPlus className="mr-1" />
+                        <FiPlus className="mr-2 text-2xl" />
                         Adicionar
                       </motion.button>
                     </div>
