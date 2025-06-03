@@ -297,10 +297,6 @@ const UltraFooter = () => {
             <p className="text-[#d1cfcc] text-xs sm:text-sm md:text-base text-center sm:text-left">
               © {new Date().getFullYear()} <span className="text-[#fffaf1]">Alto Astral</span>. Todos os direitos reservados.
             </p>
-            <div className="flex space-x-4">
-              <a href="#" className="text-[#d1cfcc] hover:text-[#fffaf1] text-xs sm:text-sm">Termos</a>
-              <a href="#" className="text-[#d1cfcc] hover:text-[#fffaf1] text-xs sm:text-sm">Privacidade</a>
-            </div>
           </div>
         </div>
       </div>
