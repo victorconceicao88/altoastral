@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 import React, { useState, useEffect, useCallback } from 'react';
 import { ref, push, update, database, loginAnonimo } from './firebase';
 import { getDatabase, set, onValue } from 'firebase/database';
