@@ -1,30 +1,43 @@
 <!DOCTYPE html>
 <html lang="pt">
 <head>
-    <script>
-    // Se não tiver parâmetro "v" na URL, redireciona com timestamp
-    if (!window.location.search.includes('v=')) {
-      const newUrl = window.location.href + (window.location.search ? '&' : '?') + 'v=' + Date.now();
-      window.location.replace(newUrl);
-    }
+  <!-- Meta Tags de Controle de Cache (CRÍTICAS) -->
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+  
+  <!-- Script de Redirecionamento com Timestamp (SOLUÇÃO NUCLEAR) -->
+  <script>
+    (function() {
+      // Versão do deploy (ALTERE A CADA ATUALIZAÇÃO)
+      const currentVersion = 'v2';
+      
+      // Verifica se já tem o parâmetro de versão correto
+      const urlParams = new URLSearchParams(window.location.search);
+      const urlVersion = urlParams.get('v');
+      
+      if (urlVersion !== currentVersion) {
+        // Remove parâmetros antigos e adiciona a versão atual
+        const cleanUrl = window.location.origin + window.location.pathname;
+        const newUrl = cleanUrl + '?v=' + currentVersion + '&ts=' + Date.now();
+        
+        // Redireciona SEM cache (replace não deixa histórico)
+        window.location.replace(newUrl);
+      }
+    })();
   </script>
+
+  <!-- Configurações Básicas -->
   <meta charset="utf-8" />
- 
-  <!-- Ícones e Manifesto -->
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+  
+  <!-- Ícones e Manifesto PWA -->
   <link rel="icon" href="%PUBLIC_URL%/icons/logo-alto-astral.png" />
   <link rel="apple-touch-icon" href="%PUBLIC_URL%/icons/logo-alto-astral.png" />
   <link rel="manifest" href="%PUBLIC_URL%/manifest.json" />
-<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-<meta http-equiv="Pragma" content="no-cache">
-<meta http-equiv="Expires" content="0">
   
-  <!-- Viewport -->
-  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
-  
-  <!-- Tema -->
+  <!-- Metadados -->
   <meta name="theme-color" content="#b0aca6" />
-  
-  <!-- Descrição -->
   <meta name="description" content="Pedidos online do Alto Astral - Sabores que elevam seu astral!" />
   
   <!-- iOS meta tags -->
@@ -36,7 +49,7 @@
   <meta name="msapplication-TileColor" content="#b0aca6" />
   <meta name="msapplication-TileImage" content="%PUBLIC_URL%/logo192.png" />
   
-  <!-- PWA splash screens -->
+  <!-- Splash Screens PWA -->
   <link rel="apple-touch-startup-image" href="%PUBLIC_URL%/splash-640x1136.png" media="(device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)" />
   <link rel="apple-touch-startup-image" href="%PUBLIC_URL%/splash-750x1334.png" media="(device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)" />
   <link rel="apple-touch-startup-image" href="%PUBLIC_URL%/splash-1242x2208.png" media="(device-width: 414px) and (device-height: 736px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" />
