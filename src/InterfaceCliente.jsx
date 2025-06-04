@@ -33,6 +33,13 @@ useEffect(() => {
   }
 }, []);
 
+// Adicione no seu App.js para debug
+useEffect(() => {
+  console.log('Versão atual:', new URLSearchParams(window.location.search).get('v'));
+  if (!window.location.search.includes('v=')) {
+    alert('ATENÇÃO: O sistema de cache não está funcionando!');
+  }
+}, []);
 
   const filteredOrders = orders.filter(order => {
     if (activeTab === 'all') return true;

@@ -1,34 +1,65 @@
 <!DOCTYPE html>
 <html lang="pt">
 <head>
-  <!-- Meta Tags Anti-Cache (CRÍTICAS) -->
-  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <!-- 1. Meta Tags Anti-Cache Extremas -->
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate, private, proxy-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-
-  <!-- Script de Controle de Versão (MELHORADO) -->
+  
+  <!-- 2. Controle de Versão Agressivo -->
   <script>
     (function() {
-      // 1. Versão do deploy (ALTERE A CADA NOVO DEPLOY)
-      const currentVersion = 'v3'; // Mude para v4, v5 etc. em cada atualização
+      // CONFIGURAÇÃO OBRIGATÓRIA: Atualize esta versão a cada deploy!
+      const APP_VERSION = '2024-06-15-v4'; // Formato: ANO-MÊS-DIA-vX
       
-      // 2. Verifica se é Chrome Mobile (inclui tablets Android/iOS)
-      const isChromeMobile = /Chrome|CriOS/i.test(navigator.userAgent) && 
-                            /Android|iPhone|iPad/i.test(navigator.userAgent);
+      // Detecta navegadores problemáticos
+      const isProblematicBrowser = 
+        /Chrome|CriOS/i.test(navigator.userAgent) && 
+        /Android|iPhone|iPad/i.test(navigator.userAgent);
       
-      // 3. Se for Chrome Mobile OU não tiver parâmetro de versão, redireciona
-      if (isChromeMobile || !new URLSearchParams(window.location.search).has('v')) {
-        const cleanUrl = window.location.origin + window.location.pathname;
-        const newUrl = cleanUrl + '?v=' + currentVersion + '&ts=' + Date.now();
+      // Verifica se precisa atualizar
+      const urlParams = new URLSearchParams(window.location.search);
+      const shouldForceUpdate = 
+        isProblematicBrowser ||
+        !urlParams.has('v') ||
+        urlParams.get('v') !== APP_VERSION;
+      
+      // Executa a atualização forçada
+      if (shouldForceUpdate) {
+        // Limpeza radical de cache
+        if ('caches' in window) {
+          caches.keys().then(names => {
+            names.forEach(name => caches.delete(name));
+            localStorage.clear();
+            sessionStorage.clear();
+          });
+        }
         
-        // Força recarregamento SEM cache (importante para Chrome)
-        if (isChromeMobile) {
-          if ('caches' in window) {
-            caches.keys().then(names => names.forEach(name => caches.delete(name)));
+        // Construção da nova URL
+        const cleanUrl = window.location.href.split('?')[0].split('#')[0];
+        const newUrl = `${cleanUrl}?v=${APP_VERSION}&ts=${Date.now()}&rand=${Math.random().toString(36).substr(2, 9)}`;
+        
+        // Redirecionamento nuclear (2 técnicas diferentes)
+        try {
+          if (isProblematicBrowser) {
+            // Método 1: Para Chrome Mobile
+            window.location.href = newUrl + '&chromeFix=1';
+            setTimeout(() => {
+              window.location.replace(newUrl + '&finalFix=1');
+            }, 50);
+          } else {
+            // Método 2: Para outros navegadores
+            window.location.replace(newUrl);
           }
-          window.location.replace(newUrl + '&force=1');
-        } else {
-          window.location.replace(newUrl);
+        } catch (e) {
+          // Método 3: Fallback absoluto
+          document.body.innerHTML = `
+            <div style="padding:20px;text-align:center;">
+              <h1>Atualizando aplicativo...</h1>
+              <p>Se não redirecionar em 5 segundos, <a href="${newUrl}">clique aqui</a></p>
+            </div>
+          `;
+          setTimeout(() => window.location.href = newUrl, 3000);
         }
       }
     })();
@@ -67,5 +98,13 @@
 <body>
   <noscript>Você precisa habilitar JavaScript para usar este aplicativo.</noscript>
   <div id="root"></div>
+   <!-- 3. Script de Fallback para PWA -->
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.getRegistrations().then(registrations => {
+        registrations.forEach(registration => registration.unregister());
+      });
+    }
+  </script>
 </body>
 </html>
