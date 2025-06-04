@@ -39,32 +39,22 @@ const AdminDashboard = () => {
     });
   }, []);
 
-   useEffect(() => {
-    // 1. Verifica se é um navegador (evita erro no SSR)
-    if (typeof window !== 'undefined') {
-      // 2. Define uma versão única (mude este valor a cada atualização)
-      const currentVersion = 'v1.2.3'; // ATUALIZE ISSO SEMPRE QUE FIZER DEPLOY
-      const savedVersion = localStorage.getItem('app_version');
-
-      // 3. Se a versão for diferente OU for o Chrome Mobile, limpa cache e recarrega
-      if (
-        savedVersion !== currentVersion ||
-        /Android.*Chrome|iPhone.*Chrome/i.test(navigator.userAgent)
-      ) {
-        localStorage.setItem('app_version', currentVersion);
-        
-        // 4. Limpa caches e recarrega a página
-        if ('caches' in window) {
-          caches.keys().then((names) => {
-            names.forEach((name) => caches.delete(name));
-          });
-        }
-        
-        // 5. Força reload SEM cache (importante para Chrome Mobile)
-        window.location.reload(true); // O parâmetro `true` força bypass do cache
-      }
+  useEffect(() => {
+  // Verifica se é o Chrome Mobile e força um reload SEM cache
+  if (
+    typeof window !== 'undefined' && 
+    /Android.*Chrome|iPhone.*Chrome/i.test(navigator.userAgent)
+  ) {
+    // Tenta limpar caches (se existir)
+    if ('caches' in window) {
+      caches.keys().then(names => names.forEach(name => caches.delete(name)));
     }
-  }, []);
+    
+    // Força reload SEM cache (true = bypass cache)
+    window.location.reload(true);
+  }
+}, []);
+
 
   const filteredOrders = orders.filter(order => {
     if (activeTab === 'all') return true;
