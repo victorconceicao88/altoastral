@@ -27,19 +27,19 @@ const AdminDashboard = () => {
   const [favorites, setFavorites] = useState([]);
   const controls = useAnimation();
 
-useEffect(() => {
-  if (window.location.search.includes('force=1')) {
-    window.location.reload(true); // Bypass total do cache
-  }
-}, []);
+  useEffect(() => {
+    if (window.location.search.includes('force=1')) {
+      window.location.reload(true); // Bypass total do cache
+    }
+  }, []);
 
-// Adicione no seu App.js para debug
-useEffect(() => {
-  console.log('Versão atual:', new URLSearchParams(window.location.search).get('v'));
-  if (!window.location.search.includes('v=')) {
-    alert('ATENÇÃO: O sistema de cache não está funcionando!');
-  }
-}, []);
+  // Adicione no seu App.js para debug
+  useEffect(() => {
+    console.log('Versão atual:', new URLSearchParams(window.location.search).get('v'));
+    if (!window.location.search.includes('v=')) {
+      alert('ATENÇÃO: O sistema de cache não está funcionando!');
+    }
+  }, []);
 
   const filteredOrders = orders.filter(order => {
     if (activeTab === 'all') return true;
@@ -280,7 +280,11 @@ useEffect(() => {
 
 const InterfaceCliente = () => {
   const [activeTab, setActiveTab] = useState('semana');
-  const [cart, setCart] = useState([]);
+  const [cart, setCart] = useState(() => {
+    // Recupera o carrinho do localStorage se existir
+    const savedCart = localStorage.getItem('altoAstralCart');
+    return savedCart ? JSON.parse(savedCart) : [];
+  });
   const [checkoutStep, setCheckoutStep] = useState('menu');
   const [customerInfo, setCustomerInfo] = useState({
     name: '',
@@ -308,8 +312,25 @@ const InterfaceCliente = () => {
   const [selectedOrderForWhatsApp, setSelectedOrderForWhatsApp] = useState(null);
   const [showBitcoinModal, setShowBitcoinModal] = useState(false);
   const [bitcoinPaymentLink, setBitcoinPaymentLink] = useState('https://coinos.io/AltoAstralBTC');
+  const [adminLoggedIn, setAdminLoggedIn] = useState(false);
   const currentHour = new Date().getHours();
-  const isMenuClosed = currentHour >= 15;
+  const isMenuClosed = currentHour >= 16;
+
+  // Persistência do carrinho no localStorage
+  useEffect(() => {
+    localStorage.setItem('altoAstralCart', JSON.stringify(cart));
+  }, [cart]);
+
+  // Verificar se admin está logado
+  useEffect(() => {
+    const auth = getAuth();
+    const unsubscribe = auth.onAuthStateChanged((user) => {
+      if (user && user.isAnonymous === false) {
+        setAdminLoggedIn(true);
+      }
+    });
+    return () => unsubscribe();
+  }, []);
 
   useEffect(() => {
     const checkMobile = () => {
@@ -465,11 +486,51 @@ const InterfaceCliente = () => {
       setShowWhatsAppModal(false);
       setCheckoutStep('confirmation');
       setCart([]);
+      localStorage.removeItem('altoAstralCart');
     }
     return () => clearInterval(timer);
   }, [showWhatsAppModal, countdown]);
 
+  // Função para filtrar o cardápio da semana baseado no dia
+  const getWeeklyMenu = () => {
+    const today = new Date().getDay(); // 0=Domingo, 1=Segunda, ..., 6=Sábado
+    const weeklyMenu = menu.semana.filter(item => item.veg); // Sempre mostra opções vegetarianas
+    
+    // Adiciona o prato do dia
+    switch(today) {
+      case 1: // Segunda
+        weeklyMenu.push(...menu.semana.filter(item => item.name.includes('Frango Cremoso')));
+        break;
+      case 2: // Terça
+        weeklyMenu.push(...menu.semana.filter(item => item.name.includes('Maminha Top')));
+        break;
+      case 3: // Quarta
+        weeklyMenu.push(...menu.semana.filter(item => item.name.includes('Costela Raiz')));
+        break;
+      case 4: // Quinta
+        weeklyMenu.push(...menu.semana.filter(item => item.name.includes('Feijoada Completa')));
+        break;
+      case 5: // Sexta
+        weeklyMenu.push(...menu.semana.filter(item => item.name.includes('Peixe Fresco')));
+        break;
+      case 6: // Sábado
+        weeklyMenu.push(...menu.semana.filter(item => item.name.includes('Especial do Chef')));
+        break;
+      case 0: // Domingo
+        weeklyMenu.push(...menu.semana.filter(item => item.name.includes('Domingo Familiar')));
+        break;
+      default:
+        break;
+    }
+    
+    return weeklyMenu;
+  };
+
   const filteredMenu = (category) => {
+    if (category === 'semana') {
+      return getWeeklyMenu();
+    }
+    
     const items = menu[category];
     if (!searchQuery) return items;
     
@@ -762,7 +823,7 @@ const InterfaceCliente = () => {
                   }}
                   className={`w-full p-4 md:p-6 rounded-xl transition-all relative overflow-hidden text-left ${
                     orderType === 'takeaway' 
-                      ? 'bg-[#b0aca6]/10 border-2 border-[#b0aca6] shadow-md' 
+                      ? 'border-2 border-[#b0aca6] bg-[#b0aca6]/10 shadow-md' 
                       : 'bg-white border-2 border-gray-200 hover:border-gray-300'
                   }`}
                 >
@@ -806,7 +867,7 @@ const InterfaceCliente = () => {
                   }}
                   className={`w-full p-4 md:p-6 rounded-xl transition-all relative overflow-hidden text-left ${
                     orderType === 'delivery' 
-                      ? 'bg-[#b0aca6]/10 border-2 border-[#b0aca6] shadow-md' 
+                      ? 'border-2 border-[#b0aca6] bg-[#b0aca6]/10 shadow-md' 
                       : 'bg-white border-2 border-gray-200 hover:border-gray-300'
                   }`}
                 >
@@ -1260,6 +1321,7 @@ const InterfaceCliente = () => {
                           setShowBitcoinModal(false);
                           setCheckoutStep('confirmation');
                           setCart([]);
+                          localStorage.removeItem('altoAstralCart');
                         }}
                         className="text-gray-500 hover:text-gray-700"
                       >
@@ -1322,6 +1384,7 @@ const InterfaceCliente = () => {
                           setShowBitcoinModal(false);
                           setCheckoutStep('confirmation');
                           setCart([]);
+                          localStorage.removeItem('altoAstralCart');
                         }}
                         className="inline-flex items-center justify-center bg-green-500 hover:bg-green-600 text-white font-bold py-2 md:py-3 px-4 md:px-6 rounded-lg text-base md:text-lg w-full"
                       >
@@ -1354,6 +1417,7 @@ const InterfaceCliente = () => {
                           setShowWhatsAppModal(false);
                           setCheckoutStep('confirmation');
                           setCart([]);
+                          localStorage.removeItem('altoAstralCart');
                         }}
                         className="text-gray-500 hover:text-gray-700"
                       >
@@ -1590,7 +1654,7 @@ const InterfaceCliente = () => {
               (() => {
                 const now = new Date();
                 const currentHour = now.getHours();
-                const isClosed = currentHour >= 15 || currentHour < 10;
+                const isClosed = currentHour >= 16 || currentHour < 10;
                 
                 return isClosed ? (
                   <motion.div 
@@ -1601,13 +1665,13 @@ const InterfaceCliente = () => {
                   >
                     <FiClock className="mx-auto text-5xl text-gray-500 mb-5 animate-pulse" />
                     <p className="font-bold text-xl text-gray-800 leading-relaxed">
-                      {currentHour >= 15 
+                      {currentHour >= 16
                         ? "Prezado cliente, o cardápio da semana estará disponível apenas amanhã, a partir das 10h." 
                         : "Aguarde! Nosso cardápio da semana abre pontualmente às 10h da manhã."
                       }
                     </p>
                     <p className="text-md text-gray-600 mt-3 max-w-lg">
-                      {currentHour >= 15 
+                      {currentHour >= 16
                         ? "Enquanto isso, delicie-se com as opções do nosso cardápio regular, sempre recheado de sabor!" 
                         : "Prepare-se para uma experiência gastronômica! Volte em breve para descobrir as novidades!"
                       }

@@ -14,7 +14,7 @@ const Login = () => {
     e.preventDefault();
     
 
-    if (username === 'admin' && password === '2320') {
+    if (username === 'admin' && password === 'Gerencia22') {
       localStorage.setItem('adminLoggedIn', 'true');
       navigate('/admin', { replace: true }); 
       setError('Credenciais inválidas. Tente novamente.');
