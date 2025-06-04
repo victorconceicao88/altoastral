@@ -39,6 +39,33 @@ const AdminDashboard = () => {
     });
   }, []);
 
+   useEffect(() => {
+    // 1. Verifica se é um navegador (evita erro no SSR)
+    if (typeof window !== 'undefined') {
+      // 2. Define uma versão única (mude este valor a cada atualização)
+      const currentVersion = 'v1.2.3'; // ATUALIZE ISSO SEMPRE QUE FIZER DEPLOY
+      const savedVersion = localStorage.getItem('app_version');
+
+      // 3. Se a versão for diferente OU for o Chrome Mobile, limpa cache e recarrega
+      if (
+        savedVersion !== currentVersion ||
+        /Android.*Chrome|iPhone.*Chrome/i.test(navigator.userAgent)
+      ) {
+        localStorage.setItem('app_version', currentVersion);
+        
+        // 4. Limpa caches e recarrega a página
+        if ('caches' in window) {
+          caches.keys().then((names) => {
+            names.forEach((name) => caches.delete(name));
+          });
+        }
+        
+        // 5. Força reload SEM cache (importante para Chrome Mobile)
+        window.location.reload(true); // O parâmetro `true` força bypass do cache
+      }
+    }
+  }, []);
+
   const filteredOrders = orders.filter(order => {
     if (activeTab === 'all') return true;
     return order.orderType === activeTab;
@@ -1697,7 +1724,7 @@ const InterfaceCliente = () => {
                           <svg xmlns="http://www.w3.org/2000/svg" className="h-4.5 w-4.5 mr-1.5" viewBox="0 0 20 20" fill="currentColor">
                             <path fillRule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
                           </svg>
-                          Vegetariano
+                          Veg
                         </span>
                       )}
                     </div>
