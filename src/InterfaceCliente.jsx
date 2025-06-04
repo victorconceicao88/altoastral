@@ -314,7 +314,7 @@ const InterfaceCliente = () => {
   const [bitcoinPaymentLink, setBitcoinPaymentLink] = useState('https://coinos.io/AltoAstralBTC');
   const [adminLoggedIn, setAdminLoggedIn] = useState(false);
   const currentHour = new Date().getHours();
-  const isMenuClosed = currentHour >= 16;
+  const isMenuClosed = currentHour >= 15;
 
   // Persistência do carrinho no localStorage
   useEffect(() => {
@@ -491,6 +491,14 @@ const InterfaceCliente = () => {
     return () => clearInterval(timer);
   }, [showWhatsAppModal, countdown]);
 
+  // Adicione este useEffect junto com os outros hooks no início do componente
+useEffect(() => {
+  if (checkoutStep === 'cart-summary') {
+    // Scroll para o topo quando entrar no resumo do carrinho
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+}, [checkoutStep]);
+
   // Função para filtrar o cardápio da semana baseado no dia
   const getWeeklyMenu = () => {
     const today = new Date().getDay(); // 0=Domingo, 1=Segunda, ..., 6=Sábado
@@ -508,10 +516,10 @@ const InterfaceCliente = () => {
         weeklyMenu.push(...menu.semana.filter(item => item.name.includes('Costela Raiz')));
         break;
       case 4: // Quinta
-        weeklyMenu.push(...menu.semana.filter(item => item.name.includes('Feijoada Completa')));
+        weeklyMenu.push(...menu.semana.filter(item => item.name.includes('Frango Supremo')));
         break;
       case 5: // Sexta
-        weeklyMenu.push(...menu.semana.filter(item => item.name.includes('Peixe Fresco')));
+        weeklyMenu.push(...menu.semana.filter(item => item.name.includes('Feijoada Astral')));
         break;
       case 6: // Sábado
         weeklyMenu.push(...menu.semana.filter(item => item.name.includes('Especial do Chef')));
@@ -1654,7 +1662,7 @@ const InterfaceCliente = () => {
               (() => {
                 const now = new Date();
                 const currentHour = now.getHours();
-                const isClosed = currentHour >= 16 || currentHour < 10;
+                const isClosed = currentHour >= 15 || currentHour < 10;
                 
                 return isClosed ? (
                   <motion.div 
@@ -1665,7 +1673,7 @@ const InterfaceCliente = () => {
                   >
                     <FiClock className="mx-auto text-5xl text-gray-500 mb-5 animate-pulse" />
                     <p className="font-bold text-xl text-gray-800 leading-relaxed">
-                      {currentHour >= 16
+                      {currentHour >= 15
                         ? "Prezado cliente, o cardápio da semana estará disponível apenas amanhã, a partir das 10h." 
                         : "Aguarde! Nosso cardápio da semana abre pontualmente às 10h da manhã."
                       }
@@ -1803,7 +1811,10 @@ const InterfaceCliente = () => {
           <motion.button 
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
-            onClick={proceedToCheckout}
+            onClick={() => {     
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+              proceedToCheckout();
+            }}                    
             className="w-full bg-[#b0aca6] text-[#e6be44] py-2 md:py-3 rounded-lg flex items-center justify-center text-sm md:text-base"
           >
             <FiShoppingCart className="mr-2" />
