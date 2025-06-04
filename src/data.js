@@ -51,6 +51,7 @@ import cariocalimao from './assets/cariocalimao.jpg';
 import paocomovo from './assets/paocomovo.jpg';
 import torradapaocaseiro from './assets/torradapaocaseiro.jpg';
 import torradapaodeforma from './assets/torradapaodeforma.jpg';
+import bolaqueijo from './assets/bolaqueijo.jpg';
 const drinkImages = {
   caipirinha: 'https://images.unsplash.com/photo-1516684669134-de6f7c473a2a?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=80',
   whiskey: 'https://images.unsplash.com/photo-1554866585-cd94860890b7?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=80',
@@ -115,6 +116,7 @@ export const foodImages = {
   paocomovo:paocomovo,
   torradapaocaseiro:torradapaocaseiro,
   torradapaodeforma:torradapaodeforma,
+  bolaqueijo:bolaqueijo,
   batataFrita: 'https://images.unsplash.com/photo-1541592106381-b31e9677c0e5?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
   bebida: 'https://images.unsplash.com/photo-1514362545857-3bc16c4c7d1b?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
   salgado: 'https://images.unsplash.com/photo-1601050690597-df0568f70950?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
@@ -214,7 +216,7 @@ export const menu = {
     { id: 77, name: 'Enroladinho de Salsicha e Queijo', price: 2.20, image: foodImages.fiambre },
     { id: 78, name: 'Fiambre e Queijo', price: 2.20, image: foodImages.fiambre },
     { id: 79, name: 'Bauru', price: 2.20, image: foodImages.bauru },
-    { id: 80, name: 'Bola de Queijo', price: 2.20, image: foodImages.salgado },
+    { id: 80, name: 'Bola de Queijo', price: 2.20, image: foodImages.bolaqueijo },
     { id: 81, name: 'Coxinha de Frango', price: 2.20, image: foodImages.Coxinha },
     { id: 82, name: 'Coxinha com Catupiry', price: 3.00, image: foodImages.Coxinha },
     { id: 83, name: 'Hamburgão', price: 3.50, image: foodImages.hamburgao }
