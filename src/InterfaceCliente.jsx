@@ -27,31 +27,9 @@ const AdminDashboard = () => {
   const [favorites, setFavorites] = useState([]);
   const controls = useAnimation();
 
-  useEffect(() => {
-    const ordersRef = ref(database, 'orders');
-    onValue(ordersRef, (snapshot) => {
-      const data = snapshot.val();
-      const ordersList = data ? Object.keys(data).map(key => ({
-        id: key,
-        ...data[key]
-      })) : [];
-      setOrders(ordersList);
-    });
-  }, []);
-
-  useEffect(() => {
-  // Verifica se é o Chrome Mobile e força um reload SEM cache
-  if (
-    typeof window !== 'undefined' && 
-    /Android.*Chrome|iPhone.*Chrome/i.test(navigator.userAgent)
-  ) {
-    // Tenta limpar caches (se existir)
-    if ('caches' in window) {
-      caches.keys().then(names => names.forEach(name => caches.delete(name)));
-    }
-    
-    // Força reload SEM cache (true = bypass cache)
-    window.location.reload(true);
+useEffect(() => {
+  if (window.location.search.includes('force=1')) {
+    window.location.reload(true); // Bypass total do cache
   }
 }, []);
 

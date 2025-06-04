@@ -1,28 +1,35 @@
 <!DOCTYPE html>
 <html lang="pt">
 <head>
-  <!-- Meta Tags de Controle de Cache (CRÍTICAS) -->
+  <!-- Meta Tags Anti-Cache (CRÍTICAS) -->
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  
-  <!-- Script de Redirecionamento com Timestamp (SOLUÇÃO NUCLEAR) -->
+
+  <!-- Script de Controle de Versão (MELHORADO) -->
   <script>
     (function() {
-      // Versão do deploy (ALTERE A CADA ATUALIZAÇÃO)
-      const currentVersion = 'v2';
+      // 1. Versão do deploy (ALTERE A CADA NOVO DEPLOY)
+      const currentVersion = 'v3'; // Mude para v4, v5 etc. em cada atualização
       
-      // Verifica se já tem o parâmetro de versão correto
-      const urlParams = new URLSearchParams(window.location.search);
-      const urlVersion = urlParams.get('v');
+      // 2. Verifica se é Chrome Mobile (inclui tablets Android/iOS)
+      const isChromeMobile = /Chrome|CriOS/i.test(navigator.userAgent) && 
+                            /Android|iPhone|iPad/i.test(navigator.userAgent);
       
-      if (urlVersion !== currentVersion) {
-        // Remove parâmetros antigos e adiciona a versão atual
+      // 3. Se for Chrome Mobile OU não tiver parâmetro de versão, redireciona
+      if (isChromeMobile || !new URLSearchParams(window.location.search).has('v')) {
         const cleanUrl = window.location.origin + window.location.pathname;
         const newUrl = cleanUrl + '?v=' + currentVersion + '&ts=' + Date.now();
         
-        // Redireciona SEM cache (replace não deixa histórico)
-        window.location.replace(newUrl);
+        // Força recarregamento SEM cache (importante para Chrome)
+        if (isChromeMobile) {
+          if ('caches' in window) {
+            caches.keys().then(names => names.forEach(name => caches.delete(name)));
+          }
+          window.location.replace(newUrl + '&force=1');
+        } else {
+          window.location.replace(newUrl);
+        }
       }
     })();
   </script>
