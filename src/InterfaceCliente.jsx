@@ -1671,7 +1671,6 @@ const filteredMenu = (category) => {
 
                 {category === 'semana' && 'Cardápio da Semana'}
                 {category === 'lanches' && 'Lanches Exclusivos'}
-                {category === 'lanches' && 'Lanches Exclusivos'}
                 {category === 'porcoes' && 'Porções Generosas'}
                 {category === 'pasteis' && 'Pastéis Artesanais'}
                 {category === 'cafe' && 'Despertar com Café'}

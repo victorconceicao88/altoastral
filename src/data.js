@@ -75,7 +75,7 @@ import graviola from './assets/graviola.jpg';
 import frutosvermelhos from './assets/frutosvermelhos.jpg';
 import bolopoteananas from './assets/bolopoteananas.jpg';
 import Prestígio from './assets/presigio.jpg';
-import toblerone from './assets/presigio.jpg';
+import toblerone from './assets/toblerone.jpg';
 const drinkImages = {
   caipirinha: 'https://images.unsplash.com/photo-1516684669134-de6f7c473a2a?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=80',
   whiskey: 'https://images.unsplash.com/photo-1554866585-cd94860890b7?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=80',
