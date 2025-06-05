@@ -263,32 +263,41 @@ const OrderView = ({
         )}
 
         <div className="mt-4 p-3 bg-gray-50 rounded">
-          <div className="flex justify-between items-center">
-            <div className="font-bold">Total: €{(order.total || 0).toFixed(2)}</div>
-            <div className="flex space-x-2">
-              {order.status === 'preparing' && (
+    <div className="flex justify-between items-center">
+        <div className="font-bold">
+            Total: €{order.orderType === 'delivery' 
+                ? (order.total + 2.50).toFixed(2) 
+                : order.total.toFixed(2)}
+            {order.orderType === 'delivery' && (
+                <span className="text-sm font-normal ml-2">
+                    (inclui €2.50 de taxa de entrega)
+                </span>
+            )}
+        </div>
+        <div className="flex space-x-2">
+            {order.status === 'preparing' && (
                 <button
-                  onClick={() => onMarkAsReady(order)}
-                  className="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded text-sm flex items-center"
+                    onClick={() => onMarkAsReady(order)}
+                    className="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded text-sm flex items-center"
                 >
-                  <FiCheckCircle className="mr-1" /> Marcar como Pronto
+                    <FiCheckCircle className="mr-1" /> Marcar como Pronto
                 </button>
-              )}
-              <button
+            )}
+            <button
                 onClick={() => onPrint(order)}
                 className="px-3 py-1 bg-green-600 hover:bg-green-700 text-white rounded text-sm flex items-center"
-              >
+            >
                 <FiPrinter className="mr-1" /> Enviar para Cozinha
-              </button>
-              <button
+            </button>
+            <button
                 onClick={() => onCancel(order)}
                 className="px-3 py-1 bg-red-600 hover:bg-red-700 text-white rounded text-sm flex items-center"
-              >
+            >
                 <FiX className="mr-1" /> Cancelar Pedido
-              </button>
-            </div>
-          </div>
+            </button>
         </div>
+    </div>
+</div>
       </div>
     </div>
   );
@@ -479,43 +488,43 @@ const formatOrderForPrint = (order) => {
     const BOLD_ON = `${ESC}!${String.fromCharCode(8)}`;
     const BOLD_OFF = `${ESC}!${String.fromCharCode(0)}`;
     const LINE = '--------------------------------\n';
-    const DOUBLE_LINE = '================================\n';  // Linha dupla para destacar seções importantes
-    const DOTTED_LINE = '..........\n';  // Linha pontilhada para separar detalhes
+    const DOUBLE_LINE = '================================\n';
+    const DOTTED_LINE = '..........\n';
 
-    // Função para substituir caracteres especiais conforme OEM 860
     const replaceSpecialChars = (str) => {
         return str
-            .replace(/ç/g, '\xE7')  // OEM860: ç → \xE7
-            .replace(/á/g, '\xE1')  // OEM860: á → \xE1
-            .replace(/é/g, '\xE9')  // OEM860: é → \xE9
-            .replace(/í/g, '\xED')  // OEM860: í → \xED
-            .replace(/ó/g, '\xF3')  // OEM860: ó → \xF3
-            .replace(/ú/g, '\xFA')  // OEM860: ú → \xFA
-            .replace(/ã/g, '\xE3')  // OEM860: ã → \xE3
-            .replace(/õ/g, '\xF5')  // OEM860: õ → \xF5
-            .replace(/à/g, '\xE0')  // OEM860: à → \xE0
-            .replace(/è/g, '\xE8')  // OEM860: è → \xE8
-            .replace(/ì/g, '\xEC')  // OEM860: ì → \xEC
-            .replace(/ò/g, '\xF2')  // OEM860: ò → \xF2
-            .replace(/ù/g, '\xF9')  // OEM860: ù → \xF9
-            .replace(/â/g, '\xE2')  // OEM860: â → \xE2
-            .replace(/ê/g, '\xEA')  // OEM860: ê → \xEA
-            .replace(/î/g, '\xEE')  // OEM860: î → \xEE
-            .replace(/ô/g, '\xF4')  // OEM860: ô → \xF4
-            .replace(/û/g, '\xFB')  // OEM860: û → \xFB
-            .replace(/~e/g, '\xE3') // OEM860: ~e (til) → \xE3 (ã)
-            .replace(/€/g, '\xA4');  // Substitui o símbolo do euro (€) pelo código \xA4 (comum em OEM860)
+            .replace(/ç/g, '\xE7')
+            .replace(/á/g, '\xE1')
+            .replace(/é/g, '\xE9')
+            .replace(/í/g, '\xED')
+            .replace(/ó/g, '\xF3')
+            .replace(/ú/g, '\xFA')
+            .replace(/ã/g, '\xE3')
+            .replace(/õ/g, '\xF5')
+            .replace(/à/g, '\xE0')
+            .replace(/è/g, '\xE8')
+            .replace(/ì/g, '\xEC')
+            .replace(/ò/g, '\xF2')
+            .replace(/ù/g, '\xF9')
+            .replace(/â/g, '\xE2')
+            .replace(/ê/g, '\xEA')
+            .replace(/î/g, '\xEE')
+            .replace(/ô/g, '\xF4')
+            .replace(/û/g, '\xFB')
+            .replace(/~e/g, '\xE3')
+            .replace(/€/g, '\xA4');
     };
 
     let receipt = `${ESC}@${CENTER}${BOLD_ON}ALTO ASTRAL${BOLD_OFF}\n`;
-    receipt += `${CENTER}${BOLD_ON}Pedido ${order.id || 'N/A'}${BOLD_OFF}\n`;  // ID do pedido para identificação
+    receipt += `${CENTER}${BOLD_ON}Pedido ${order.id || 'N/A'}${BOLD_OFF}\n`;
     receipt += `${CENTER}${BOLD_ON}${order.orderType === 'delivery' ? 'ENTREGA' : 'RETIRADA'}${BOLD_OFF}\n`;
     receipt += `${DOTTED_LINE}\n`;
 
-    // Detalhes do cliente
+    // Dados do cliente (mostrar em ambos os casos)
     receipt += `${BOLD_ON}Cliente:${BOLD_OFF} ${replaceSpecialChars(customer.name)}\n`;
     receipt += `${BOLD_ON}Tel:${BOLD_OFF} ${customer.phone || 'Não informado'}\n`;
-
+    
+    // Mostrar endereço completo apenas para entregas
     if (order.orderType === 'delivery') {
         receipt += `${BOLD_ON}Endereco de Entrega:${BOLD_OFF}\n`;
         receipt += `${replaceSpecialChars(customer.address.street)}, ${customer.address.number}\n`;
@@ -544,13 +553,16 @@ const formatOrderForPrint = (order) => {
 
     receipt += `${DOUBLE_LINE}\n`;
 
-    // Taxa de entrega e total
-    const deliveryFee = 2.50;
-    const totalWithFee = order.total + deliveryFee;
-
-    receipt += `${BOLD_ON}Taxa de Entrega:${BOLD_OFF} ${deliveryFee.toFixed(2)}\n`;  // Substituí o símbolo do euro
-    receipt += `${LINE}\n`;
-    receipt += `${BOLD_ON}TOTAL:${BOLD_OFF} ${totalWithFee.toFixed(2)}\n\n`;  // Substituí o símbolo do euro
+    // Lógica condicional para taxa de entrega (somente para delivery)
+    if (order.orderType === 'delivery') {
+        const deliveryFee = 2.50;
+        const totalWithFee = order.total + deliveryFee;
+        receipt += `${BOLD_ON}Taxa de Entrega:${BOLD_OFF} ${deliveryFee.toFixed(2)}\n`;
+        receipt += `${LINE}\n`;
+        receipt += `${BOLD_ON}TOTAL:${BOLD_OFF} ${totalWithFee.toFixed(2)}\n\n`;
+    } else {
+        receipt += `${BOLD_ON}TOTAL:${BOLD_OFF} ${order.total.toFixed(2)}\n\n`;
+    }
 
     // Data e hora
     const date = new Date();
