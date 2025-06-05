@@ -59,6 +59,7 @@ import vodka from './assets/vodka.jpg';
 import Caipiblack from './assets/caipiblack.jpg';
 import fiambreequeijo from './assets/fiambreequeijo.jpg';
 import capuccino from './assets/capuccino.jpg';
+import Castelo from './assets/castelo.jpg';
 const drinkImages = {
   caipirinha: 'https://images.unsplash.com/photo-1516684669134-de6f7c473a2a?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=80',
   whiskey: 'https://images.unsplash.com/photo-1554866585-cd94860890b7?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=80',
@@ -132,6 +133,7 @@ export const foodImages = {
   Caipiblack:Caipiblack,
   fiambreequeijo:fiambreequeijo,
   capuccino:capuccino,
+  Castelo:Castelo,
   batataFrita: 'https://images.unsplash.com/photo-1541592106381-b31e9677c0e5?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
   bebida: 'https://images.unsplash.com/photo-1514362545857-3bc16c4c7d1b?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
   salgado: 'https://images.unsplash.com/photo-1601050690597-df0568f70950?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
@@ -219,7 +221,7 @@ export const menu = {
     { id: 67, name: 'Água 1.5L', price: 1.50, image: foodImages.agua },
     { id: 68, name: 'Água 0.5L', price: 1.00, image: foodImages.agua },
     { id: 69, name: 'Água 0.33L', price: 0.60, image: foodImages.agua },
-    { id: 70, name: 'Água Castelo', price: 1.40, image: foodImages.agua },
+    { id: 70, name: 'Água Castelo', price: 1.40, image: foodImages.Castelo },
     { id: 71, name: 'Água das Pedras', price: 1.40, image: foodImages.pedras },
     { id: 72, name: 'Balde de Heineken', price: 10.00, image: foodImages.baldedecerveja }
   ],
