@@ -60,6 +60,7 @@ import Caipiblack from './assets/caipiblack.jpg';
 import fiambreequeijo from './assets/fiambreequeijo.jpg';
 import capuccino from './assets/capuccino.jpg';
 import Castelo from './assets/castelo.jpg';
+import Cheesecake from './assets/cheesecake.jpg';
 const drinkImages = {
   caipirinha: 'https://images.unsplash.com/photo-1516684669134-de6f7c473a2a?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=80',
   whiskey: 'https://images.unsplash.com/photo-1554866585-cd94860890b7?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=80',
@@ -134,6 +135,7 @@ export const foodImages = {
   fiambreequeijo:fiambreequeijo,
   capuccino:capuccino,
   Castelo:Castelo,
+  Cheesecake:Cheesecake,
   batataFrita: 'https://images.unsplash.com/photo-1541592106381-b31e9677c0e5?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
   bebida: 'https://images.unsplash.com/photo-1514362545857-3bc16c4c7d1b?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
   salgado: 'https://images.unsplash.com/photo-1601050690597-df0568f70950?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
@@ -243,7 +245,7 @@ export const menu = {
     { id: 85, name: 'Bolo no Pote - Chocolate', description: 'Massa de chocolate com recheio de chocolate', price: 4.00, image: foodImages.doces },
     { id: 86, name: 'Bolo no Pote - Ananás', description: 'Creme de ninho com pedaços de ananás', price: 4.00, image: foodImages.doces },
     { id: 87, name: 'Bolo no Pote - Choco Misto', description: 'Chocolate preto com ninho', price: 4.00, image: foodImages.doces },
-    { id: 88, name: 'Cheesecake - Goiabada', price: 3.50, image: foodImages.doces },
+    { id: 88, name: 'Cheesecake - Goiabada', price: 3.50, image: foodImages.Cheesecake },
     { id: 89, name: 'Cheesecake - Frutos Vermelhos', price: 3.50, image: foodImages.doces },
     { id: 90, name: 'Brigadeiro Tradicional', price: 1.50, image: foodImages.doces },
     { id: 91, name: 'Brigadeiro Beijinho', price: 1.50, image: foodImages.doces },

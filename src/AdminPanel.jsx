@@ -520,23 +520,23 @@ const formatOrderForPrint = (order) => {
     receipt += `${CENTER}${BOLD_ON}${order.orderType === 'delivery' ? 'ENTREGA' : 'RETIRADA'}${BOLD_OFF}\n`;
     receipt += `${DOTTED_LINE}\n`;
 
-    // Dados do cliente (mostrar em ambos os casos)
+    // Dados BÁSICOS (sempre mostrados)
     receipt += `${BOLD_ON}Cliente:${BOLD_OFF} ${replaceSpecialChars(customer.name)}\n`;
     receipt += `${BOLD_ON}Tel:${BOLD_OFF} ${customer.phone || 'Não informado'}\n`;
-    
-    // Mostrar endereço completo apenas para entregas
+    receipt += `${BOLD_ON}Pagamento:${BOLD_OFF} ${replaceSpecialChars(customer.paymentMethod || 'Não informado')}\n`;
+
+    // Dados de ENDEREÇO (apenas para entrega)
     if (order.orderType === 'delivery') {
-        receipt += `${BOLD_ON}Endereco de Entrega:${BOLD_OFF}\n`;
+        receipt += `${BOLD_ON}Endereço:${BOLD_OFF}\n`;
         receipt += `${replaceSpecialChars(customer.address.street)}, ${customer.address.number}\n`;
         if (customer.address.complement) {
-            receipt += `${replaceSpecialChars(customer.address.complement)}\n`;
+            receipt += `Complemento: ${replaceSpecialChars(customer.address.complement)}\n`;
         }
         receipt += `${replaceSpecialChars(customer.address.neighborhood)}\n`;
         receipt += `${replaceSpecialChars(customer.address.city)} - ${customer.address.postalCode}\n`;
     }
 
-    receipt += `${BOLD_ON}Forma de Pagamento:${BOLD_OFF} ${replaceSpecialChars(customer.paymentMethod || 'Não informado')}\n`;
-    
+    // Observações (se houver)
     if (customer.notes) {
         receipt += `${BOLD_ON}Obs:${BOLD_OFF} ${replaceSpecialChars(customer.notes)}\n`;
     }
@@ -545,7 +545,7 @@ const formatOrderForPrint = (order) => {
     receipt += `${BOLD_ON}ITENS:${BOLD_OFF}\n`;
     receipt += `${DOUBLE_LINE}\n`;
 
-    // Listagem dos itens
+    // Lista de itens
     (order.items || []).forEach(item => {
         receipt += `${item.quantity}x ${replaceSpecialChars(item.name || 'Produto')}\n`;
         if (item.notes) receipt += `  OBS: ${replaceSpecialChars(item.notes)}\n`;
@@ -553,18 +553,17 @@ const formatOrderForPrint = (order) => {
 
     receipt += `${DOUBLE_LINE}\n`;
 
-    // Lógica condicional para taxa de entrega (somente para delivery)
+    // TOTAL (com taxa apenas para entrega)
     if (order.orderType === 'delivery') {
         const deliveryFee = 2.50;
-        const totalWithFee = order.total + deliveryFee;
         receipt += `${BOLD_ON}Taxa de Entrega:${BOLD_OFF} ${deliveryFee.toFixed(2)}\n`;
         receipt += `${LINE}\n`;
-        receipt += `${BOLD_ON}TOTAL:${BOLD_OFF} ${totalWithFee.toFixed(2)}\n\n`;
+        receipt += `${BOLD_ON}TOTAL:${BOLD_OFF} ${(order.total + deliveryFee).toFixed(2)}\n\n`;
     } else {
         receipt += `${BOLD_ON}TOTAL:${BOLD_OFF} ${order.total.toFixed(2)}\n\n`;
     }
 
-    // Data e hora
+    // Rodapé
     const date = new Date();
     receipt += `${CENTER}${date.toLocaleTimeString('pt-BR')} - ${date.toLocaleDateString('pt-BR')}\n`;
     receipt += `${CENTER}Obrigado e Volte Sempre!${BOLD_OFF}\n`;
@@ -572,7 +571,6 @@ const formatOrderForPrint = (order) => {
 
     return receipt;
 };
-
 
   const connectToPrinter = async () => {
     try {
