@@ -11,7 +11,7 @@ import cafe from './assets/cafe.jpg';
 import mbwayLogo from './assets/images.png';
 import bitcoinLogo from './assets/bitcoin-logo.png';
 import { foodImages, menu } from './data.js';
-import { FiShoppingCart, FiX, FiCheck, FiClock, FiTruck, FiHome, FiCalendar, FiCoffee, FiMeh, FiPlus, FiMinus, FiInfo, FiStar, FiHeart, FiShare2, FiUser, FiMapPin, FiPhone, FiEdit2, FiCreditCard, FiMail } from 'react-icons/fi';
+import { FiShoppingCart, FiX, FiCheck, FiClock, FiTruck, FiHome, FiCalendar, FiCoffee, FiMeh, FiPlus, FiMinus, FiInfo, FiStar, FiHeart, FiShare2, FiUser, FiMapPin, FiPhone, FiEdit2, FiCreditCard, FiMail} from 'react-icons/fi';
 import { FaCalendarAlt, FaCoffee, FaHamburger, FaDrumstickBite, FaCocktail, FaIceCream, FaBitcoin, FaWhatsapp } from 'react-icons/fa';
 import { GiMeal, GiSandwich, GiChickenOven, GiPieSlice, GiCoffeeCup, GiWineBottle, GiHotMeal, GiCakeSlice } from 'react-icons/gi';
 import QRCode from 'react-qr-code';
@@ -499,54 +499,61 @@ useEffect(() => {
   }
 }, [checkoutStep]);
 
-  // Função para filtrar o cardápio da semana baseado no dia
-  const getWeeklyMenu = () => {
-    const today = new Date().getDay(); // 0=Domingo, 1=Segunda, ..., 6=Sábado
-    const weeklyMenu = menu.semana.filter(item => item.veg); // Sempre mostra opções vegetarianas
-    
-    // Adiciona o prato do dia
-    switch(today) {
-      case 1: // Segunda
-        weeklyMenu.push(...menu.semana.filter(item => item.name.includes('Frango Cremoso')));
-        break;
-      case 2: // Terça
-        weeklyMenu.push(...menu.semana.filter(item => item.name.includes('Maminha Top')));
-        break;
-      case 3: // Quarta
-        weeklyMenu.push(...menu.semana.filter(item => item.name.includes('Costela Raiz')));
-        break;
-      case 4: // Quinta
-        weeklyMenu.push(...menu.semana.filter(item => item.name.includes('Frango Supremo')));
-        break;
-      case 5: // Sexta
-        weeklyMenu.push(...menu.semana.filter(item => item.name.includes('Feijoada Astral')));
-        break;
-      case 6: // Sábado
-        weeklyMenu.push(...menu.semana.filter(item => item.name.includes('Especial do Chef')));
-        break;
-      case 0: // Domingo
-        weeklyMenu.push(...menu.semana.filter(item => item.name.includes('Domingo Familiar')));
-        break;
-      default:
-        break;
-    }
-    
-    return weeklyMenu;
-  };
-
-  const filteredMenu = (category) => {
-    if (category === 'semana') {
-      return getWeeklyMenu();
-    }
-    
-    const items = menu[category];
-    if (!searchQuery) return items;
-    
-    return items.filter(item => 
-      item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (item.description && item.description.toLowerCase().includes(searchQuery.toLowerCase()))
+const getWeeklyMenu = () => {
+  const today = new Date().getDay(); // 0=Domingo, 1=Segunda, ..., 6=Sábado
+  const weeklyMenu = [];
+  
+  // 1. Adiciona todos os pratos vegetarianos da semana
+  const vegetarianDishes = menu.semana.filter(item => item.veg);
+  weeklyMenu.push(...vegetarianDishes.map(dish => ({...dish})));
+  
+  // 2. Adiciona o prato do dia (se não for vegetariano já incluso)
+  const dailySpecialName = getDailySpecialName(today);
+  if (dailySpecialName) {
+    const specialDish = menu.semana.find(item => 
+      item.name.includes(dailySpecialName) && 
+      !vegetarianDishes.some(vegDish => vegDish.id === item.id)
     );
-  };
+    
+    if (specialDish) {
+      weeklyMenu.push({ ...specialDish, isDailySpecial: true });
+    }
+  }
+  
+  return weeklyMenu;
+};
+
+// Função auxiliar (mantida igual)
+const getDailySpecialName = (day) => {
+  switch(day) {
+    case 1: return 'Frango Cremoso';
+    case 2: return 'Maminha Top';
+    case 3: return 'Costela Raiz';
+    case 4: return 'Frango Supremo';
+    case 5: return 'Feijoada Astral';
+    case 6: return 'Especial do Chef';
+    case 0: return 'Domingo Familiar';
+    default: return null;
+  }
+};
+
+const filteredMenu = (category) => {
+  // 1. Obter os itens baseados na categoria
+  let items;
+  if (category === 'semana') {
+    items = getWeeklyMenu();
+  } else {
+    items = menu[category] || [];
+  }
+  
+  // 2. Aplicar filtro de busca se houver query
+  if (!searchQuery) return items;
+  
+  return items.filter(item => 
+    item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    (item.description && item.description.toLowerCase().includes(searchQuery.toLowerCase()))
+  );
+};
 
   const proceedToCheckout = () => {
     if (cart.length === 0) {
@@ -1740,6 +1747,193 @@ useEffect(() => {
                   </div>
                 );
               })() // Fim do bloco condicional para 'semana'
+            ) : category === 'pasteis' ? (
+              // Seção especial para Pastéis
+              <div className="space-y-12">
+                {/* Hero Section para Pastéis */}
+                <div className="relative rounded-3xl overflow-hidden shadow-2xl">
+                  <div className="absolute inset-0 bg-gradient-to-r from-[#b0aca6]/90 to-[#918e89]/90 z-10"></div>
+                  <img 
+                    src={foodImages.pasteldestaque || cafe} 
+                    alt="Pastéis Artesanais"
+                    className="w-full h-64 md:h-96 object-cover object-center"
+                  />
+                  <div className="absolute inset-0 z-20 flex flex-col justify-center items-center text-center p-6 md:p-10">
+                    <motion.div
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.6 }}
+                      className="mb-4 md:mb-6"
+                    >
+                      <GiPieSlice className="text-5xl md:text-6xl text-[#e6be44]" />
+                    </motion.div>
+                    <motion.h2
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.6, delay: 0.2 }}
+                      className="text-3xl md:text-5xl font-bold text-white mb-2 md:mb-4"
+                    >
+                      Pastéis de Feira 
+                    </motion.h2>
+                    <motion.p
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.6, delay: 0.4 }}
+                      className="text-lg md:text-xl text-white max-w-2xl"
+                    >
+                      Feitos na hora, crocantes por fora e recheados com os melhores ingredientes
+                    </motion.p>
+                    <motion.div
+                      initial={{ opacity: 0, scale: 0.8 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      transition={{ duration: 0.6, delay: 0.6 }}
+                      className="mt-6 flex flex-wrap justify-center gap-3"
+                    >
+                      <span className="bg-[#e6be44] text-black px-4 py-2 rounded-full font-medium flex items-center">
+                        <FiClock className="mr-2" /> Fritos na hora
+                      </span>
+                      <span className="bg-white/20 text-white px-4 py-2 rounded-full font-medium flex items-center">
+                        <FiHeart className="mr-2" /> Feito com amor
+                      </span>
+                    </motion.div>
+                  </div>
+                </div>
+
+                {/* Destaque Especial */}
+                <div className="bg-gradient-to-r from-[#f8f5ed] to-[#f0ede5] p-6 md:p-8 rounded-3xl shadow-lg border-2 border-[#e6be44]/30">
+                  <div className="flex flex-col md:flex-row items-center">
+                      <div className="md:w-1/2 mb-6 md:mb-0 md:pr-8">
+                        <h3 className="text-2xl md:text-3xl font-bold text-gray-900 mb-4">
+                          <span className="text-[#e6be44]">Destaque da Casa:</span> Pastel Alto Astral
+                        </h3>
+                        <p className="text-gray-700 mb-4">
+                          Nosso pastel Alto Astral é recheado com queijo, bacon, tomate, azeitona, cheddar e orégano, tudo isso envolto em uma massa fina e crocante, frita no ponto perfeito.
+                        </p>
+                        <div className="flex items-center text-lg font-semibold text-gray-900">
+                          <span className="bg-[#e6be44] text-white px-3 py-1 rounded-lg mr-3">€6.50</span>
+                          <span className="flex items-center">
+                            <FiStar className="text-yellow-500 mr-1" />
+                            4.9 (128 avaliações)
+                          </span>
+                        </div>
+                      </div>
+                    <div className="md:w-1/2 relative">
+                      <div className="relative w-full h-64 md:h-80 rounded-xl overflow-hidden shadow-lg">
+                        <img 
+                          src={foodImages.pasteldestaque || cafe} 
+                          alt="Pastel de Carne"
+                          className="w-full h-full object-cover object-center"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent flex items-end p-4">
+                          <span className="text-white font-medium">Experimente nosso carro-chefe!</span>
+                        </div>
+                      </div>
+                      <div className="absolute -top-4 -right-4 bg-[#e6be44] text-black px-4 py-2 rounded-full font-bold shadow-lg">
+                        Mais Vendido
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Processo de Preparo */}
+                <div className="bg-white p-6 md:p-8 rounded-3xl shadow-lg border border-gray-200">
+                  <h3 className="text-2xl md:text-3xl font-bold text-gray-900 mb-6 text-center">
+                    Como preparamos nossos pastéis
+                  </h3>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    {[
+                      {
+                        icon: <GiPieSlice className="text-4xl text-[#e6be44]" />,
+                        title: "Massa Artesanal",
+                        description: "Nossa massa é preparada diariamente com ingredientes selecionados, resultando em uma textura perfeita"
+                      },
+                      {
+                        icon: <FaDrumstickBite className="text-4xl text-[#e6be44]" />,
+                        title: "Recheio Especial",
+                        description: "Utilizamos apenas carnes e ingredientes frescos, temperados com especiarias especiais"
+                      },
+                      {
+                        icon: <FiClock className="text-4xl text-[#e6be44]" />,
+                        title: "Fritos na Hora",
+                        description: "Cada pastel é frito na hora, garantindo aquela crocância inigualável e temperatura ideal"
+                      }
+                    ].map((step, index) => (
+                      <motion.div 
+                        key={index}
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.5, delay: index * 0.1 }}
+                        className="bg-[#f8f5ed]/50 p-6 rounded-xl border border-[#e6be44]/20 flex flex-col items-center text-center"
+                      >
+                        <div className="mb-4">{step.icon}</div>
+                        <h4 className="text-xl font-bold text-gray-800 mb-2">{step.title}</h4>
+                        <p className="text-gray-600">{step.description}</p>
+                      </motion.div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Cardápio de Pastéis */}
+                <div>
+                  <h3 className="text-2xl md:text-3xl font-bold text-gray-900 mb-6 flex items-center">
+                    <GiPieSlice className="mr-3 text-[#e6be44]" />
+                    Nossa Seleção de Pastéis
+                  </h3>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
+                    {filteredMenu(category).map(item => (
+                        <motion.div 
+                          key={item.id}
+                          initial={{ opacity: 0, y: 20 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ duration: 0.5, ease: "easeOut", delay: 0.1 }}
+                          whileHover={{ y: -8, boxShadow: "0 20px 40px rgba(0,0,0,0.15)", scale: 1.01 }}
+                          className="bg-white rounded-3xl shadow-lg overflow-hidden border-2 border-yellow-200 flex flex-col transform transition-all duration-300 ease-in-out group hover:border-[#e6be44]"
+                        >
+                          <div className="relative w-full h-64 sm:h-72 md:h-80 overflow-hidden">
+                            <img 
+                              src={item.image || cafe} 
+                              alt={item.name} 
+                              onError={(e) => { e.target.onerror = null; e.target.src = cafe }}
+                              className="w-full h-full object-cover object-center transition-transform duration-700 ease-in-out group-hover:scale-105"
+                            />
+                            <button 
+                              onClick={() => toggleFavorite(item.id)}
+                              className="absolute top-4 right-4 p-2.5 bg-white/85 rounded-full backdrop-blur-sm shadow-md hover:bg-white hover:scale-110 transition-all duration-300 focus:outline-none focus:ring-3 focus:ring-yellow-500 focus:ring-opacity-70"
+                              aria-label={favorites.includes(item.id) ? "Remover dos favoritos" : "Adicionar aos favoritos"}
+                            >
+                              <FiHeart className={`w-6 h-6 ${favorites.includes(item.id) ? 'text-red-500 fill-red-500' : 'text-gray-400'}`} />
+                            </button>
+                            {item.veg && (
+                              <span className="absolute top-4 left-4 text-sm font-bold px-3.5 py-1.5 rounded-full bg-green-100 text-green-800 flex items-center shadow-sm">
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-4.5 w-4.5 mr-1.5" viewBox="0 0 20 20" fill="currentColor">
+                                  <path fillRule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+                                </svg>
+                                Vegetariano
+                              </span>
+                            )}
+
+                          </div>
+                        <div className="p-5 flex flex-col justify-between flex-grow">
+                          <div className="flex justify-between items-start mb-3">
+                            <h3 className="font-bold text-xl md:text-2xl text-gray-900 leading-tight pr-3 min-w-0">{item.name}</h3>
+                            <span className="font-extrabold text-xl md:text-2xl text-black px-3 py-1.5 rounded-xl shadow-sm tracking-tight">€{item.price.toFixed(2)}</span>
+                          </div>
+                          {item.description && <p className="text-gray-700 text-sm md:text-base mt-2 flex-grow line-clamp-3">{item.description}</p>}
+                          <motion.button
+                            whileHover={{ scale: 1.02, backgroundColor: "#827f7a", boxShadow: "0 8px 15px rgba(0,0,0,0.2)" }}
+                            whileTap={{ scale: 0.98 }}
+                            onClick={() => addToCart(item)}
+                            className="mt-6 w-full bg-[#918e89] text-[#e6be44] font-bold px-5 py-3 rounded-xl transition-all duration-300 flex items-center justify-center text-lg md:text-xl shadow-md hover:shadow-xl focus:outline-none focus:ring-4 focus:ring-[#e6be44] focus:ring-opacity-50"
+                          >
+                            <FiPlus className="mr-2 text-2xl" />
+                            Adicionar
+                          </motion.button>
+                        </div>
+                      </motion.div>
+                    ))}
+                  </div>
+                </div>
+              </div>
             ) : (
               // Início do bloco para outras categorias
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 md:gap-8">
@@ -1771,10 +1965,16 @@ useEffect(() => {
                           <svg xmlns="http://www.w3.org/2000/svg" className="h-4.5 w-4.5 mr-1.5" viewBox="0 0 20 20" fill="currentColor">
                             <path fillRule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
                           </svg>
-                          Veg
+                          Vegetariano
                         </span>
                       )}
-                    </div>
+                       {item.isDailySpecial && (
+                      <span className="absolute bottom-4 left-4 text-sm font-bold px-3.5 py-1.5 rounded-full bg-[#e6be44] text-white flex items-center shadow-md z-10">
+                        <FiStar className="mr-1.5" />
+                        Prato do Dia
+                      </span>
+                    )}
+                  </div>
                     <div className="p-5 flex flex-col justify-between flex-grow">
                       <div className="flex justify-between items-start mb-3">
                         <h3 className="font-bold text-xl md:text-2xl text-gray-900 leading-tight pr-3 min-w-0">{item.name}</h3>

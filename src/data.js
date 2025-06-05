@@ -46,12 +46,19 @@ import meialeite from './assets/meialeite.jpg';
 import cha from './assets/cha.jpg';
 import croissanmisto from './assets/croissantmisto.jpg';
 import sandesmista from './assets/sandesmista.jpg';
-import capuccino from './assets/cappucino.jpg';
+import galao from './assets/galao.jpg';
 import cariocalimao from './assets/cariocalimao.jpg';
 import paocomovo from './assets/paocomovo.jpg';
 import torradapaocaseiro from './assets/torradapaocaseiro.jpg';
 import torradapaodeforma from './assets/torradapaodeforma.jpg';
 import bolaqueijo from './assets/bolaqueijo.jpg';
+import pasteldestaque from './assets/pasteldestaque.jpg';
+import tostamistapaoforma from './assets/tostamistapaoforma.jpg';
+import Garoto from './assets/garoto.jpg';
+import vodka from './assets/vodka.jpg';
+import Caipiblack from './assets/caipiblack.jpg';
+import fiambreequeijo from './assets/fiambreequeijo.jpg';
+import capuccino from './assets/capuccino.jpg';
 const drinkImages = {
   caipirinha: 'https://images.unsplash.com/photo-1516684669134-de6f7c473a2a?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=80',
   whiskey: 'https://images.unsplash.com/photo-1554866585-cd94860890b7?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=80',
@@ -111,12 +118,20 @@ export const foodImages = {
   cha:cha,
   croissanmisto:croissanmisto,
   sandesmista:sandesmista,
-  capuccino:capuccino,
+  galao:galao,
   cariocalimao:cariocalimao,
   paocomovo:paocomovo,
   torradapaocaseiro:torradapaocaseiro,
   torradapaodeforma:torradapaodeforma,
   bolaqueijo:bolaqueijo,
+  pasteldestaque:pasteldestaque,
+  tostamistapaoforma:tostamistapaoforma,
+  Garoto:Garoto,
+  pedras:pedras,
+  vodka:vodka,
+  Caipiblack:Caipiblack,
+  fiambreequeijo:fiambreequeijo,
+  capuccino:capuccino,
   batataFrita: 'https://images.unsplash.com/photo-1541592106381-b31e9677c0e5?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
   bebida: 'https://images.unsplash.com/photo-1514362545857-3bc16c4c7d1b?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
   salgado: 'https://images.unsplash.com/photo-1601050690597-df0568f70950?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
@@ -167,10 +182,10 @@ export const menu = {
     { id: 32, name: 'Café Expresso', price: 1.00, image: foodImages.cafe },
     { id: 33, name: 'Café Descafeinado', price: 1.00, image: foodImages.cafe },
     { id: 34, name: 'Café Duplo', price: 2.00, image: foodImages.pastel },
-    { id: 35, name: 'Garoto', price: 1.00, image: foodImages.pastel },
+    { id: 35, name: 'Garoto', price: 1.00, image: foodImages.Garoto },
     { id: 36, name: 'Abatanado', price: 1.10, image: foodImages.abatanado },
     { id: 37, name: 'Meia de Leite', price: 1.50, image: foodImages.meialeite },
-    { id: 38, name: 'Galão', price: 1.60, image: foodImages.meialeite },
+    { id: 38, name: 'Galão', price: 1.60, image: foodImages.galao },
     { id: 39, name: 'Chá', price: 1.60, image: foodImages.cha },
     { id: 40, name: 'Cappuccino', price: 3.00, image: foodImages.capuccino },
     { id: 41, name: 'Carioca de Limão', price: 1.00, image: foodImages.cariocalimao },
@@ -181,19 +196,19 @@ export const menu = {
     { id: 46, name: 'Croissant Misto', price: 3.00, image: foodImages.croissanmisto },
     { id: 47, name: 'Croissant Misto Tostado', price: 3.20, image: foodImages.croissant },
     { id: 48, name: 'Tosta Mista', price: 3.20, image: foodImages.tosta },
-    { id: 49, name: 'Tosta Mista (Pão de Forma)', price: 2.80, image: foodImages.tosta },
+    { id: 49, name: 'Tosta Mista (Pão de Forma)', price: 2.80, image: foodImages.tostamistapaoforma },
     { id: 50, name: 'Sandes Mista', price: 2.20, image: foodImages.sandesmista },
     { id: 51, name: 'Pão com Ovo', price: 2.20, image: foodImages.paocomovo },
     { id: 52, name: 'Ovos com Bacon', price: 4.00, image: foodImages.ovosebacaon }
   ],
   bebidas: [
     { id: 53, name: 'Caipirinha', description: 'Cachaça 51 ou Velho Barreiro, lima, açúcar e gelo', price: 6.00, image: foodImages.caipirinha },
-    { id: 54, name: 'Caipiblack', description: 'Cachaça preta, lima, açúcar e gelo', price: 6.00, image: foodImages.caipirinha },
+    { id: 54, name: 'Caipiblack', description: 'Cachaça preta, lima, açúcar e gelo', price: 6.00, image: foodImages.Caipiblack},
     { id: 55, name: 'Whiskey Jamenson', price: 3.50, image: foodImages.bebida },
     { id: 56, name: 'Whiskey J&B', price: 3.00, image: foodImages.bebida },
     { id: 57, name: 'Whiskey Jack Daniels', price: 3.50, image: foodImages.bebida },
     { id: 58, name: 'Whiskey Black Label', price: 4.00, image: foodImages.bebida },
-    { id: 59, name: 'Vodka', price: 4.00, image: foodImages.bebida },
+    { id: 59, name: 'Vodka', price: 4.00, image: foodImages.vodka },
     { id: 60, name: 'Somersby', price: 2.50, image: foodImages.Somersby },
     { id: 61, name: 'Imperial Heineken (0.20)', price: 1.50, image: foodImages.Imperial },
     { id: 62, name: 'Caneca Heineken (0.50)', price: 3.00, image: foodImages.Imperial },
@@ -205,7 +220,7 @@ export const menu = {
     { id: 68, name: 'Água 0.5L', price: 1.00, image: foodImages.agua },
     { id: 69, name: 'Água 0.33L', price: 0.60, image: foodImages.agua },
     { id: 70, name: 'Água Castelo', price: 1.40, image: foodImages.agua },
-    { id: 71, name: 'Água das Pedras', price: 1.40, image: foodImages.agua },
+    { id: 71, name: 'Água das Pedras', price: 1.40, image: foodImages.pedras },
     { id: 72, name: 'Balde de Heineken', price: 10.00, image: foodImages.baldedecerveja }
   ],
   salgados: [
@@ -214,7 +229,7 @@ export const menu = {
     { id: 75, name: 'Empada de Frango', price: 2.00, image: foodImages.empadafrango },
     { id: 76, name: 'Kibe', price: 2.20, image: foodImages.kibe },
     { id: 77, name: 'Enroladinho de Salsicha e Queijo', price: 2.20, image: foodImages.fiambre },
-    { id: 78, name: 'Fiambre e Queijo', price: 2.20, image: foodImages.fiambre },
+    { id: 78, name: 'Fiambre e Queijo', price: 2.20, image: foodImages.fiambreequeijo },
     { id: 79, name: 'Bauru', price: 2.20, image: foodImages.bauru },
     { id: 80, name: 'Bola de Queijo', price: 2.20, image: foodImages.bolaqueijo },
     { id: 81, name: 'Coxinha de Frango', price: 2.20, image: foodImages.Coxinha },
