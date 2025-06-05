@@ -5,13 +5,14 @@ import { getDatabase, set, onValue } from 'firebase/database';
 import { getAuth } from 'firebase/auth';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence, useAnimation } from 'framer-motion';
+import { GiFruitBowl, GiHealthPotion, GiSodaCan, GiPineapple, GiWatermelon, GiOrange, GiStrawberry, GiSun, GiWaterDrop, GiMilkCarton, GiShoppingCart, GiBrazilFlag, GiFruitTree } from 'react-icons/gi'; 
 import WelcomeModal from './components/welcomemodal';
 import logo from './assets/logo-alto-astral.png';
 import cafe from './assets/cafe.jpg';
 import mbwayLogo from './assets/images.png';
 import bitcoinLogo from './assets/bitcoin-logo.png';
 import { foodImages, menu } from './data.js';
-import { FiShoppingCart, FiX, FiCheck, FiClock, FiTruck, FiHome, FiCalendar, FiCoffee, FiMeh, FiPlus, FiMinus, FiInfo, FiStar, FiHeart, FiShare2, FiUser, FiMapPin, FiPhone, FiEdit2, FiCreditCard, FiMail} from 'react-icons/fi';
+import { FiShoppingCart, FiX, FiCheck, FiClock, FiTruck, FiHome, FiCalendar, FiCoffee, FiMeh, FiPlus, FiMinus, FiInfo, FiStar, FiHeart, FiShare2, FiUser, FiMapPin, FiPhone, FiEdit2, FiCreditCard, FiMail,FiFlag} from 'react-icons/fi';
 import { FaCalendarAlt, FaCoffee, FaHamburger, FaDrumstickBite, FaCocktail, FaIceCream, FaBitcoin, FaWhatsapp } from 'react-icons/fa';
 import { GiMeal, GiSandwich, GiChickenOven, GiPieSlice, GiCoffeeCup, GiWineBottle, GiHotMeal, GiCakeSlice } from 'react-icons/gi';
 import QRCode from 'react-qr-code';
@@ -315,6 +316,9 @@ const InterfaceCliente = () => {
   const [adminLoggedIn, setAdminLoggedIn] = useState(false);
   const currentHour = new Date().getHours();
   const isMenuClosed = currentHour >= 15;
+ const [selectedBases, setSelectedBases] = React.useState({});
+ const [isHovered, setIsHovered] = useState(false);
+ const [isAdding, setIsAdding] = useState(false);
 
   // Persistência do carrinho no localStorage
   useEffect(() => {
@@ -349,21 +353,28 @@ const InterfaceCliente = () => {
     }, 5000);
   };
 
-  const addToCart = (item) => {
-    const newItem = { 
-      ...item, 
-      id: Date.now() + item.id,
-      quantity: 1,
-      notes: ''
-    };
-    setCart([...cart, newItem]);
-    addNotification(`${item.name} pedido adicionado com sucesso`, 'success');
-    controls.start({
-      scale: [1, 1.2, 1],
-      transition: { duration: 0.5 }
-    });
-  };
+const addToCart = (item, base) => {
+  const price = item.baseOptions && typeof item.baseOptions[base] === 'number'
+    ? item.baseOptions[base]
+    : item.price;
 
+  const notes = item.baseOptions ? `Base: ${base === 'agua' ? 'Água' : 'Leite'}` : '';
+  
+  const newItem = { 
+    ...item,
+    price,
+    notes,
+    id: Date.now() + item.id,
+    quantity: 1
+  };
+  
+  setCart([...cart, newItem]);
+  addNotification(`${item.name} adicionado ao carrinho`, 'success');
+  controls.start({
+    scale: [1, 1.2, 1],
+    transition: { duration: 0.5 }
+  });
+};
   const removeFromCart = (id) => {
     setCart(cart.filter(item => item.id !== id));
     addNotification('Item removido do carrinho', 'info');
@@ -1499,7 +1510,7 @@ const filteredMenu = (category) => {
       </div>
     );
   }
-
+  
   return (
     <div className="min-h-screen bg-white">
       {showWelcomeModal && (
@@ -1589,46 +1600,49 @@ const filteredMenu = (category) => {
         </div>
       </div>  
 
-      <div className="bg-white shadow-sm sticky top-16 z-10">
-        <div className="container mx-auto px-4 overflow-x-auto">
-          <div className="flex space-x-1 p-2 scrollbar-hide">
-            {['semana', 'lanches', 'porcoes', 'pasteis', 'cafe', 'bebidas', 'salgados', 'sobremesas'].map((tab) => (
-             <motion.button
-                    key={tab}
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                    onClick={() => setActiveTab(tab)}
-                    disabled={tab === 'semana' && isMenuClosed}
-                    className={`px-3 py-2 rounded-lg whitespace-nowrap flex items-center transition border font-medium md:font-bold text-xs md:text-sm ${
-                      activeTab === tab
-                        ? 'border-[#e6be44] bg-[#b0aca6] text-black'
-                        : 'border-gray-200 bg-[#918e89] text-[#FFFAF1]'
-                    } ${
-                      tab === 'semana' && isMenuClosed ? 'opacity-50 cursor-not-allowed' : ''
-                    }`}
-                  >
-                {tab === 'semana' && <FiCalendar className="mr-1 md:mr-2" />}
-                {tab === 'lanches' && <FaHamburger className="mr-1 md:mr-2" />}
-                {tab === 'porcoes' && <FaDrumstickBite className="mr-1 md:mr-2" />}
-                {tab === 'pasteis' && <GiPieSlice className="mr-1 md:mr-2" />}
-                {tab === 'cafe' && <FiCoffee className="mr-1 md:mr-2" />}
-                {tab === 'bebidas' && <FaCocktail className="mr-1 md:mr-2" />}
-                {tab === 'salgados' && <GiSandwich className="mr-1 md:mr-2" />}
-                {tab === 'sobremesas' && <FaIceCream className="mr-1 md:mr-2" />}
+<div className="bg-white shadow-sm sticky top-16 z-10">
+  <div className="container mx-auto px-4 overflow-x-auto">
+    <div className="flex space-x-1 p-2 scrollbar-hide">
+      {['semana', 'lanches', 'porcoes', 'pasteis', 'cafe', 'bebidas', 'sumos', 'salgados', 'sobremesas'].map((tab) => (
+        <motion.button
+          key={tab}
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
+          onClick={() => setActiveTab(tab)}
+          disabled={tab === 'semana' && isMenuClosed}
+          className={`px-3 py-2 rounded-lg whitespace-nowrap flex items-center transition border font-medium md:font-bold text-xs md:text-sm ${
+            activeTab === tab
+              ? 'border-[#e6be44] bg-[#b0aca6] text-black'
+              : 'border-gray-200 bg-[#918e89] text-[#FFFAF1]'
+          } ${
+            tab === 'semana' && isMenuClosed ? 'opacity-50 cursor-not-allowed' : ''
+          }`}
+        >
+          {tab === 'semana' && <FiCalendar className="mr-1 md:mr-2" />}
+          {tab === 'lanches' && <FaHamburger className="mr-1 md:mr-2" />}
+          {tab === 'porcoes' && <FaDrumstickBite className="mr-1 md:mr-2" />}
+          {tab === 'pasteis' && <GiPieSlice className="mr-1 md:mr-2" />}
+          {tab === 'cafe' && <FiCoffee className="mr-1 md:mr-2" />}
+          {tab === 'bebidas' && <FaCocktail className="mr-1 md:mr-2" />}
+          {tab === 'sumos' && <GiFruitBowl className="mr-1 md:mr-2" />}
+          {tab === 'salgados' && <GiSandwich className="mr-1 md:mr-2" />}
+          {tab === 'sobremesas' && <FaIceCream className="mr-1 md:mr-2" />}
 
-                {tab === 'semana' && 'Cardápio'}
-                {tab === 'lanches' && 'Lanches'}
-                {tab === 'porcoes' && 'Porções'}
-                {tab === 'pasteis' && 'Pasteis'}
-                {tab === 'cafe' && 'Bom Dia'}
-                {tab === 'bebidas' && 'Bebidas'}
-                {tab === 'salgados' && 'Salgados'}
-                {tab === 'sobremesas' && 'Sobremesas'}
-              </motion.button>
-            ))}
-          </div>
-        </div>
-      </div>
+          {tab === 'semana' && 'Cardápio'}
+          {tab === 'lanches' && 'Lanches'}
+          {tab === 'porcoes' && 'Porções'}
+          {tab === 'pasteis' && 'Pasteis'}
+          {tab === 'cafe' && 'Bom Dia'}
+          {tab === 'bebidas' && 'Bebidas'}
+          {tab === 'sumos' && 'Sumos & Batidos'}
+          {tab === 'salgados' && 'Salgados'}
+          {tab === 'sobremesas' && 'Sobremesas'}
+        </motion.button>
+      ))}
+    </div>
+  </div>
+</div>
+
 
 <main className="container mx-auto px-4 pb-16 md:pb-20">
   <AnimatePresence mode="wait">
@@ -1639,7 +1653,7 @@ const filteredMenu = (category) => {
       exit={{ opacity: 0, y: -15 }}
       transition={{ duration: 0.4, ease: "easeOut" }}
     >
-      {['semana', 'lanches', 'porcoes', 'pasteis', 'cafe', 'bebidas', 'salgados', 'sobremesas'].map((category) => (
+      {['semana', 'lanches', 'porcoes', 'pasteis', 'cafe', 'bebidas', 'salgados', 'sobremesas', 'sumos'].map((category) => ( // <-- **Adicione 'sumos' aqui na lista de categorias**
         activeTab === category && (
           <div key={category}>
             <div className="flex items-center justify-between mb-8 md:mb-10">
@@ -1653,7 +1667,10 @@ const filteredMenu = (category) => {
                 {category === 'salgados' && <GiHotMeal className="mr-3  text-black text-4xl md:text-5xl" />}
                 {category === 'sobremesas' && <GiCakeSlice className="mr-3 text-black text-4xl md:text-5xl" />}
 
+
+
                 {category === 'semana' && 'Cardápio da Semana'}
+                {category === 'lanches' && 'Lanches Exclusivos'}
                 {category === 'lanches' && 'Lanches Exclusivos'}
                 {category === 'porcoes' && 'Porções Generosas'}
                 {category === 'pasteis' && 'Pastéis Artesanais'}
@@ -1664,15 +1681,16 @@ const filteredMenu = (category) => {
               </h2>
             </div>
 
+
             {category === 'semana' ? (
               // Início do bloco condicional para 'semana'
               (() => {
                 const now = new Date();
                 const currentHour = now.getHours();
                 const isClosed = currentHour >= 15 || currentHour < 10;
-                
+
                 return isClosed ? (
-                  <motion.div 
+                  <motion.div
                     initial={{ opacity: 0, scale: 0.95 }}
                     animate={{ opacity: 1, scale: 1 }}
                     transition={{ duration: 0.5, ease: "easeOut" }}
@@ -1681,13 +1699,13 @@ const filteredMenu = (category) => {
                     <FiClock className="mx-auto text-5xl text-gray-500 mb-5 animate-pulse" />
                     <p className="font-bold text-xl text-gray-800 leading-relaxed">
                       {currentHour >= 15
-                        ? "Prezado cliente, o cardápio da semana estará disponível apenas amanhã, a partir das 10h." 
+                        ? "Prezado cliente, o cardápio da semana estará disponível apenas amanhã, a partir das 10h."
                         : "Aguarde! Nosso cardápio da semana abre pontualmente às 10h da manhã."
                       }
                     </p>
                     <p className="text-md text-gray-600 mt-3 max-w-lg">
                       {currentHour >= 16
-                        ? "Enquanto isso, delicie-se com as opções do nosso cardápio regular, sempre recheado de sabor!" 
+                        ? "Enquanto isso, delicie-se com as opções do nosso cardápio regular, sempre recheado de sabor!"
                         : "Prepare-se para uma experiência gastronômica! Volte em breve para descobrir as novidades!"
                       }
                     </p>
@@ -1695,7 +1713,7 @@ const filteredMenu = (category) => {
                 ) : (
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 md:gap-8">
                     {filteredMenu(category).map(item => (
-                      <motion.div 
+                      <motion.div
                         key={item.id}
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
@@ -1704,13 +1722,13 @@ const filteredMenu = (category) => {
                         className="bg-white rounded-3xl shadow-lg overflow-hidden border-2 border-yellow-200 flex flex-col transform transition-all duration-300 ease-in-out group hover:border-[#e6be44]"
                       >
                         <div className="relative w-full h-64 sm:h-72 md:h-80 overflow-hidden">
-                          <img 
-                            src={item.image || cafe} 
-                            alt={item.name} 
+                          <img
+                            src={item.image || cafe}
+                            alt={item.name}
                             onError={(e) => { e.target.onerror = null; e.target.src = cafe }}
                             className="w-full h-full object-cover object-center transition-transform duration-700 ease-in-out group-hover:scale-105"
                           />
-                          <button 
+                          <button
                             onClick={() => toggleFavorite(item.id)}
                             className="absolute top-4 right-4 p-2.5 bg-white/85 rounded-full backdrop-blur-sm shadow-md hover:bg-white hover:scale-110 transition-all duration-300 focus:outline-none focus:ring-3 focus:ring-yellow-500 focus:ring-opacity-70"
                             aria-label={favorites.includes(item.id) ? "Remover dos favoritos" : "Adicionar aos favoritos"}
@@ -1726,13 +1744,13 @@ const filteredMenu = (category) => {
                             </span>
                           )}
                           {item.isDailySpecial && (
-                        <div className="absolute top-4 left-4 z-10">
-                          <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-bold bg-gradient-to-r from-[#e6be44] to-[#d4a72c] text-white shadow-lg">
-                            <FiStar className="mr-1.5" />
-                            Prato do Dia
-                          </span>
-                        </div>
-                      )}
+                            <div className="absolute top-4 left-4 z-10">
+                              <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-bold bg-gradient-to-r from-[#e6be44] to-[#d4a72c] text-white shadow-lg">
+                                <FiStar className="mr-1.5" />
+                                Prato do Dia
+                              </span>
+                            </div>
+                          )}
                         </div>
                         <div className="p-5 flex flex-col justify-between flex-grow">
                           <div className="flex justify-between items-start mb-3">
@@ -1761,8 +1779,8 @@ const filteredMenu = (category) => {
                 {/* Hero Section para Pastéis */}
                 <div className="relative rounded-3xl overflow-hidden shadow-2xl">
                   <div className="absolute inset-0 bg-gradient-to-r from-[#b0aca6]/90 to-[#918e89]/90 z-10"></div>
-                  <img 
-                    src={foodImages.pasteldestaque || cafe} 
+                  <img
+                    src={foodImages.pasteldestaque || cafe}
                     alt="Pastéis Artesanais"
                     className="w-full h-64 md:h-96 object-cover object-center"
                   />
@@ -1781,7 +1799,7 @@ const filteredMenu = (category) => {
                       transition={{ duration: 0.6, delay: 0.2 }}
                       className="text-3xl md:text-5xl font-bold text-white mb-2 md:mb-4"
                     >
-                      Pastéis de Feira 
+                      Pastéis de Feira
                     </motion.h2>
                     <motion.p
                       initial={{ opacity: 0, y: 20 }}
@@ -1807,28 +1825,29 @@ const filteredMenu = (category) => {
                   </div>
                 </div>
 
+
                 {/* Destaque Especial */}
                 <div className="bg-gradient-to-r from-[#f8f5ed] to-[#f0ede5] p-6 md:p-8 rounded-3xl shadow-lg border-2 border-[#e6be44]/30">
                   <div className="flex flex-col md:flex-row items-center">
-                      <div className="md:w-1/2 mb-6 md:mb-0 md:pr-8">
-                        <h3 className="text-2xl md:text-3xl font-bold text-gray-900 mb-4">
-                          <span className="text-[#e6be44]">Destaque da Casa:</span> Pastel Alto Astral
-                        </h3>
-                        <p className="text-gray-700 mb-4">
-                          Nosso pastel Alto Astral é recheado com queijo, bacon, tomate, azeitona, cheddar e orégano, tudo isso envolto em uma massa fina e crocante, frita no ponto perfeito.
-                        </p>
-                        <div className="flex items-center text-lg font-semibold text-gray-900">
-                          <span className="bg-[#e6be44] text-white px-3 py-1 rounded-lg mr-3">€6.50</span>
-                          <span className="flex items-center">
-                            <FiStar className="text-yellow-500 mr-1" />
-                            4.9 (128 avaliações)
-                          </span>
-                        </div>
+                    <div className="md:w-1/2 mb-6 md:mb-0 md:pr-8">
+                      <h3 className="text-2xl md:text-3xl font-bold text-gray-900 mb-4">
+                        <span className="text-[#e6be44]">Destaque da Casa:</span> Pastel Alto Astral
+                      </h3>
+                      <p className="text-gray-700 mb-4">
+                        Nosso pastel Alto Astral é recheado com queijo, bacon, tomate, azeitona, cheddar e orégano, tudo isso envolto em uma massa fina e crocante, frita no ponto perfeito.
+                      </p>
+                      <div className="flex items-center text-lg font-semibold text-gray-900">
+                        <span className="bg-[#e6be44] text-white px-3 py-1 rounded-lg mr-3">€6.50</span>
+                        <span className="flex items-center">
+                          <FiStar className="text-yellow-500 mr-1" />
+                          4.9 (128 avaliações)
+                        </span>
                       </div>
+                    </div>
                     <div className="md:w-1/2 relative">
                       <div className="relative w-full h-64 md:h-80 rounded-xl overflow-hidden shadow-lg">
-                        <img 
-                          src={foodImages.pasteldestaque || cafe} 
+                        <img
+                          src={foodImages.pasteldestaque || cafe}
                           alt="Pastel de Carne"
                           className="w-full h-full object-cover object-center"
                         />
@@ -1866,7 +1885,7 @@ const filteredMenu = (category) => {
                         description: "Cada pastel é frito na hora, garantindo aquela crocância inigualável e temperatura ideal"
                       }
                     ].map((step, index) => (
-                      <motion.div 
+                      <motion.div
                         key={index}
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
@@ -1889,38 +1908,38 @@ const filteredMenu = (category) => {
                   </h3>
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
                     {filteredMenu(category).map(item => (
-                        <motion.div 
-                          key={item.id}
-                          initial={{ opacity: 0, y: 20 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          transition={{ duration: 0.5, ease: "easeOut", delay: 0.1 }}
-                          whileHover={{ y: -8, boxShadow: "0 20px 40px rgba(0,0,0,0.15)", scale: 1.01 }}
-                          className="bg-white rounded-3xl shadow-lg overflow-hidden border-2 border-yellow-200 flex flex-col transform transition-all duration-300 ease-in-out group hover:border-[#e6be44]"
-                        >
-                          <div className="relative w-full h-64 sm:h-72 md:h-80 overflow-hidden">
-                            <img 
-                              src={item.image || cafe} 
-                              alt={item.name} 
-                              onError={(e) => { e.target.onerror = null; e.target.src = cafe }}
-                              className="w-full h-full object-cover object-center transition-transform duration-700 ease-in-out group-hover:scale-105"
-                            />
-                            <button 
-                              onClick={() => toggleFavorite(item.id)}
-                              className="absolute top-4 right-4 p-2.5 bg-white/85 rounded-full backdrop-blur-sm shadow-md hover:bg-white hover:scale-110 transition-all duration-300 focus:outline-none focus:ring-3 focus:ring-yellow-500 focus:ring-opacity-70"
-                              aria-label={favorites.includes(item.id) ? "Remover dos favoritos" : "Adicionar aos favoritos"}
-                            >
-                              <FiHeart className={`w-6 h-6 ${favorites.includes(item.id) ? 'text-red-500 fill-red-500' : 'text-gray-400'}`} />
-                            </button>
-                            {item.veg && (
-                              <span className="absolute top-4 left-4 text-sm font-bold px-3.5 py-1.5 rounded-full bg-green-100 text-green-800 flex items-center shadow-sm">
-                                <svg xmlns="http://www.w3.org/2000/svg" className="h-4.5 w-4.5 mr-1.5" viewBox="0 0 20 20" fill="currentColor">
-                                  <path fillRule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
-                                </svg>
-                                Vegetariano
-                              </span>
-                            )}
+                      <motion.div
+                        key={item.id}
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.5, ease: "easeOut", delay: 0.1 }}
+                        whileHover={{ y: -8, boxShadow: "0 20px 40px rgba(0,0,0,0.15)", scale: 1.01 }}
+                        className="bg-white rounded-3xl shadow-lg overflow-hidden border-2 border-yellow-200 flex flex-col transform transition-all duration-300 ease-in-out group hover:border-[#e6be44]"
+                      >
+                        <div className="relative w-full h-64 sm:h-72 md:h-80 overflow-hidden">
+                          <img
+                            src={item.image || cafe}
+                            alt={item.name}
+                            onError={(e) => { e.target.onerror = null; e.target.src = cafe }}
+                            className="w-full h-full object-cover object-center transition-transform duration-700 ease-in-out group-hover:scale-105"
+                          />
+                          <button
+                            onClick={() => toggleFavorite(item.id)}
+                            className="absolute top-4 right-4 p-2.5 bg-white/85 rounded-full backdrop-blur-sm shadow-md hover:bg-white hover:scale-110 transition-all duration-300 focus:outline-none focus:ring-3 focus:ring-yellow-500 focus:ring-opacity-70"
+                            aria-label={favorites.includes(item.id) ? "Remover dos favoritos" : "Adicionar aos favoritos"}
+                          >
+                            <FiHeart className={`w-6 h-6 ${favorites.includes(item.id) ? 'text-red-500 fill-red-500' : 'text-gray-400'}`} />
+                          </button>
+                          {item.veg && (
+                            <span className="absolute top-4 left-4 text-sm font-bold px-3.5 py-1.5 rounded-full bg-green-100 text-green-800 flex items-center shadow-sm">
+                              <svg xmlns="http://www.w3.org/2000/svg" className="h-4.5 w-4.5 mr-1.5" viewBox="0 0 20 20" fill="currentColor">
+                                <path fillRule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+                              </svg>
+                              Vegetariano
+                            </span>
+                          )}
 
-                          </div>
+                        </div>
                         <div className="p-5 flex flex-col justify-between flex-grow">
                           <div className="flex justify-between items-start mb-3">
                             <h3 className="font-bold text-xl md:text-2xl text-gray-900 leading-tight pr-3 min-w-0">{item.name}</h3>
@@ -1942,26 +1961,254 @@ const filteredMenu = (category) => {
                   </div>
                 </div>
               </div>
-            ) : (
-              // Início do bloco para outras categorias
+              // --- **Insira o novo else if para 'sumos' aqui:** ---
+) : category === 'sumos' ? (
+  <div className="space-y-12">
+    {/* Minimalist Hero Section */}
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.6 }}
+      className="text-center"
+    >
+      <motion.div
+        animate={{ rotate: [0, 15, -15, 0] }}
+        transition={{ repeat: Infinity, repeatType: "reverse", duration: 4 }}
+        className="inline-block mb-6"
+      >
+        <GiFruitBowl className="text-5xl text-[#e6be44]" />
+      </motion.div>
+      <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
+        <span className="bg-clip-text text-transparent bg-gradient-to-r from-[#e6be44] to-[#b0aca6]">
+          Sumos & Batidos
+        </span>
+      </h1>
+      <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+        Combinações perfeitas de frutas frescas, preparadas na hora
+      </p>
+    </motion.div>
+
+    {/* Product Grid with Individual State */}
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+      {filteredMenu(category).map((item) => {
+        // Use item.id as part of the state key for individual control
+        const baseSelected = selectedBases[item.id] || 'agua';
+
+        const basePrice = baseSelected === 'leite' 
+          ? (item.baseOptions?.leite || item.price)
+          : (item.baseOptions?.agua || item.price);
+
+       const addToCartWithAnimation = () => {
+          setIsAdding(true);
+          addToCart({
+            ...item,
+            price: basePrice,
+            notes: `Base: ${baseSelected === 'agua' ? 'Água' : 'Leite'}`
+          }, baseSelected); // Passando a base selecionada como segundo parâmetro
+          setTimeout(() => setIsAdding(false), 1000);
+        };
+
+        return (
+          <motion.div
+            key={item.id}
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+            whileHover={{ y: -5 }}
+            onHoverStart={() => setIsHovered(true)}
+            onHoverEnd={() => setIsHovered(false)}
+            className="bg-white rounded-2xl shadow-xl overflow-hidden border border-[#d5c8b6]/30 flex flex-col"
+          >
+            {/* Image with elegant overlay */}
+            <div className="relative pt-[75%] overflow-hidden">
+              <motion.img
+                src={item.image || '/images/juice-default.jpg'}
+                alt={item.name}
+                className="absolute top-0 left-0 w-full h-full object-cover"
+                animate={{
+                  scale: isHovered ? 1.05 : 1
+                }}
+                transition={{ duration: 0.4 }}
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
+              
+              {/* Favorite button with animation */}
+              <motion.button
+                onClick={() => toggleFavorite(item.id)}
+                className="absolute top-4 right-4 p-2 bg-white/90 rounded-full shadow-sm"
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.9 }}
+              >
+                <FiHeart 
+                  className={`w-5 h-5 transition-colors ${
+                    favorites.includes(item.id) 
+                      ? 'text-red-500 fill-red-500' 
+                      : 'text-gray-400'
+                  }`}
+                />
+              </motion.button>
+            </div>
+
+            {/* Product Info */}
+            <div className="p-5 flex-grow flex flex-col">
+              <div className="flex justify-between items-start mb-3">
+                <h3 className="text-xl font-bold text-gray-900">{item.name}</h3>
+                <motion.div
+                  animate={{ 
+                    scale: isHovered ? 1.1 : 1,
+                    color: isHovered ? '#e6be44' : '#000'
+                  }}
+                  className="text-xl font-bold"
+                >
+                  €{basePrice.toFixed(2)}
+                </motion.div>
+              </div>
+              
+              <p className="text-gray-600 mb-4 flex-grow">{item.description}</p>
+              
+              {/* Base Selection - Individual to each product */}
+              <div className="mb-4">
+                <div className="flex justify-between items-center mb-2">
+                  <span className="text-sm font-medium text-gray-500">Base:</span>
+                  <div className="flex items-center space-x-2">
+                  <motion.button
+                      onClick={() => setSelectedBases(prev => ({ ...prev, [item.id]: 'agua' }))}
+                      className={`px-3 py-1 rounded-full text-xs font-medium ${
+                        selectedBases[item.id] === 'agua' 
+                          ? 'bg-[#e6be44] text-white' 
+                          : 'bg-[#f3f3f3] text-gray-700'
+                      }`}
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                    >
+                      Água
+                    </motion.button>
+
+                    <motion.button
+                      onClick={() => setSelectedBases(prev => ({ ...prev, [item.id]: 'leite' }))}
+                      className={`px-3 py-1 rounded-full text-xs font-medium ${
+                        selectedBases[item.id] === 'leite' 
+                          ? 'bg-[#e6be44] text-white' 
+                          : 'bg-[#f3f3f3] text-gray-700'
+                      }`}
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                    >
+                      Leite
+                    </motion.button>
+
+                  </div>
+                </div>
+              </div>
+
+              {/* Add to Cart Button */}
+              <motion.button
+                onClick={addToCartWithAnimation}
+                className={`mt-auto w-full bg-[#918e89] text-[#e6be44] font-bold py-3 rounded-lg flex items-center justify-center relative overflow-hidden`}
+                whileHover={{ 
+                  y: -2,
+                  boxShadow: '0 5px 15px rgba(0,0,0,0.1)'
+                }}
+                whileTap={{ scale: 0.98 }}
+              >
+                {isAdding ? (
+                  <motion.span
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -20 }}
+                    className="flex items-center"
+                  >
+                    <FiCheck className="mr-2" />
+                    Adicionado!
+                  </motion.span>
+                ) : (
+                  <motion.span
+                    initial={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: 20 }}
+                    className="flex items-center"
+                  >
+                    <FiPlus className="mr-2" />
+                    Adicionar
+                  </motion.span>
+                )}
+                
+                {/* Animated background effect */}
+                {isAdding && (
+                  <motion.div
+                    initial={{ width: 0 }}
+                    animate={{ width: '100%' }}
+                    transition={{ duration: 1 }}
+                    className="absolute bottom-0 left-0 h-1 bg-[#e6be44]"
+                  />
+                )}
+              </motion.button>
+            </div>
+          </motion.div>
+        );
+      })}
+    </div>
+
+    {/* Elegant Features Section */}
+    <motion.div
+      initial={{ opacity: 0 }}
+      whileInView={{ opacity: 1 }}
+      transition={{ duration: 0.6 }}
+      viewport={{ once: true }}
+      className="mt-16 grid grid-cols-1 md:grid-cols-3 gap-6"
+    >
+      {[
+        {
+          icon: <GiSodaCan className="text-3xl text-[#e6be44]" />,
+          title: "Sem Aditivos",
+          description: "Nada de conservantes ou açúcares adicionados"
+        },
+        {
+          icon: <GiHealthPotion className="text-3xl text-[#e6be44]" />,
+          title: "Rico em Vitaminas",
+          description: "Fonte natural de nutrientes essenciais"
+        },
+        {
+          icon: <GiFruitBowl className="text-3xl text-[#e6be44]" />,
+          title: "Frutas Frescas",
+          description: "Preparados na hora com ingredientes selecionados"
+        }
+      ].map((feature, index) => (
+        <motion.div
+          key={index}
+          whileHover={{ y: -5 }}
+          className="bg-white p-6 rounded-xl shadow-sm border border-[#d5c8b6]/20"
+        >
+          <div className="bg-[#f5f3f0] w-12 h-12 rounded-full flex items-center justify-center mb-4">
+            {feature.icon}
+          </div>
+          <h3 className="text-lg font-bold text-gray-900 mb-2">{feature.title}</h3>
+          <p className="text-gray-600">{feature.description}</p>
+        </motion.div>
+      ))}
+    </motion.div>
+  </div>
+) : (
+
+// <-- **NOVO TRECHO TERMINA AQUI**
+              // Início do bloco para outras categorias (genérico)
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 md:gap-8">
                 {filteredMenu(category).map(item => (
-                  <motion.div 
-                        key={item.id}
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.5, ease: "easeOut", delay: 0.1 }}
-                        whileHover={{ y: -8, boxShadow: "0 20px 40px rgba(0,0,0,0.15)", scale: 1.01 }}
-                        className="bg-white rounded-3xl shadow-lg overflow-hidden border-2 border-[#e6be44] flex flex-col transform transition-all duration-300 ease-in-out group hover:border-[#e6be44]"
-                      >
+                  <motion.div
+                    key={item.id}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.5, ease: "easeOut", delay: 0.1 }}
+                    whileHover={{ y: -8, boxShadow: "0 20px 40px rgba(0,0,0,0.15)", scale: 1.01 }}
+                    className="bg-white rounded-3xl shadow-lg overflow-hidden border-2 border-[#e6be44] flex flex-col transform transition-all duration-300 ease-in-out group hover:border-[#e6be44]"
+                  >
                     <div className="relative w-full h-64 sm:h-72 md:h-80 overflow-hidden">
-                      <img 
-                        src={item.image || cafe} 
-                        alt={item.name} 
+                      <img
+                        src={item.image || cafe}
+                        alt={item.name}
                         onError={(e) => { e.target.onerror = null; e.target.src = cafe }}
                         className="w-full h-full object-cover object-center transition-transform duration-700 ease-in-out group-hover:scale-105"
                       />
-                      <button 
+                      <button
                         onClick={() => toggleFavorite(item.id)}
                         className="absolute top-4 right-4 p-2.5 bg-white/85 rounded-full backdrop-blur-sm shadow-md hover:bg-white hover:scale-110 transition-all duration-300 focus:outline-none focus:ring-3 focus:ring-yellow-500 focus:ring-opacity-70"
                         aria-label={favorites.includes(item.id) ? "Remover dos favoritos" : "Adicionar aos favoritos"}
@@ -1976,7 +2223,7 @@ const filteredMenu = (category) => {
                           Vegetariano
                         </span>
                       )}
-                  </div>
+                    </div>
                     <div className="p-5 flex flex-col justify-between flex-grow">
                       <div className="flex justify-between items-start mb-3">
                         <h3 className="font-bold text-xl md:text-2xl text-gray-900 leading-tight pr-3 min-w-0">{item.name}</h3>
@@ -1998,11 +2245,13 @@ const filteredMenu = (category) => {
               </div>
             )}
           </div>
+
         )
       ))}
     </motion.div>
   </AnimatePresence>
 </main>
+ 
 
       {cart.length > 0 && (
         <motion.div 

@@ -14,7 +14,7 @@
 
 /* Custom styles */
 body {
-   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
 button {
@@ -62,7 +62,6 @@ svg {
   }
 }
 
-
 /* Ajuste para evitar zoom em inputs no iOS */
 @media screen and (max-width: 767px) {
   input,
@@ -87,6 +86,25 @@ svg {
     top: 5rem;
     right: 1.5rem;
   }
+}
+
+/* Efeito de flutuação para as imagens de frutas */
+@keyframes float {
+  0% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
+  100% { transform: translateY(0px); }
+}
+
+.fruit-float {
+  animation: float 3s ease-in-out infinite;
+}
+
+/* Cores temáticas */
+.bg-tropical {
+  background: linear-gradient(135deg, #E3F2FD, #E8F5E9);
+}
+.text-tropical {
+  color: #2E7D32;
 }
 
 /* Em seu arquivo CSS global */

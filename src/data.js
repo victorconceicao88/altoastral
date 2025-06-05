@@ -61,6 +61,21 @@ import fiambreequeijo from './assets/fiambreequeijo.jpg';
 import capuccino from './assets/capuccino.jpg';
 import Castelo from './assets/castelo.jpg';
 import Cheesecake from './assets/cheesecake.jpg';
+import maracuja from './assets/Maracuja.jpg';
+import acerola from './assets/Acerola.jpg';
+import manga from './assets/manga.jpg';
+import goiaba from './assets/goiaba.jpg';
+import morango from './assets/morango.jpg';
+import Caju from './assets/caju.jpg';
+import abacaxi from './assets/Abacaxi.jpg';
+import coco from './assets/coco.jpg';
+import caja from './assets/Caja.jpg';
+import cupuacu from './assets/cupucacu.jpg';
+import graviola from './assets/graviola.jpg';
+import frutosvermelhos from './assets/frutosvermelhos.jpg';
+import bolopoteananas from './assets/bolopoteananas.jpg';
+import Prestígio from './assets/presigio.jpg';
+import toblerone from './assets/presigio.jpg';
 const drinkImages = {
   caipirinha: 'https://images.unsplash.com/photo-1516684669134-de6f7c473a2a?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=80',
   whiskey: 'https://images.unsplash.com/photo-1554866585-cd94860890b7?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=80',
@@ -136,6 +151,21 @@ export const foodImages = {
   capuccino:capuccino,
   Castelo:Castelo,
   Cheesecake:Cheesecake,
+  maracuja:maracuja,
+  acerola:acerola,
+  manga:manga,
+  goiaba:goiaba,
+  morango:morango,
+  Caju:Caju,
+  abacaxi:abacaxi,
+  coco:coco,
+  caja:caja,
+  cupuacu:cupuacu,
+  graviola:graviola,
+  frutosvermelhos:frutosvermelhos,
+  bolopoteananas:bolopoteananas,
+  Prestígio:Prestígio,
+  toblerone:toblerone,
   batataFrita: 'https://images.unsplash.com/photo-1541592106381-b31e9677c0e5?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
   bebida: 'https://images.unsplash.com/photo-1514362545857-3bc16c4c7d1b?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
   salgado: 'https://images.unsplash.com/photo-1601050690597-df0568f70950?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
@@ -227,6 +257,152 @@ export const menu = {
     { id: 71, name: 'Água das Pedras', price: 1.40, image: foodImages.pedras },
     { id: 72, name: 'Balde de Heineken', price: 10.00, image: foodImages.baldedecerveja }
   ],
+
+   sumos: [
+    {
+      id: 'sumo-maracuja',
+      name: 'Sumo/Batido de Maracujá',
+      description: 'Rico em vitamina C e antioxidantes, ajuda a reduzir a ansiedade e melhorar a qualidade do sono',
+      price: 4.00,
+      baseOptions: {
+        agua: 4.00,
+        leite: 4.50
+      },
+      image: foodImages.maracuja,
+      veg: true,
+      nutritionalInfo: 'Alto teor de vitamina A, C, ferro e fibras. 120kcal (com água)'
+    },
+    {
+      id: 'sumo-acerola',
+      name: 'Sumo/Batido de Acerola',
+      description: 'Uma das maiores fontes naturais de vitamina C, fortalece o sistema imunológico',
+      price: 4.00,
+      baseOptions: {
+        agua: 4.00,
+        leite: 4.50
+      },
+      image: foodImages.acerola,
+      veg: true,
+      nutritionalInfo: 'Contém 30x mais vitamina C que a laranja. 110kcal (com água)'
+    },
+    {
+      id: 'sumo-manga',
+      name: 'Sumo/Batido de Manga',
+      description: 'Doce e nutritivo, rico em vitamina A que beneficia a saúde ocular e da pele',
+      price: 4.00,
+      baseOptions: {
+        agua: 4.00,
+        leite: 4.50
+      },
+      image: foodImages.manga,
+      veg: true,
+      nutritionalInfo: 'Fonte de vitamina A, C e fibras. 150kcal (com água)'
+    },
+    {
+      id: 'sumo-goiaba',
+      name: 'Sumo/Batido de Goiaba',
+      description: 'Excelente fonte de licopeno e vitamina C, auxilia na saúde cardiovascular',
+      price: 4.00,
+      baseOptions: {
+        agua: 4.00,
+        leite: 4.50
+      },
+      image: foodImages.goiaba,
+      veg: true,
+      nutritionalInfo: 'Rica em antioxidantes e fibras. 130kcal (com água)'
+    },
+    {
+      id: 'sumo-morango',
+      name: 'Sumo/Batido de Morango',
+      description: 'Delicioso e rico em antioxidantes que combatem os radicais livres',
+      price: 4.00,
+      baseOptions: {
+        agua: 4.00,
+        leite: 4.50
+      },
+      image: foodImages.morango,
+      veg: true,
+      nutritionalInfo: 'Contém manganês, potássio e vitamina C. 100kcal (com água)'
+    },
+    {
+      id: 'sumo-caju',
+      name: 'Sumo/Batido de Caju',
+      description: 'Refrescante e rico em zinco, importante para a imunidade e saúde da pele',
+      price: 4.00,
+      baseOptions: {
+        agua: 4.00,
+        leite: 4.50
+      },
+      image: foodImages.Caju,
+      veg: true,
+      nutritionalInfo: 'Fonte de vitamina C e minerais. 140kcal (com água)'
+    },
+    {
+      id: 'sumo-abacaxi',
+      name: 'Sumo/Batido de Abacaxi',
+      description: 'Contém bromelina, enzima que auxilia na digestão e reduz inflamações',
+      price: 4.00,
+      baseOptions: {
+        agua: 4.00,
+        leite: 4.50
+      },
+      image: foodImages.abacaxi,
+      veg: true,
+      nutritionalInfo: 'Diurético natural e rico em vitamina C. 120kcal (com água)'
+    },
+    {
+      id: 'sumo-coco',
+      name: 'Sumo/Batido de Coco',
+      description: 'Hidratante natural, rico em eletrólitos e gorduras saudáveis',
+      price: 4.00,
+      baseOptions: {
+        agua: 4.00,
+        leite: 4.50
+      },
+      image: foodImages.coco,
+      veg: true,
+      nutritionalInfo: 'Fonte de minerais e ácidos graxos. 180kcal (com água)'
+    },
+    {
+      id: 'sumo-caja',
+      name: 'Sumo/Batido de Cajá',
+      description: 'Exótico e refrescante, rico em vitaminas do complexo B',
+      price: 4.00,
+      baseOptions: {
+        agua: 4.00,
+        leite: 4.50
+      },
+      image: foodImages.caja,
+      veg: true,
+      nutritionalInfo: 'Contém cálcio, fósforo e ferro. 130kcal (com água)'
+    },
+    {
+      id: 'sumo-cupuacu',
+      name: 'Sumo/Batido de Cupuaçu',
+      description: 'Sabor único e cremoso, rico em antioxidantes e vitamina A',
+      price: 4.00,
+      baseOptions: {
+        agua: 4.00,
+        leite: 4.50
+      },
+      image: foodImages.cupuacu,
+      veg: true,
+      nutritionalInfo: 'Fonte de teobromina e ácidos graxos. 160kcal (com água)'
+    },
+    {
+      id: 'sumo-graviola',
+      name: 'Sumo/Batido de Graviola',
+      description: 'Sabor tropical marcante, com propriedades que auxiliam no relaxamento',
+      price: 4.00,
+      baseOptions: {
+        agua: 4.00,
+        leite: 4.50
+      },
+      image: foodImages.graviola,
+      veg: true,
+      nutritionalInfo: 'Rica em vitaminas B1, B2 e C. 140kcal (com água)'
+    }
+  ],
   salgados: [
     { id: 73, name: 'Pão de Queijo', price: 1.60, image: foodImages.paodequeijo },
     { id: 74, name: 'Pastel de Nata', price: 1.30, image: foodImages.pasteldenata },
@@ -241,19 +417,19 @@ export const menu = {
     { id: 83, name: 'Hamburgão', price: 3.50, image: foodImages.hamburgao }
   ],
   sobremesas: [
-    { id: 84, name: 'Bolo no Pote - Prestígio', description: 'Chocolate com coco', price: 4.00, image: foodImages.doces },
+    { id: 84, name: 'Bolo no Pote - Prestígio', description: 'Chocolate com coco', price: 4.00, image: foodImages.Prestígio },
     { id: 85, name: 'Bolo no Pote - Chocolate', description: 'Massa de chocolate com recheio de chocolate', price: 4.00, image: foodImages.doces },
-    { id: 86, name: 'Bolo no Pote - Ananás', description: 'Creme de ninho com pedaços de ananás', price: 4.00, image: foodImages.doces },
+    { id: 86, name: 'Bolo no Pote - Ananás', description: 'Creme de ninho com pedaços de ananás', price: 4.00, image: foodImages.bolopoteananas },
     { id: 87, name: 'Bolo no Pote - Choco Misto', description: 'Chocolate preto com ninho', price: 4.00, image: foodImages.doces },
     { id: 88, name: 'Cheesecake - Goiabada', price: 3.50, image: foodImages.Cheesecake },
-    { id: 89, name: 'Cheesecake - Frutos Vermelhos', price: 3.50, image: foodImages.doces },
+    { id: 89, name: 'Cheesecake - Frutos Vermelhos', price: 3.50, image: foodImages.frutosvermelhos },
     { id: 90, name: 'Brigadeiro Tradicional', price: 1.50, image: foodImages.doces },
     { id: 91, name: 'Brigadeiro Beijinho', price: 1.50, image: foodImages.doces },
     { id: 92, name: 'Brigadeiro Ninho', price: 2.00, image: foodImages.doces },
     { id: 93, name: 'Brigadeiro Paçoca', price: 2.00, image: foodImages.doces },
     { id: 94, name: 'Brigadeiro Morango', price: 2.00, image: foodImages.doces },
     { id: 95, name: 'Brigadeiro Churros', price: 2.00, image: foodImages.doces },
-    { id: 96, name: 'Tarte de Toblerone', price: 2.20, image: foodImages.doces },
+    { id: 96, name: 'Tarte de Toblerone', price: 2.20, image: foodImages.toblerone },
     { id: 97, name: 'Bolo de Brigadeiro (fatia)', price: 2.20, image: foodImages.doces }
   ]
 };
