@@ -1725,6 +1725,14 @@ const filteredMenu = (category) => {
                               Vegetariano
                             </span>
                           )}
+                          {item.isDailySpecial && (
+                        <div className="absolute top-4 left-4 z-10">
+                          <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-bold bg-gradient-to-r from-[#e6be44] to-[#d4a72c] text-white shadow-lg">
+                            <FiStar className="mr-1.5" />
+                            Prato do Dia
+                          </span>
+                        </div>
+                      )}
                         </div>
                         <div className="p-5 flex flex-col justify-between flex-grow">
                           <div className="flex justify-between items-start mb-3">
@@ -1968,12 +1976,6 @@ const filteredMenu = (category) => {
                           Vegetariano
                         </span>
                       )}
-                       {item.isDailySpecial && (
-                      <span className="absolute bottom-4 left-4 text-sm font-bold px-3.5 py-1.5 rounded-full bg-[#e6be44] text-white flex items-center shadow-md z-10">
-                        <FiStar className="mr-1.5" />
-                        Prato do Dia
-                      </span>
-                    )}
                   </div>
                     <div className="p-5 flex flex-col justify-between flex-grow">
                       <div className="flex justify-between items-start mb-3">
