@@ -2213,27 +2213,61 @@ const filteredMenu = (category) => {
 </main>
  
 
-      {cart.length > 0 && (
-        <motion.div 
-          initial={{ y: 100 }}
-          animate={{ y: 0 }}
-          className="md:hidden fixed bottom-0 left-0 right-0 bg-white shadow-xl border-t border-gray-200 p-3 z-10"
-        >
-          <motion.button 
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-            onClick={() => {     
-              window.scrollTo({ top: 0, behavior: 'smooth' });
-              proceedToCheckout();
-            }}                    
-            className="w-full bg-[#b0aca6] text-[#e6be44] py-2 md:py-3 rounded-lg flex items-center justify-center text-sm md:text-base"
+     {cart.length > 0 && (
+  <motion.div 
+    initial={{ y: 100 }}
+    animate={{ y: 0 }}
+    transition={{ type: 'spring', damping: 25 }}
+    className="md:hidden fixed bottom-0 left-0 right-0 z-50 p-4"
+  >
+    <motion.button 
+      whileHover={{ scale: 1.02 }}
+      whileTap={{ scale: 0.95 }}
+      onClick={() => {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        proceedToCheckout();
+      }}
+      className="w-full bg-gradient-to-r from-[#b0aca6] to-[#918e89] text-[#FFFAF1] py-4 rounded-xl flex items-center justify-center text-lg font-extrabold shadow-lg relative overflow-hidden"
+    >
+      {/* Efeito de brilho animado */}
+      <motion.span 
+        animate={{
+          x: [-100, 300],
+          opacity: [0, 0.3, 0]
+        }}
+        transition={{
+          repeat: Infinity,
+          duration: 2.5,
+          ease: "easeInOut"
+        }}
+        className="absolute top-0 left-0 w-20 h-full bg-white/30 skew-x-[-20deg]"
+      />
+      
+      <div className="flex items-center justify-center space-x-3 relative z-10">
+        <div className="relative">
+          <FiShoppingCart className="text-2xl" />
+          <motion.span 
+            animate={{
+              scale: [1, 1.2, 1],
+              rotate: [0, 10, -10, 0]
+            }}
+            transition={{
+              duration: 1.5,
+              repeat: Infinity
+            }}
+            className="absolute -top-2 -right-2 bg-[#e6be44] text-black text-xs font-bold rounded-full h-6 w-6 flex items-center justify-center"
           >
-            <FiShoppingCart className="mr-2" />
-            Ver Carrinho ({cart.reduce((sum, item) => sum + item.quantity, 0)})
-            <span className="ml-2 font-bold">€{calculateTotal().toFixed(2)}</span>
-          </motion.button>
-        </motion.div>
-      )}
+            {cart.reduce((sum, item) => sum + item.quantity, 0)}
+          </motion.span>
+        </div>
+        <span>Ver Carrinho</span>
+        <span className="ml-2 bg-[#FFFAF1]/20 px-3 py-1 rounded-full font-bold">
+          €{calculateTotal().toFixed(2)}
+        </span>
+      </div>
+    </motion.button>
+  </motion.div>
+)}
     </div>
   );
 };
