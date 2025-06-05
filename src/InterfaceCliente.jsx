@@ -1984,9 +1984,9 @@ const filteredMenu = (category) => {
         </span>
       </h1>
       <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-        Combinações perfeitas de frutas frescas, preparadas na hora
+        Preparados na hora com polpas naturais, 100% fruta e sem adição de açúcar
       </p>
-    </motion.div>
+          </motion.div>
 
     {/* Product Grid with Individual State */}
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -2147,45 +2147,6 @@ const filteredMenu = (category) => {
         );
       })}
     </div>
-
-    {/* Elegant Features Section */}
-    <motion.div
-      initial={{ opacity: 0 }}
-      whileInView={{ opacity: 1 }}
-      transition={{ duration: 0.6 }}
-      viewport={{ once: true }}
-      className="mt-16 grid grid-cols-1 md:grid-cols-3 gap-6"
-    >
-      {[
-        {
-          icon: <GiSodaCan className="text-3xl text-[#e6be44]" />,
-          title: "Sem Aditivos",
-          description: "Nada de conservantes ou açúcares adicionados"
-        },
-        {
-          icon: <GiHealthPotion className="text-3xl text-[#e6be44]" />,
-          title: "Rico em Vitaminas",
-          description: "Fonte natural de nutrientes essenciais"
-        },
-        {
-          icon: <GiFruitBowl className="text-3xl text-[#e6be44]" />,
-          title: "Frutas Frescas",
-          description: "Preparados na hora com ingredientes selecionados"
-        }
-      ].map((feature, index) => (
-        <motion.div
-          key={index}
-          whileHover={{ y: -5 }}
-          className="bg-white p-6 rounded-xl shadow-sm border border-[#d5c8b6]/20"
-        >
-          <div className="bg-[#f5f3f0] w-12 h-12 rounded-full flex items-center justify-center mb-4">
-            {feature.icon}
-          </div>
-          <h3 className="text-lg font-bold text-gray-900 mb-2">{feature.title}</h3>
-          <p className="text-gray-600">{feature.description}</p>
-        </motion.div>
-      ))}
-    </motion.div>
   </div>
 ) : (
 
