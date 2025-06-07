@@ -316,9 +316,25 @@ const InterfaceCliente = () => {
   const [adminLoggedIn, setAdminLoggedIn] = useState(false);
   const currentHour = new Date().getHours();
   const isMenuClosed = currentHour >= 15;
- const [selectedBases, setSelectedBases] = React.useState({});
- const [isHovered, setIsHovered] = useState(false);
- const [isAdding, setIsAdding] = useState(false);
+  const [selectedBases, setSelectedBases] = React.useState({});
+  const [isHovered, setIsHovered] = useState(false);
+  const [isAdding, setIsAdding] = useState(false);
+
+  // Função para verificar se pastéis estão disponíveis
+  const isPastelAvailable = () => {
+    const now = new Date();
+    const dayOfWeek = now.getDay(); // 0 = Domingo, 1 = Segunda, ..., 6 = Sábado
+    const currentHour = now.getHours();
+    
+    // Sábado - disponível o dia todo
+    if (dayOfWeek === 6) return true;
+    
+    // Domingo - não disponível
+    if (dayOfWeek === 0) return false;
+    
+    // Segunda a Sexta - disponível a partir das 15h
+    return currentHour >= 15;
+  };
 
   // Persistência do carrinho no localStorage
   useEffect(() => {
@@ -353,28 +369,29 @@ const InterfaceCliente = () => {
     }, 5000);
   };
 
-const addToCart = (item, base) => {
-  const price = item.baseOptions && typeof item.baseOptions[base] === 'number'
-    ? item.baseOptions[base]
-    : item.price;
+  const addToCart = (item, base) => {
+    const price = item.baseOptions && typeof item.baseOptions[base] === 'number'
+      ? item.baseOptions[base]
+      : item.price;
 
-  const notes = item.baseOptions ? `Base: ${base === 'agua' ? 'Água' : 'Leite'}` : '';
-  
-  const newItem = { 
-    ...item,
-    price,
-    notes,
-    id: Date.now() + item.id,
-    quantity: 1
+    const notes = item.baseOptions ? `Base: ${base === 'agua' ? 'Água' : 'Leite'}` : '';
+    
+    const newItem = { 
+      ...item,
+      price,
+      notes,
+      id: Date.now() + item.id,
+      quantity: 1
+    };
+    
+    setCart([...cart, newItem]);
+    addNotification(`${item.name} adicionado ao carrinho`, 'success');
+    controls.start({
+      scale: [1, 1.2, 1],
+      transition: { duration: 0.5 }
+    });
   };
-  
-  setCart([...cart, newItem]);
-  addNotification(`${item.name} adicionado ao carrinho`, 'success');
-  controls.start({
-    scale: [1, 1.2, 1],
-    transition: { duration: 0.5 }
-  });
-};
+
   const removeFromCart = (id) => {
     setCart(cart.filter(item => item.id !== id));
     addNotification('Item removido do carrinho', 'info');
@@ -502,69 +519,60 @@ const addToCart = (item, base) => {
     return () => clearInterval(timer);
   }, [showWhatsAppModal, countdown]);
 
-  // Adicione este useEffect junto com os outros hooks no início do componente
-useEffect(() => {
-  if (checkoutStep === 'cart-summary') {
-    // Scroll para o topo quando entrar no resumo do carrinho
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  }
-}, [checkoutStep]);
-
-const getWeeklyMenu = () => {
-  const today = new Date().getDay(); // 0=Domingo, 1=Segunda, ..., 6=Sábado
-  const weeklyMenu = [];
-  
-  // 1. Adiciona todos os pratos vegetarianos da semana
-  const vegetarianDishes = menu.semana.filter(item => item.veg);
-  weeklyMenu.push(...vegetarianDishes.map(dish => ({...dish})));
-  
-  // 2. Adiciona o prato do dia (se não for vegetariano já incluso)
-  const dailySpecialName = getDailySpecialName(today);
-  if (dailySpecialName) {
-    const specialDish = menu.semana.find(item => 
-      item.name.includes(dailySpecialName) && 
-      !vegetarianDishes.some(vegDish => vegDish.id === item.id)
-    );
+  const getWeeklyMenu = () => {
+    const today = new Date().getDay(); // 0=Domingo, 1=Segunda, ..., 6=Sábado
+    const weeklyMenu = [];
     
-    if (specialDish) {
-      weeklyMenu.push({ ...specialDish, isDailySpecial: true });
+    // 1. Adiciona todos os pratos vegetarianos da semana
+    const vegetarianDishes = menu.semana.filter(item => item.veg);
+    weeklyMenu.push(...vegetarianDishes.map(dish => ({...dish})));
+    
+    // 2. Adiciona o prato do dia (se não for vegetariano já incluso)
+    const dailySpecialName = getDailySpecialName(today);
+    if (dailySpecialName) {
+      const specialDish = menu.semana.find(item => 
+        item.name.includes(dailySpecialName) && 
+        !vegetarianDishes.some(vegDish => vegDish.id === item.id)
+      );
+      
+      if (specialDish) {
+        weeklyMenu.push({ ...specialDish, isDailySpecial: true });
+      }
     }
-  }
-  
-  return weeklyMenu;
-};
+    
+    return weeklyMenu;
+  };
 
-// Função auxiliar (mantida igual)
-const getDailySpecialName = (day) => {
-  switch(day) {
-    case 1: return 'Frango Cremoso';
-    case 2: return 'Maminha Top';
-    case 3: return 'Costela Raiz';
-    case 4: return 'Frango Supremo';
-    case 5: return 'Feijoada Astral';
-    case 6: return 'Especial do Chef';
-    case 0: return 'Domingo Familiar';
-    default: return null;
-  }
-};
+  const getDailySpecialName = (day) => {
+    switch(day) {
+      case 1: return 'Frango Cremoso';
+      case 2: return 'Maminha Top';
+      case 3: return 'Costela Raiz';
+      case 4: return 'Frango Supremo';
+      case 5: return 'Feijoada Astral';
+      case 6: return 'Especial do Chef';
+      case 0: return 'Domingo Familiar';
+      default: return null;
+    }
+  };
 
-const filteredMenu = (category) => {
-  // 1. Obter os itens baseados na categoria
-  let items;
-  if (category === 'semana') {
-    items = getWeeklyMenu();
-  } else {
-    items = menu[category] || [];
-  }
-  
-  // 2. Aplicar filtro de busca se houver query
-  if (!searchQuery) return items;
-  
-  return items.filter(item => 
-    item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    (item.description && item.description.toLowerCase().includes(searchQuery.toLowerCase()))
-  );
-};
+  const filteredMenu = (category) => {
+    // 1. Obter os itens baseados na categoria
+    let items;
+    if (category === 'semana') {
+      items = getWeeklyMenu();
+    } else {
+      items = menu[category] || [];
+    }
+    
+    // 2. Aplicar filtro de busca se houver query
+    if (!searchQuery) return items;
+    
+    return items.filter(item => 
+      item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (item.description && item.description.toLowerCase().includes(searchQuery.toLowerCase()))
+    );
+  };
 
   const proceedToCheckout = () => {
     if (cart.length === 0) {
@@ -1564,7 +1572,6 @@ const filteredMenu = (category) => {
                   className="absolute -top-1 -right-1 md:-top-2 md:-right-2 bg-black text-white text-xs rounded-full h-5 w-5 md:h-6 md:w-6 flex items-center justify-center"
                 >
                   {cart.reduce((sum, item) => sum + item.quantity, 0)}
-
                 </motion.span>
               )}
             </motion.button>
@@ -1653,7 +1660,7 @@ const filteredMenu = (category) => {
       exit={{ opacity: 0, y: -15 }}
       transition={{ duration: 0.4, ease: "easeOut" }}
     >
-      {['semana', 'lanches', 'porcoes', 'pasteis', 'cafe', 'bebidas', 'salgados', 'sobremesas', 'sumos'].map((category) => ( // <-- **Adicione 'sumos' aqui na lista de categorias**
+      {['semana', 'lanches', 'porcoes', 'pasteis', 'cafe', 'bebidas', 'salgados', 'sobremesas', 'sumos'].map((category) => (
         activeTab === category && (
           <div key={category}>
             <div className="flex items-center justify-between mb-8 md:mb-10">
@@ -1667,8 +1674,6 @@ const filteredMenu = (category) => {
                 {category === 'salgados' && <GiHotMeal className="mr-3  text-black text-4xl md:text-5xl" />}
                 {category === 'sobremesas' && <GiCakeSlice className="mr-3 text-black text-4xl md:text-5xl" />}
 
-
-
                 {category === 'semana' && 'Cardápio da Semana'}
                 {category === 'lanches' && 'Lanches Exclusivos'}
                 {category === 'porcoes' && 'Porções Generosas'}
@@ -1680,9 +1685,27 @@ const filteredMenu = (category) => {
               </h2>
             </div>
 
+            {/* Mensagem de horário para pastéis */}
+            {category === 'pasteis' && (
+              <motion.div
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5 }}
+                className="bg-[#f8f5ed] border-l-4 border-[#e6be44] p-4 mb-8 rounded-r-lg shadow-sm"
+              >
+                <div className="flex items-start">
+                  <FiClock className="text-[#e6be44] text-xl mt-0.5 mr-3 flex-shrink-0" />
+                  <div>
+                    <h3 className="font-semibold text-gray-800">Horário de Serviço</h3>
+                    <p className="text-gray-600 text-sm">
+                      Nossos pastéis são servidos de segunda a sexta-feira a partir das 15h, e durante todo o sábado.
+                    </p>
+                  </div>
+                </div>
+              </motion.div>
+            )}
 
             {category === 'semana' ? (
-              // Início do bloco condicional para 'semana'
               (() => {
                 const now = new Date();
                 const currentHour = now.getHours();
@@ -1771,7 +1794,7 @@ const filteredMenu = (category) => {
                     ))}
                   </div>
                 );
-              })() // Fim do bloco condicional para 'semana'
+              })()
             ) : category === 'pasteis' ? (
               // Seção especial para Pastéis
               <div className="space-y-12">
@@ -1823,7 +1846,6 @@ const filteredMenu = (category) => {
                     </motion.div>
                   </div>
                 </div>
-
 
                 {/* Destaque Especial */}
                 <div className="bg-gradient-to-r from-[#f8f5ed] to-[#f0ede5] p-6 md:p-8 rounded-3xl shadow-lg border-2 border-[#e6be44]/30">
@@ -1937,7 +1959,6 @@ const filteredMenu = (category) => {
                               Vegetariano
                             </span>
                           )}
-
                         </div>
                         <div className="p-5 flex flex-col justify-between flex-grow">
                           <div className="flex justify-between items-start mb-3">
@@ -1948,11 +1969,15 @@ const filteredMenu = (category) => {
                           <motion.button
                             whileHover={{ scale: 1.02, backgroundColor: "#827f7a", boxShadow: "0 8px 15px rgba(0,0,0,0.2)" }}
                             whileTap={{ scale: 0.98 }}
-                            onClick={() => addToCart(item)}
-                            className="mt-6 w-full bg-[#918e89] text-[#e6be44] font-bold px-5 py-3 rounded-xl transition-all duration-300 flex items-center justify-center text-lg md:text-xl shadow-md hover:shadow-xl focus:outline-none focus:ring-4 focus:ring-[#e6be44] focus:ring-opacity-50"
+                            onClick={() => isPastelAvailable() ? addToCart(item) : null}
+                            className={`mt-6 w-full px-5 py-3 rounded-xl transition-all duration-300 flex items-center justify-center text-lg md:text-xl shadow-md hover:shadow-xl focus:outline-none focus:ring-4 focus:ring-[#e6be44] focus:ring-opacity-50 ${
+                              isPastelAvailable()
+                                ? 'bg-[#918e89] text-[#e6be44] font-bold'
+                                : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                            }`}
                           >
                             <FiPlus className="mr-2 text-2xl" />
-                            Adicionar
+                            {isPastelAvailable() ? 'Adicionar' : 'Indisponível'}
                           </motion.button>
                         </div>
                       </motion.div>
@@ -1960,196 +1985,192 @@ const filteredMenu = (category) => {
                   </div>
                 </div>
               </div>
-              // --- **Insira o novo else if para 'sumos' aqui:** ---
-) : category === 'sumos' ? (
-  <div className="space-y-12">
-    {/* Minimalist Hero Section */}
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.6 }}
-      className="text-center"
-    >
-      <motion.div
-        animate={{ rotate: [0, 15, -15, 0] }}
-        transition={{ repeat: Infinity, repeatType: "reverse", duration: 4 }}
-        className="inline-block mb-6"
-      >
-        <GiFruitBowl className="text-5xl text-[#e6be44]" />
-      </motion.div>
-      <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
-        <span className="bg-clip-text text-transparent bg-gradient-to-r from-[#e6be44] to-[#b0aca6]">
-          Sumos & Batidos
-        </span>
-      </h1>
-      <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-        Preparados na hora com polpas naturais, 100% fruta e sem adição de açúcar
-      </p>
-          </motion.div>
-
-    {/* Product Grid with Individual State */}
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-      {filteredMenu(category).map((item) => {
-        // Use item.id as part of the state key for individual control
-        const baseSelected = selectedBases[item.id] || 'agua';
-
-        const basePrice = baseSelected === 'leite' 
-          ? (item.baseOptions?.leite || item.price)
-          : (item.baseOptions?.agua || item.price);
-
-       const addToCartWithAnimation = () => {
-          setIsAdding(true);
-          addToCart({
-            ...item,
-            price: basePrice,
-            notes: `Base: ${baseSelected === 'agua' ? 'Água' : 'Leite'}`
-          }, baseSelected); // Passando a base selecionada como segundo parâmetro
-          setTimeout(() => setIsAdding(false), 1000);
-        };
-
-        return (
-          <motion.div
-            key={item.id}
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-            whileHover={{ y: -5 }}
-            onHoverStart={() => setIsHovered(true)}
-            onHoverEnd={() => setIsHovered(false)}
-            className="bg-white rounded-2xl shadow-xl overflow-hidden border border-[#d5c8b6]/30 flex flex-col"
-          >
-            {/* Image with elegant overlay */}
-            <div className="relative pt-[75%] overflow-hidden">
-              <motion.img
-                src={item.image || '/images/juice-default.jpg'}
-                alt={item.name}
-                className="absolute top-0 left-0 w-full h-full object-cover"
-                animate={{
-                  scale: isHovered ? 1.05 : 1
-                }}
-                transition={{ duration: 0.4 }}
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
-              
-              {/* Favorite button with animation */}
-              <motion.button
-                onClick={() => toggleFavorite(item.id)}
-                className="absolute top-4 right-4 p-2 bg-white/90 rounded-full shadow-sm"
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.9 }}
-              >
-                <FiHeart 
-                  className={`w-5 h-5 transition-colors ${
-                    favorites.includes(item.id) 
-                      ? 'text-red-500 fill-red-500' 
-                      : 'text-gray-400'
-                  }`}
-                />
-              </motion.button>
-            </div>
-
-            {/* Product Info */}
-            <div className="p-5 flex-grow flex flex-col">
-              <div className="flex justify-between items-start mb-3">
-                <h3 className="text-xl font-bold text-gray-900">{item.name}</h3>
+            ) : category === 'sumos' ? (
+              <div className="space-y-12">
+                {/* Minimalist Hero Section */}
                 <motion.div
-                  animate={{ 
-                    scale: isHovered ? 1.1 : 1,
-                    color: isHovered ? '#e6be44' : '#000'
-                  }}
-                  className="text-xl font-bold"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.6 }}
+                  className="text-center"
                 >
-                  €{basePrice.toFixed(2)}
+                  <motion.div
+                    animate={{ rotate: [0, 15, -15, 0] }}
+                    transition={{ repeat: Infinity, repeatType: "reverse", duration: 4 }}
+                    className="inline-block mb-6"
+                  >
+                    <GiFruitBowl className="text-5xl text-[#e6be44]" />
+                  </motion.div>
+                  <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
+                    <span className="bg-clip-text text-transparent bg-gradient-to-r from-[#e6be44] to-[#b0aca6]">
+                      Sumos & Batidos
+                    </span>
+                  </h1>
+                  <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+                    Preparados na hora com polpas naturais, 100% fruta e sem adição de açúcar
+                  </p>
                 </motion.div>
-              </div>
-              
-              <p className="text-gray-600 mb-4 flex-grow">{item.description}</p>
-              
-              {/* Base Selection - Individual to each product */}
-              <div className="mb-4">
-                <div className="flex justify-between items-center mb-2">
-                  <span className="text-sm font-medium text-gray-500">Base:</span>
-                  <div className="flex items-center space-x-2">
-                  <motion.button
-                      onClick={() => setSelectedBases(prev => ({ ...prev, [item.id]: 'agua' }))}
-                      className={`px-3 py-1 rounded-full text-xs font-medium ${
-                        selectedBases[item.id] === 'agua' 
-                          ? 'bg-[#e6be44] text-white' 
-                          : 'bg-[#f3f3f3] text-gray-700'
-                      }`}
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
-                    >
-                      Água
-                    </motion.button>
 
-                    <motion.button
-                      onClick={() => setSelectedBases(prev => ({ ...prev, [item.id]: 'leite' }))}
-                      className={`px-3 py-1 rounded-full text-xs font-medium ${
-                        selectedBases[item.id] === 'leite' 
-                          ? 'bg-[#e6be44] text-white' 
-                          : 'bg-[#f3f3f3] text-gray-700'
-                      }`}
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
-                    >
-                      Leite
-                    </motion.button>
+                {/* Product Grid with Individual State */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+                  {filteredMenu(category).map((item) => {
+                    // Use item.id as part of the state key for individual control
+                    const baseSelected = selectedBases[item.id] || 'agua';
 
-                  </div>
+                    const basePrice = baseSelected === 'leite' 
+                      ? (item.baseOptions?.leite || item.price)
+                      : (item.baseOptions?.agua || item.price);
+
+                    const addToCartWithAnimation = () => {
+                      setIsAdding(true);
+                      addToCart({
+                        ...item,
+                        price: basePrice,
+                        notes: `Base: ${baseSelected === 'agua' ? 'Água' : 'Leite'}`
+                      }, baseSelected); // Passando a base selecionada como segundo parâmetro
+                      setTimeout(() => setIsAdding(false), 1000);
+                    };
+
+                    return (
+                      <motion.div
+                        key={item.id}
+                        initial={{ opacity: 0, y: 30 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.5 }}
+                        whileHover={{ y: -5 }}
+                        onHoverStart={() => setIsHovered(true)}
+                        onHoverEnd={() => setIsHovered(false)}
+                        className="bg-white rounded-2xl shadow-xl overflow-hidden border border-[#d5c8b6]/30 flex flex-col"
+                      >
+                        {/* Image with elegant overlay */}
+                        <div className="relative pt-[75%] overflow-hidden">
+                          <motion.img
+                            src={item.image || '/images/juice-default.jpg'}
+                            alt={item.name}
+                            className="absolute top-0 left-0 w-full h-full object-cover"
+                            animate={{
+                              scale: isHovered ? 1.05 : 1
+                            }}
+                            transition={{ duration: 0.4 }}
+                          />
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
+                          
+                          {/* Favorite button with animation */}
+                          <motion.button
+                            onClick={() => toggleFavorite(item.id)}
+                            className="absolute top-4 right-4 p-2 bg-white/90 rounded-full shadow-sm"
+                            whileHover={{ scale: 1.1 }}
+                            whileTap={{ scale: 0.9 }}
+                          >
+                            <FiHeart 
+                              className={`w-5 h-5 transition-colors ${
+                                favorites.includes(item.id) 
+                                  ? 'text-red-500 fill-red-500' 
+                                  : 'text-gray-400'
+                              }`}
+                            />
+                          </motion.button>
+                        </div>
+
+                        {/* Product Info */}
+                        <div className="p-5 flex-grow flex flex-col">
+                          <div className="flex justify-between items-start mb-3">
+                            <h3 className="text-xl font-bold text-gray-900">{item.name}</h3>
+                            <motion.div
+                              animate={{ 
+                                scale: isHovered ? 1.1 : 1,
+                                color: isHovered ? '#e6be44' : '#000'
+                              }}
+                              className="text-xl font-bold"
+                            >
+                              €{basePrice.toFixed(2)}
+                            </motion.div>
+                          </div>
+                          
+                          <p className="text-gray-600 mb-4 flex-grow">{item.description}</p>
+                          
+                          {/* Base Selection - Individual to each product */}
+                          <div className="mb-4">
+                            <div className="flex justify-between items-center mb-2">
+                              <span className="text-sm font-medium text-gray-500">Base:</span>
+                              <div className="flex items-center space-x-2">
+                              <motion.button
+                                  onClick={() => setSelectedBases(prev => ({ ...prev, [item.id]: 'agua' }))}
+                                  className={`px-3 py-1 rounded-full text-xs font-medium ${
+                                    selectedBases[item.id] === 'agua' 
+                                      ? 'bg-[#e6be44] text-white' 
+                                      : 'bg-[#f3f3f3] text-gray-700'
+                                  }`}
+                                  whileHover={{ scale: 1.05 }}
+                                  whileTap={{ scale: 0.95 }}
+                                >
+                                  Água
+                                </motion.button>
+
+                                <motion.button
+                                  onClick={() => setSelectedBases(prev => ({ ...prev, [item.id]: 'leite' }))}
+                                  className={`px-3 py-1 rounded-full text-xs font-medium ${
+                                    selectedBases[item.id] === 'leite' 
+                                      ? 'bg-[#e6be44] text-white' 
+                                      : 'bg-[#f3f3f3] text-gray-700'
+                                  }`}
+                                  whileHover={{ scale: 1.05 }}
+                                  whileTap={{ scale: 0.95 }}
+                                >
+                                  Leite
+                                </motion.button>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Add to Cart Button */}
+                          <motion.button
+                            onClick={addToCartWithAnimation}
+                            className={`mt-auto w-full bg-[#918e89] text-[#e6be44] font-bold py-3 rounded-lg flex items-center justify-center relative overflow-hidden`}
+                            whileHover={{ 
+                              y: -2,
+                              boxShadow: '0 5px 15px rgba(0,0,0,0.1)'
+                            }}
+                            whileTap={{ scale: 0.98 }}
+                          >
+                            {isAdding ? (
+                              <motion.span
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, y: -20 }}
+                                className="flex items-center"
+                              >
+                                <FiCheck className="mr-2" />
+                                Adicionado!
+                              </motion.span>
+                            ) : (
+                              <motion.span
+                                initial={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, y: 20 }}
+                                className="flex items-center"
+                              >
+                                <FiPlus className="mr-2" />
+                                Adicionar
+                              </motion.span>
+                            )}
+                            
+                            {/* Animated background effect */}
+                            {isAdding && (
+                              <motion.div
+                                initial={{ width: 0 }}
+                                animate={{ width: '100%' }}
+                                transition={{ duration: 1 }}
+                                className="absolute bottom-0 left-0 h-1 bg-[#e6be44]"
+                              />
+                            )}
+                          </motion.button>
+                        </div>
+                      </motion.div>
+                    );
+                  })}
                 </div>
               </div>
-
-              {/* Add to Cart Button */}
-              <motion.button
-                onClick={addToCartWithAnimation}
-                className={`mt-auto w-full bg-[#918e89] text-[#e6be44] font-bold py-3 rounded-lg flex items-center justify-center relative overflow-hidden`}
-                whileHover={{ 
-                  y: -2,
-                  boxShadow: '0 5px 15px rgba(0,0,0,0.1)'
-                }}
-                whileTap={{ scale: 0.98 }}
-              >
-                {isAdding ? (
-                  <motion.span
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -20 }}
-                    className="flex items-center"
-                  >
-                    <FiCheck className="mr-2" />
-                    Adicionado!
-                  </motion.span>
-                ) : (
-                  <motion.span
-                    initial={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: 20 }}
-                    className="flex items-center"
-                  >
-                    <FiPlus className="mr-2" />
-                    Adicionar
-                  </motion.span>
-                )}
-                
-                {/* Animated background effect */}
-                {isAdding && (
-                  <motion.div
-                    initial={{ width: 0 }}
-                    animate={{ width: '100%' }}
-                    transition={{ duration: 1 }}
-                    className="absolute bottom-0 left-0 h-1 bg-[#e6be44]"
-                  />
-                )}
-              </motion.button>
-            </div>
-          </motion.div>
-        );
-      })}
-    </div>
-  </div>
-) : (
-
-// <-- **NOVO TRECHO TERMINA AQUI**
+            ) : (
               // Início do bloco para outras categorias (genérico)
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 md:gap-8">
                 {filteredMenu(category).map(item => (
@@ -2205,7 +2226,6 @@ const filteredMenu = (category) => {
               </div>
             )}
           </div>
-
         )
       ))}
     </motion.div>
