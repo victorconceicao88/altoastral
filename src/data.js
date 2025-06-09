@@ -260,7 +260,7 @@ export const menu = {
       description: 'Rico em vitamina C e antioxidantes, ajuda a reduzir a ansiedade e melhorar a qualidade do sono',
       price: 4.00,
       baseOptions: { agua: 4.00, leite: 4.50 },
-      image: 'foodImages.maracuja',
+      image: foodImages.maracuja,
       veg: true,
       nutritionalInfo: 'Alto teor de vitamina A, C, ferro e fibras. 120kcal (com água)'
     },
@@ -270,7 +270,7 @@ export const menu = {
       description: 'Uma das maiores fontes naturais de vitamina C, fortalece o sistema imunológico',
       price: 4.00,
       baseOptions: { agua: 4.00, leite: 4.50 },
-      image: 'foodImages.acerola',
+      image: foodImages.acerola,
       veg: true,
       nutritionalInfo: 'Contém 30x mais vitamina C que a laranja. 110kcal (com água)'
     },
@@ -280,7 +280,7 @@ export const menu = {
       description: 'Doce e nutritivo, rico em vitamina A que beneficia a saúde ocular e da pele',
       price: 4.00,
       baseOptions: { agua: 4.00, leite: 4.50 },
-      image: 'foodImages.manga',
+      image: foodImages.manga,
       veg: true,
       nutritionalInfo: 'Fonte de vitamina A, C e fibras. 150kcal (com água)'
     },
@@ -290,7 +290,7 @@ export const menu = {
       description: 'Excelente fonte de licopeno e vitamina C, auxilia na saúde cardiovascular',
       price: 4.00,
       baseOptions: { agua: 4.00, leite: 4.50 },
-      image: 'foodImages.goiaba',
+      image: foodImages.goiaba,
       veg: true,
       nutritionalInfo: 'Rica em antioxidantes e fibras. 130kcal (com água)'
     },
@@ -300,7 +300,7 @@ export const menu = {
       description: 'Delicioso e rico em antioxidantes que combatem os radicais livres',
       price: 4.00,
       baseOptions: { agua: 4.00, leite: 4.50 },
-      image: 'foodImages.morango',
+      image: foodImages.morango,
       veg: true,
       nutritionalInfo: 'Contém manganês, potássio e vitamina C. 100kcal (com água)'
     },
@@ -310,7 +310,7 @@ export const menu = {
       description: 'Refrescante e rico em zinco, importante para a imunidade e saúde da pele',
       price: 4.00,
       baseOptions: { agua: 4.00, leite: 4.50 },
-      image: 'foodImages.Caju',
+      image: foodImages.Caju,
       veg: true,
       nutritionalInfo: 'Fonte de vitamina C e minerais. 140kcal (com água)'
     },
@@ -320,7 +320,7 @@ export const menu = {
       description: 'Contém bromelina, enzima que auxilia na digestão e reduz inflamações',
       price: 4.00,
       baseOptions: { agua: 4.00, leite: 4.50 },
-      image: 'foodImages.abacaxi',
+      image: foodImages.abacaxi,
       veg: true,
       nutritionalInfo: 'Diurético natural e rico em vitamina C. 120kcal (com água)'
     },
@@ -330,7 +330,7 @@ export const menu = {
       description: 'Hidratante natural, rico em eletrólitos e gorduras saudáveis',
       price: 4.00,
       baseOptions: { agua: 4.00, leite: 4.50 },
-      image: 'foodImages.coco',
+      image: foodImages.coco,
       veg: true,
       nutritionalInfo: 'Fonte de minerais e ácidos graxos. 180kcal (com água)'
     },
@@ -340,7 +340,7 @@ export const menu = {
       description: 'Exótico e refrescante, rico em vitaminas do complexo B',
       price: 4.00,
       baseOptions: { agua: 4.00, leite: 4.50 },
-      image: 'foodImages.caja',
+      image: foodImages.caja,
       veg: true,
       nutritionalInfo: 'Contém cálcio, fósforo e ferro. 130kcal (com água)'
     },
@@ -350,7 +350,7 @@ export const menu = {
       description: 'Sabor único e cremoso, rico em antioxidantes e vitamina A',
       price: 4.00,
       baseOptions: { agua: 4.00, leite: 4.50 },
-      image: 'foodImages.cupuacu',
+      image: foodImages.cupuacu,
       veg: true,
       nutritionalInfo: 'Fonte de teobromina e ácidos graxos. 160kcal (com água)'
     },
@@ -360,38 +360,39 @@ export const menu = {
       description: 'Sabor tropical marcante, com propriedades que auxiliam no relaxamento',
       price: 4.00,
       baseOptions: { agua: 4.00, leite: 4.50 },
-      image: 'foodImages.graviola',
+      image: foodImages.graviola,
       veg: true,
       nutritionalInfo: 'Rica em vitaminas B1, B2 e C. 140kcal (com água)'
     }
   ],
-  salgados: [
-    { id: 86, name: 'Pão de Queijo', price: 1.60, image: 'foodImages.paodequeijo' },
-    { id: 87, name: 'Pastel de Nata', price: 1.30, image: 'foodImages.pasteldenata' },
-    { id: 88, name: 'Empada de Frango', price: 2.00, image: 'foodImages.empadafrango' },
-    { id: 89, name: 'Kibe', price: 2.20, image: 'foodImages.kibe' },
-    { id: 90, name: 'Enroladinho de Salsicha e Queijo', price: 2.20, image: 'foodImages.fiambre' },
-    { id: 91, name: 'Fiambre e Queijo', price: 2.20, image: 'foodImages.fiambreequeijo' },
-    { id: 92, name: 'Bauru', price: 2.20, image: 'foodImages.bauru' },
-    { id: 93, name: 'Bola de Queijo', price: 2.20, image: 'foodImages.bolaqueijo' },
-    { id: 94, name: 'Coxinha de Frango', price: 2.20, image: 'foodImages.Coxinha' },
-    { id: 95, name: 'Coxinha com Catupiry', price: 3.00, image: 'foodImages.Coxinha' },
-    { id: 96, name: 'Hamburgão', price: 3.50, image: 'foodImages.hamburgao' }
-  ],
-  sobremesas: [
-    { id: 97, name: 'Bolo no Pote - Prestígio', description: 'Chocolate com coco', price: 4.00, image: 'foodImages.Prestígio' },
-    { id: 98, name: 'Bolo no Pote - Chocolate', description: 'Massa de chocolate com recheio de chocolate', price: 4.00, image: 'foodImages.doces' },
-    { id: 99, name: 'Bolo no Pote - Ananás', description: 'Creme de ninho com pedaços de ananás', price: 4.00, image: 'foodImages.bolopoteananas' },
-    { id: 100, name: 'Bolo no Pote - Choco Misto', description: 'Chocolate preto com ninho', price: 4.00, image: 'foodImages.doces' },
-    { id: 101, name: 'Cheesecake - Goiabada', price: 3.50, image: 'foodImages.Cheesecake' },
-    { id: 102, name: 'Cheesecake - Frutos Vermelhos', price: 3.50, image: 'foodImages.frutosvermelhos' },
-    { id: 103, name: 'Brigadeiro Tradicional', price: 1.50, image: 'foodImages.doces' },
-    { id: 104, name: 'Brigadeiro Beijinho', price: 1.50, image: 'foodImages.doces' },
-    { id: 105, name: 'Brigadeiro Ninho', price: 2.00, image: 'foodImages.doces' },
-    { id: 106, name: 'Brigadeiro Paçoca', price: 2.00, image: 'foodImages.doces' },
-    { id: 107, name: 'Brigadeiro Morango', price: 2.00, image: 'foodImages.doces' },
-    { id: 108, name: 'Brigadeiro Churros', price: 2.00, image: 'foodImages.doces' },
-    { id: 109, name: 'Tarte de Toblerone', price: 2.20, image: 'foodImages.toblerone' },
-    { id: 110, name: 'Bolo de Brigadeiro (fatia)', price: 2.20, image: 'foodImages.doces' }
-  ]
+salgados: [
+  { id: 86, name: 'Pão de Queijo', price: 1.60, image: foodImages.paodequeijo },
+  { id: 87, name: 'Pastel de Nata', price: 1.30, image: foodImages.pasteldenata },
+  { id: 88, name: 'Empada de Frango', price: 2.00, image: foodImages.empadafrango },
+  { id: 89, name: 'Kibe', price: 2.20, image: foodImages.kibe },
+  { id: 90, name: 'Enroladinho de Salsicha e Queijo', price: 2.20, image: foodImages.fiambre },
+  { id: 91, name: 'Fiambre e Queijo', price: 2.20, image: foodImages.fiambreequeijo },
+  { id: 92, name: 'Bauru', price: 2.20, image: foodImages.bauru },
+  { id: 93, name: 'Bola de Queijo', price: 2.20, image: foodImages.bolaqueijo },
+  { id: 94, name: 'Coxinha de Frango', price: 2.20, image: foodImages.Coxinha },
+  { id: 95, name: 'Coxinha com Catupiry', price: 3.00, image: foodImages.Coxinha },
+  { id: 96, name: 'Hamburgão', price: 3.50, image: foodImages.hamburgao }
+],
+sobremesas: [
+  { id: 97, name: 'Bolo no Pote - Prestígio', description: 'Chocolate com coco', price: 4.00, image: foodImages.Prestígio },
+  { id: 98, name: 'Bolo no Pote - Chocolate', description: 'Massa de chocolate com recheio de chocolate', price: 4.00, image: foodImages.doces },
+  { id: 99, name: 'Bolo no Pote - Ananás', description: 'Creme de ninho com pedaços de ananás', price: 4.00, image: foodImages.bolopoteananas },
+  { id: 100, name: 'Bolo no Pote - Choco Misto', description: 'Chocolate preto com ninho', price: 4.00, image: foodImages.doces },
+  { id: 101, name: 'Cheesecake - Goiabada', price: 3.50, image: foodImages.Cheesecake },
+  { id: 102, name: 'Cheesecake - Frutos Vermelhos', price: 3.50, image: foodImages.frutosvermelhos },
+  { id: 103, name: 'Brigadeiro Tradicional', price: 1.50, image: foodImages.doces },
+  { id: 104, name: 'Brigadeiro Beijinho', price: 1.50, image: foodImages.doces },
+  { id: 105, name: 'Brigadeiro Ninho', price: 2.00, image: foodImages.doces },
+  { id: 106, name: 'Brigadeiro Paçoca', price: 2.00, image: foodImages.doces },
+  { id: 107, name: 'Brigadeiro Morango', price: 2.00, image: foodImages.doces },
+  { id: 108, name: 'Brigadeiro Churros', price: 2.00, image: foodImages.doces },
+  { id: 109, name: 'Tarte de Toblerone', price: 2.20, image: foodImages.toblerone },
+  { id: 110, name: 'Bolo de Brigadeiro (fatia)', price: 2.20, image: foodImages.doces }
+]
+
 };
