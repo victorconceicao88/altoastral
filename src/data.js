@@ -76,6 +76,8 @@ import frutosvermelhos from './assets/frutosvermelhos.jpg';
 import bolopoteananas from './assets/bolopoteananas.jpg';
 import Prestígio from './assets/presigio.jpg';
 import toblerone from './assets/toblerone.jpg';
+import pedrassabor from './assets/pedrassabor.jpg';
+import superbock from './assets/superbock.jpg';
 
 export const foodImages = {
   frangoCremoso: frangoCremoso,
@@ -156,6 +158,8 @@ export const foodImages = {
   bolopoteananas:bolopoteananas,
   Prestígio:Prestígio,
   toblerone:toblerone,
+  pedrassabor:pedrassabor,
+  superbock:superbock,
   batataFrita: 'https://images.unsplash.com/photo-1541592106381-b31e9677c0e5?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
   bebida: 'https://images.unsplash.com/photo-1514362545857-3bc16c4c7d1b?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
   salgado: 'https://images.unsplash.com/photo-1601050690597-df0568f70950?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
@@ -227,199 +231,167 @@ export const menu = {
   ],
   bebidas: [
     { id: 53, name: 'Caipirinha', description: 'Cachaça 51 ou Velho Barreiro, lima, açúcar e gelo', price: 6.00, image: foodImages.caipirinha },
-    { id: 54, name: 'Caipiblack', description: 'Cachaça preta, lima, açúcar e gelo', price: 6.00, image: foodImages.Caipiblack},
-    { id: 55, name: 'Whiskey Jamenson', price: 3.50, image: foodImages.bebida },
-    { id: 56, name: 'Whiskey J&B', price: 3.00, image: foodImages.bebida },
+    { id: 54, name: 'Caipiblack', description: 'Cachaça preta, lima, açúcar e gelo', price: 6.00, image: foodImages.Caipiblack },
+    { id: 55, name: 'Whiskey Jamenson', price: 3.50, image: foodImages.bebida},
+    { id: 56, name: 'Whiskey J&B', price: 3.00, image: 'foodImages.bebida' },
     { id: 57, name: 'Whiskey Jack Daniels', price: 3.50, image: foodImages.bebida },
-    { id: 58, name: 'Whiskey Black Label', price: 4.00, image: foodImages.bebida },
+    { id: 58, name: 'Whiskey Black Label', price: 4.00, image: 'foodImages.bebida' },
     { id: 59, name: 'Vodka', price: 4.00, image: foodImages.vodka },
-    { id: 60, name: 'Somersby', price: 2.50, image: foodImages.Somersby },
+    { id: 60, name: 'Somersby', price: 2.50, image: 'foodImages.Somersby' },
     { id: 61, name: 'Imperial Heineken (0.20)', price: 1.50, image: foodImages.Imperial },
     { id: 62, name: 'Caneca Heineken (0.50)', price: 3.00, image: foodImages.Imperial },
     { id: 63, name: 'Cerveja Garrafa (0.33ml)', price: 1.40, image: foodImages.cerveja },
-    { id: 64, name: 'Cerveja Mini (0.20ml)', price: 1.10, image: foodImages.cerveja },
-    { id: 65, name: 'Taça de Sangria', description: 'Sangria branca, rosé ou tinta', price: 6.00, image: foodImages.sangria },
-    { id: 66, name: 'Refrigerante Lata', price: 1.60, image: foodImages.refrigerantes },
-    { id: 67, name: 'Água 1.5L', price: 1.50, image: foodImages.agua },
-    { id: 68, name: 'Água 0.5L', price: 1.00, image: foodImages.agua },
-    { id: 69, name: 'Água 0.33L', price: 0.60, image: foodImages.agua },
-    { id: 70, name: 'Água Castelo', price: 1.40, image: foodImages.Castelo },
-    { id: 71, name: 'Água das Pedras', price: 1.40, image: foodImages.pedras },
-    { id: 72, name: 'Balde de Heineken', price: 10.00, image: foodImages.baldedecerveja }
+    { id: 64, name: 'Superbock Preta (0.33ml)', price: 1.40, image: foodImages.superbock },
+    { id: 65, name: 'Cerveja Mini (0.20ml)', price: 1.10, image: foodImages.cerveja },
+    { id: 66, name: 'Taça de Sangria', description: 'Sangria branca, rosé ou tinta', price: 6.00, image: foodImages.sangria },
+    { id: 67, name: 'Refrigerante Lata', price: 1.60, image: foodImages.refrigerantes },
+    { id: 68, name: 'Água 1.5L', price: 1.50, image: foodImages.agua },
+    { id: 69, name: 'Água 0.5L', price: 1.00, image: foodImages.agua },
+    { id: 70, name: 'Água 0.33L', price: 0.60, image: foodImages.agua },
+    { id: 71, name: 'Água Castelo', price: 1.50, image: foodImages.Castelo },
+    { id: 72, name: 'Água Castelo C/Sabor', price: 1.80, image: foodImages.pedrassabor },
+    { id: 73, name: 'Água das Pedras', price: 1.40, image: foodImages.pedras },
+    { id: 74, name: 'Balde de Heineken', price: 10.00, image: foodImages.baldedecerveja }
   ],
-
-   sumos: [
+  sumos: [
     {
-      id: 'sumo-maracuja',
+      id: 75,
       name: 'Sumo/Batido de Maracujá',
       description: 'Rico em vitamina C e antioxidantes, ajuda a reduzir a ansiedade e melhorar a qualidade do sono',
       price: 4.00,
-      baseOptions: {
-        agua: 4.00,
-        leite: 4.50
-      },
-      image: foodImages.maracuja,
+      baseOptions: { agua: 4.00, leite: 4.50 },
+      image: 'foodImages.maracuja',
       veg: true,
       nutritionalInfo: 'Alto teor de vitamina A, C, ferro e fibras. 120kcal (com água)'
     },
     {
-      id: 'sumo-acerola',
+      id: 76,
       name: 'Sumo/Batido de Acerola',
       description: 'Uma das maiores fontes naturais de vitamina C, fortalece o sistema imunológico',
       price: 4.00,
-      baseOptions: {
-        agua: 4.00,
-        leite: 4.50
-      },
-      image: foodImages.acerola,
+      baseOptions: { agua: 4.00, leite: 4.50 },
+      image: 'foodImages.acerola',
       veg: true,
       nutritionalInfo: 'Contém 30x mais vitamina C que a laranja. 110kcal (com água)'
     },
     {
-      id: 'sumo-manga',
+      id: 77,
       name: 'Sumo/Batido de Manga',
       description: 'Doce e nutritivo, rico em vitamina A que beneficia a saúde ocular e da pele',
       price: 4.00,
-      baseOptions: {
-        agua: 4.00,
-        leite: 4.50
-      },
-      image: foodImages.manga,
+      baseOptions: { agua: 4.00, leite: 4.50 },
+      image: 'foodImages.manga',
       veg: true,
       nutritionalInfo: 'Fonte de vitamina A, C e fibras. 150kcal (com água)'
     },
     {
-      id: 'sumo-goiaba',
+      id: 78,
       name: 'Sumo/Batido de Goiaba',
       description: 'Excelente fonte de licopeno e vitamina C, auxilia na saúde cardiovascular',
       price: 4.00,
-      baseOptions: {
-        agua: 4.00,
-        leite: 4.50
-      },
-      image: foodImages.goiaba,
+      baseOptions: { agua: 4.00, leite: 4.50 },
+      image: 'foodImages.goiaba',
       veg: true,
       nutritionalInfo: 'Rica em antioxidantes e fibras. 130kcal (com água)'
     },
     {
-      id: 'sumo-morango',
+      id: 79,
       name: 'Sumo/Batido de Morango',
       description: 'Delicioso e rico em antioxidantes que combatem os radicais livres',
       price: 4.00,
-      baseOptions: {
-        agua: 4.00,
-        leite: 4.50
-      },
-      image: foodImages.morango,
+      baseOptions: { agua: 4.00, leite: 4.50 },
+      image: 'foodImages.morango',
       veg: true,
       nutritionalInfo: 'Contém manganês, potássio e vitamina C. 100kcal (com água)'
     },
     {
-      id: 'sumo-caju',
+      id: 80,
       name: 'Sumo/Batido de Caju',
       description: 'Refrescante e rico em zinco, importante para a imunidade e saúde da pele',
       price: 4.00,
-      baseOptions: {
-        agua: 4.00,
-        leite: 4.50
-      },
-      image: foodImages.Caju,
+      baseOptions: { agua: 4.00, leite: 4.50 },
+      image: 'foodImages.Caju',
       veg: true,
       nutritionalInfo: 'Fonte de vitamina C e minerais. 140kcal (com água)'
     },
     {
-      id: 'sumo-abacaxi',
+      id: 81,
       name: 'Sumo/Batido de Abacaxi',
       description: 'Contém bromelina, enzima que auxilia na digestão e reduz inflamações',
       price: 4.00,
-      baseOptions: {
-        agua: 4.00,
-        leite: 4.50
-      },
-      image: foodImages.abacaxi,
+      baseOptions: { agua: 4.00, leite: 4.50 },
+      image: 'foodImages.abacaxi',
       veg: true,
       nutritionalInfo: 'Diurético natural e rico em vitamina C. 120kcal (com água)'
     },
     {
-      id: 'sumo-coco',
+      id: 82,
       name: 'Sumo/Batido de Coco',
       description: 'Hidratante natural, rico em eletrólitos e gorduras saudáveis',
       price: 4.00,
-      baseOptions: {
-        agua: 4.00,
-        leite: 4.50
-      },
-      image: foodImages.coco,
+      baseOptions: { agua: 4.00, leite: 4.50 },
+      image: 'foodImages.coco',
       veg: true,
       nutritionalInfo: 'Fonte de minerais e ácidos graxos. 180kcal (com água)'
     },
     {
-      id: 'sumo-caja',
+      id: 83,
       name: 'Sumo/Batido de Cajá',
       description: 'Exótico e refrescante, rico em vitaminas do complexo B',
       price: 4.00,
-      baseOptions: {
-        agua: 4.00,
-        leite: 4.50
-      },
-      image: foodImages.caja,
+      baseOptions: { agua: 4.00, leite: 4.50 },
+      image: 'foodImages.caja',
       veg: true,
       nutritionalInfo: 'Contém cálcio, fósforo e ferro. 130kcal (com água)'
     },
     {
-      id: 'sumo-cupuacu',
+      id: 84,
       name: 'Sumo/Batido de Cupuaçu',
       description: 'Sabor único e cremoso, rico em antioxidantes e vitamina A',
       price: 4.00,
-      baseOptions: {
-        agua: 4.00,
-        leite: 4.50
-      },
-      image: foodImages.cupuacu,
+      baseOptions: { agua: 4.00, leite: 4.50 },
+      image: 'foodImages.cupuacu',
       veg: true,
       nutritionalInfo: 'Fonte de teobromina e ácidos graxos. 160kcal (com água)'
     },
     {
-      id: 'sumo-graviola',
+      id: 85,
       name: 'Sumo/Batido de Graviola',
       description: 'Sabor tropical marcante, com propriedades que auxiliam no relaxamento',
       price: 4.00,
-      baseOptions: {
-        agua: 4.00,
-        leite: 4.50
-      },
-      image: foodImages.graviola,
+      baseOptions: { agua: 4.00, leite: 4.50 },
+      image: 'foodImages.graviola',
       veg: true,
       nutritionalInfo: 'Rica em vitaminas B1, B2 e C. 140kcal (com água)'
     }
   ],
   salgados: [
-    { id: 73, name: 'Pão de Queijo', price: 1.60, image: foodImages.paodequeijo },
-    { id: 74, name: 'Pastel de Nata', price: 1.30, image: foodImages.pasteldenata },
-    { id: 75, name: 'Empada de Frango', price: 2.00, image: foodImages.empadafrango },
-    { id: 76, name: 'Kibe', price: 2.20, image: foodImages.kibe },
-    { id: 77, name: 'Enroladinho de Salsicha e Queijo', price: 2.20, image: foodImages.fiambre },
-    { id: 78, name: 'Fiambre e Queijo', price: 2.20, image: foodImages.fiambreequeijo },
-    { id: 79, name: 'Bauru', price: 2.20, image: foodImages.bauru },
-    { id: 80, name: 'Bola de Queijo', price: 2.20, image: foodImages.bolaqueijo },
-    { id: 81, name: 'Coxinha de Frango', price: 2.20, image: foodImages.Coxinha },
-    { id: 82, name: 'Coxinha com Catupiry', price: 3.00, image: foodImages.Coxinha },
-    { id: 83, name: 'Hamburgão', price: 3.50, image: foodImages.hamburgao }
+    { id: 86, name: 'Pão de Queijo', price: 1.60, image: 'foodImages.paodequeijo' },
+    { id: 87, name: 'Pastel de Nata', price: 1.30, image: 'foodImages.pasteldenata' },
+    { id: 88, name: 'Empada de Frango', price: 2.00, image: 'foodImages.empadafrango' },
+    { id: 89, name: 'Kibe', price: 2.20, image: 'foodImages.kibe' },
+    { id: 90, name: 'Enroladinho de Salsicha e Queijo', price: 2.20, image: 'foodImages.fiambre' },
+    { id: 91, name: 'Fiambre e Queijo', price: 2.20, image: 'foodImages.fiambreequeijo' },
+    { id: 92, name: 'Bauru', price: 2.20, image: 'foodImages.bauru' },
+    { id: 93, name: 'Bola de Queijo', price: 2.20, image: 'foodImages.bolaqueijo' },
+    { id: 94, name: 'Coxinha de Frango', price: 2.20, image: 'foodImages.Coxinha' },
+    { id: 95, name: 'Coxinha com Catupiry', price: 3.00, image: 'foodImages.Coxinha' },
+    { id: 96, name: 'Hamburgão', price: 3.50, image: 'foodImages.hamburgao' }
   ],
   sobremesas: [
-    { id: 84, name: 'Bolo no Pote - Prestígio', description: 'Chocolate com coco', price: 4.00, image: foodImages.Prestígio },
-    { id: 85, name: 'Bolo no Pote - Chocolate', description: 'Massa de chocolate com recheio de chocolate', price: 4.00, image: foodImages.doces },
-    { id: 86, name: 'Bolo no Pote - Ananás', description: 'Creme de ninho com pedaços de ananás', price: 4.00, image: foodImages.bolopoteananas },
-    { id: 87, name: 'Bolo no Pote - Choco Misto', description: 'Chocolate preto com ninho', price: 4.00, image: foodImages.doces },
-    { id: 88, name: 'Cheesecake - Goiabada', price: 3.50, image: foodImages.Cheesecake },
-    { id: 89, name: 'Cheesecake - Frutos Vermelhos', price: 3.50, image: foodImages.frutosvermelhos },
-    { id: 90, name: 'Brigadeiro Tradicional', price: 1.50, image: foodImages.doces },
-    { id: 91, name: 'Brigadeiro Beijinho', price: 1.50, image: foodImages.doces },
-    { id: 92, name: 'Brigadeiro Ninho', price: 2.00, image: foodImages.doces },
-    { id: 93, name: 'Brigadeiro Paçoca', price: 2.00, image: foodImages.doces },
-    { id: 94, name: 'Brigadeiro Morango', price: 2.00, image: foodImages.doces },
-    { id: 95, name: 'Brigadeiro Churros', price: 2.00, image: foodImages.doces },
-    { id: 96, name: 'Tarte de Toblerone', price: 2.20, image: foodImages.toblerone },
-    { id: 97, name: 'Bolo de Brigadeiro (fatia)', price: 2.20, image: foodImages.doces }
+    { id: 97, name: 'Bolo no Pote - Prestígio', description: 'Chocolate com coco', price: 4.00, image: 'foodImages.Prestígio' },
+    { id: 98, name: 'Bolo no Pote - Chocolate', description: 'Massa de chocolate com recheio de chocolate', price: 4.00, image: 'foodImages.doces' },
+    { id: 99, name: 'Bolo no Pote - Ananás', description: 'Creme de ninho com pedaços de ananás', price: 4.00, image: 'foodImages.bolopoteananas' },
+    { id: 100, name: 'Bolo no Pote - Choco Misto', description: 'Chocolate preto com ninho', price: 4.00, image: 'foodImages.doces' },
+    { id: 101, name: 'Cheesecake - Goiabada', price: 3.50, image: 'foodImages.Cheesecake' },
+    { id: 102, name: 'Cheesecake - Frutos Vermelhos', price: 3.50, image: 'foodImages.frutosvermelhos' },
+    { id: 103, name: 'Brigadeiro Tradicional', price: 1.50, image: 'foodImages.doces' },
+    { id: 104, name: 'Brigadeiro Beijinho', price: 1.50, image: 'foodImages.doces' },
+    { id: 105, name: 'Brigadeiro Ninho', price: 2.00, image: 'foodImages.doces' },
+    { id: 106, name: 'Brigadeiro Paçoca', price: 2.00, image: 'foodImages.doces' },
+    { id: 107, name: 'Brigadeiro Morango', price: 2.00, image: 'foodImages.doces' },
+    { id: 108, name: 'Brigadeiro Churros', price: 2.00, image: 'foodImages.doces' },
+    { id: 109, name: 'Tarte de Toblerone', price: 2.20, image: 'foodImages.toblerone' },
+    { id: 110, name: 'Bolo de Brigadeiro (fatia)', price: 2.20, image: 'foodImages.doces' }
   ]
 };
