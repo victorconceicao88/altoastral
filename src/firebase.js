@@ -4,14 +4,15 @@ import { getAuth, signInAnonymously } from "firebase/auth";
 import { getFirestore } from 'firebase/firestore';
 
 const firebaseConfig = {
-  apiKey: "AIzaSyBm6iMm6gMBSqwQrHyWPIt0MpBqvB-Mt5o",
-  authDomain: "auto-astral-frontend.firebaseapp.com",
-  projectId: "auto-astral-frontend",
-  storageBucket: "auto-astral-frontend.appspot.com",
-  messagingSenderId: "827832154065",
-  databaseURL: "https://auto-astral-frontend-default-rtdb.europe-west1.firebasedatabase.app",
-  appId: "1:827832154065:web:564e56d6b7057719fa92f0"
+  apiKey: "AIzaSyDoJsFDDqE6jzXiif877rlSqdsycgUES-Y",
+  authDomain: "auto-astral-68e12.firebaseapp.com",
+  databaseURL: "https://auto-astral-68e12-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "auto-astral-68e12",
+  storageBucket: "auto-astral-68e12.appspot.com",  // corrigido
+  messagingSenderId: "142521496096",
+  appId: "1:142521496096:web:e8b8c811aea216a38d4245"
 };
+
 
 const app = initializeApp(firebaseConfig);
 const database = getDatabase(app);

@@ -445,8 +445,9 @@ const addToCart = (item, base) => {
       if (orderType === 'takeaway' && (!customerInfo.name || !customerInfo.phone)) {
         throw new Error('Informações do cliente incompletas para retirada');
       }
-
+      console.log("Tentando enviar pedido...");
       const orderPush = await push(orderRef, newOrder);
+      console.log("Pedido enviado, id:", orderPush.key);
       const orderId = orderPush.key;
       
       // Create WhatsApp message
