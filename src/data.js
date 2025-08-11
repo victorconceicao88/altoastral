@@ -402,24 +402,23 @@ export const menu = {
     { id: 78, name: 'Fiambre e Queijo', price: 2.20, image: foodImages.fiambreequeijo },
     { id: 79, name: 'Bauru', price: 2.20, image: foodImages.bauru },
     { id: 80, name: 'Bola de Queijo', price: 2.20, image: foodImages.bolaqueijo },
-    { id: 81, name: 'Coxinha de Frango', price: 2.20, image: foodImages.Coxinha },
-   
-    { id: 83, name: 'Hamburgão', price: 3.50, image: foodImages.hamburgao }
+    { id: 81, name: 'Coxinha de Frango', price: 2.20, image: foodImages.Coxinha },  
+    { id: 82, name: 'Hamburgão', price: 3.50, image: foodImages.hamburgao }
   ],
   sobremesas: [
-    { id: 84, name: 'Bolo no Pote - Prestígio', description: 'Chocolate com coco', price: 4.00, image: foodImages.Prestígio },
-    { id: 85, name: 'Bolo no Pote - Chocolate', description: 'Massa de chocolate com recheio de chocolate', price: 4.00, image: foodImages.doces },
-    { id: 86, name: 'Bolo no Pote - Ananás', description: 'Creme de ninho com pedaços de ananás', price: 4.00, image: foodImages.bolopoteananas },
-    { id: 87, name: 'Bolo no Pote - Choco Misto', description: 'Chocolate preto com ninho', price: 4.00, image: foodImages.doces },
-    { id: 88, name: 'Cheesecake - Goiabada', price: 3.50, image: foodImages.Cheesecake },
-    { id: 89, name: 'Cheesecake - Frutos Vermelhos', price: 3.50, image: foodImages.frutosvermelhos },
-    { id: 90, name: 'Brigadeiro Tradicional', price: 1.50, image: foodImages.doces },
-    { id: 91, name: 'Brigadeiro Beijinho', price: 1.50, image: foodImages.doces },
-    { id: 92, name: 'Brigadeiro Ninho', price: 2.00, image: foodImages.doces },
-    { id: 93, name: 'Brigadeiro Paçoca', price: 2.00, image: foodImages.doces },
-    { id: 94, name: 'Brigadeiro Morango', price: 2.00, image: foodImages.doces },
-    { id: 95, name: 'Brigadeiro Churros', price: 2.00, image: foodImages.doces },
-    { id: 96, name: 'Tarte de Toblerone', price: 2.20, image: foodImages.toblerone },
-    { id: 97, name: 'Bolo de Brigadeiro (fatia)', price: 2.20, image: foodImages.doces }
+    { id: 83, name: 'Bolo no Pote - Prestígio', description: 'Chocolate com coco', price: 4.00, image: foodImages.Prestígio },
+    { id: 84, name: 'Bolo no Pote - Chocolate', description: 'Massa de chocolate com recheio de chocolate', price: 4.00, image: foodImages.doces },
+    { id: 85, name: 'Bolo no Pote - Ananás', description: 'Creme de ninho com pedaços de ananás', price: 4.00, image: foodImages.bolopoteananas },
+    { id: 86, name: 'Bolo no Pote - Choco Misto', description: 'Chocolate preto com ninho', price: 4.00, image: foodImages.doces },
+    { id: 87, name: 'Cheesecake - Goiabada', price: 3.50, image: foodImages.Cheesecake },
+    { id: 88, name: 'Cheesecake - Frutos Vermelhos', price: 3.50, image: foodImages.frutosvermelhos },
+    { id: 89, name: 'Brigadeiro Tradicional', price: 1.50, image: foodImages.doces },
+    { id: 90, name: 'Brigadeiro Beijinho', price: 1.50, image: foodImages.doces },
+    { id: 91, name: 'Brigadeiro Ninho', price: 2.00, image: foodImages.doces },
+    { id: 92, name: 'Brigadeiro Paçoca', price: 2.00, image: foodImages.doces },
+    { id: 93, name: 'Brigadeiro Morango', price: 2.00, image: foodImages.doces },
+    { id: 94, name: 'Brigadeiro Churros', price: 2.00, image: foodImages.doces },
+    { id: 95, name: 'Tarte de Toblerone', price: 2.20, image: foodImages.toblerone },
+    { id: 96, name: 'Bolo de Brigadeiro (fatia)', price: 2.20, image: foodImages.doces }
   ]
 };
