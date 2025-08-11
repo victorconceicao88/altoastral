@@ -2213,12 +2213,12 @@ const filteredMenu = (category) => {
 </main>
  
 
-     {cart.length > 0 && (
+{cart.length > 0 && (
   <motion.div 
     initial={{ y: 100 }}
     animate={{ y: 0 }}
-    transition={{ type: 'spring', damping: 25 }}
-    className="md:hidden fixed bottom-0 left-0 right-0 z-50 p-4"
+    transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+    className="md:hidden fixed bottom-0 left-0 right-0 z-50 px-4 pb-4"
   >
     <motion.button 
       whileHover={{ scale: 1.02 }}
@@ -2227,41 +2227,41 @@ const filteredMenu = (category) => {
         window.scrollTo({ top: 0, behavior: 'smooth' });
         proceedToCheckout();
       }}
-      className="w-full bg-gradient-to-r from-[#b0aca6] to-[#918e89] text-[#FFFAF1] py-4 rounded-xl flex items-center justify-center text-lg font-extrabold shadow-lg relative overflow-hidden"
+      className="w-full bg-gradient-to-r from-[#b0aca6] to-[#918e89] text-[#FFFAF1] py-5 rounded-2xl flex items-center justify-center text-xl font-extrabold shadow-xl relative overflow-hidden border-2 border-[#FFFAF1]/20"
     >
       {/* Efeito de brilho animado */}
       <motion.span 
         animate={{
           x: [-100, 300],
-          opacity: [0, 0.3, 0]
+          opacity: [0, 0.4, 0]
         }}
         transition={{
           repeat: Infinity,
           duration: 2.5,
           ease: "easeInOut"
         }}
-        className="absolute top-0 left-0 w-20 h-full bg-white/30 skew-x-[-20deg]"
+        className="absolute top-0 left-0 w-24 h-full bg-white/40 skew-x-[-20deg]"
       />
       
-      <div className="flex items-center justify-center space-x-3 relative z-10">
+      <div className="flex items-center justify-center space-x-4 relative z-10 px-2">
         <div className="relative">
-          <FiShoppingCart className="text-2xl" />
+          <FiShoppingCart className="text-3xl" />
           <motion.span 
             animate={{
-              scale: [1, 1.2, 1],
-              rotate: [0, 10, -10, 0]
+              scale: [1, 1.3, 1],
+              rotate: [0, 15, -15, 0]
             }}
             transition={{
               duration: 1.5,
               repeat: Infinity
             }}
-            className="absolute -top-2 -right-2 bg-[#e6be44] text-black text-xs font-bold rounded-full h-6 w-6 flex items-center justify-center"
+            className="absolute -top-3 -right-3 bg-[#e6be44] text-black text-sm font-black rounded-full h-7 w-7 flex items-center justify-center border-2 border-[#FFFAF1]"
           >
             {cart.reduce((sum, item) => sum + item.quantity, 0)}
           </motion.span>
         </div>
-        <span>Ver Carrinho</span>
-        <span className="ml-2 bg-[#FFFAF1]/20 px-3 py-1 rounded-full font-bold">
+        <span className="text-2xl">VER CARRINHO</span>
+        <span className="ml-2 bg-[#FFFAF1]/20 px-4 py-1.5 rounded-full font-bold text-lg">
           €{calculateTotal().toFixed(2)}
         </span>
       </div>

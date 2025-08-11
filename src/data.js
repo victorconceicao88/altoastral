@@ -76,16 +76,6 @@ import frutosvermelhos from './assets/frutosvermelhos.jpg';
 import bolopoteananas from './assets/bolopoteananas.jpg';
 import Prestígio from './assets/presigio.jpg';
 import toblerone from './assets/toblerone.jpg';
-const drinkImages = {
-  caipirinha: 'https://images.unsplash.com/photo-1516684669134-de6f7c473a2a?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=80',
-  whiskey: 'https://images.unsplash.com/photo-1554866585-cd94860890b7?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=80',
-  vodka: 'https://images.unsplash.com/photo-1605270012917-bf157c5a9541?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=80',
-  cerveja: 'https://images.unsplash.com/photo-1535958636474-b021ee887b13?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=80',
-  refrigerante: 'https://images.unsplash.com/photo-1554866585-cd94860890b7?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=80',
-  agua: 'https://images.unsplash.com/photo-1561029471-b0a51aee0c4b?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=80',
-  sangria: 'https://images.unsplash.com/photo-1551751299-1b51cab2694c?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=80',
-  baldeCerveja: 'https://images.unsplash.com/photo-1571330735066-03aaa9429d89?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=80'
-};
 
 export const foodImages = {
   frangoCremoso: frangoCremoso,
@@ -413,7 +403,7 @@ export const menu = {
     { id: 79, name: 'Bauru', price: 2.20, image: foodImages.bauru },
     { id: 80, name: 'Bola de Queijo', price: 2.20, image: foodImages.bolaqueijo },
     { id: 81, name: 'Coxinha de Frango', price: 2.20, image: foodImages.Coxinha },
-    { id: 82, name: 'Coxinha com Catupiry', price: 3.00, image: foodImages.Coxinha },
+   
     { id: 83, name: 'Hamburgão', price: 3.50, image: foodImages.hamburgao }
   ],
   sobremesas: [
