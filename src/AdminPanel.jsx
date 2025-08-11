@@ -203,7 +203,9 @@ const OrderView = ({
                 </div>
                 <div className="flex items-center mt-1">
                   <FiLock className="text-gray-600 mr-2" />
-                  <span>{customer.paymentMethod || 'Não informado'}</span>
+                  <span>{customer.paymentMethod === 'cash' && order.changeFor 
+                      ? `Dinheiro (troco para €${order.changeFor})` 
+                      : customer.paymentMethod || 'Não informado'}</span>
                 </div>
               </div>
               {order.orderType === 'delivery' && (
@@ -230,21 +232,16 @@ const OrderView = ({
 
         <h4 className="font-medium mb-2">Itens do Pedido</h4>
         
-        {groupedItems.kitchen && groupedItems.kitchen.length > 0 && (
-          <>
-            <div className="text-center text-sm font-medium my-2 text-gray-600">------- COZINHA -------</div>
-            <div className="border border-gray-200 rounded divide-y divide-gray-200">
-              {groupedItems.kitchen.map(item => (
-                <OrderItem
-                  key={item.id}
-                  item={item}
-                  showStatus={!item.printedTimestamp}
-                  showNotes={!!item.notes}
-                />
-              ))}
-            </div>
-          </>
-        )}
+      <div className="border border-gray-200 rounded divide-y divide-gray-200">
+      {order.items.map((item, index) => (
+        <OrderItem
+          key={index}  // Usando index como fallback
+          item={item}
+          showStatus={!item.printedTimestamp}
+          showNotes={!!item.notes}
+        />
+      ))}
+    </div>
 
         {groupedItems.bar && groupedItems.bar.length > 0 && (
           <>
@@ -265,15 +262,19 @@ const OrderView = ({
         <div className="mt-4 p-3 bg-gray-50 rounded">
     <div className="flex justify-between items-center">
         <div className="font-bold">
-            Total: €{order.orderType === 'delivery' 
-                ? (order.total + 2.50).toFixed(2) 
-                : order.total.toFixed(2)}
-            {order.orderType === 'delivery' && (
-                <span className="text-sm font-normal ml-2">
-                    (inclui €2.50 de taxa de entrega)
-                </span>
-            )}
+          Total: €{order.total.toFixed(2)}
+          {order.orderType === 'delivery' && (
+            <span className="text-sm font-normal ml-2">
+              (já inclui €2.50 de entrega)
+            </span>
+          )}
         </div>
+        {customer.paymentMethod === 'cash' && order.changeFor && (
+          <div className="flex items-center">
+            <span className="font-medium mr-2">Troco para:</span>
+            <span>€{order.changeFor}</span>
+          </div>
+        )}
         <div className="flex space-x-2">
             {order.status === 'preparing' && (
                 <button
@@ -804,13 +805,16 @@ const formatOrderForPrint = (order) => {
               {filteredOrders.length > 0 ? (
                 <div className="space-y-4">
                   {filteredOrders.slice(0, 5).map(order => (
-                    <OrderView
-                      key={order.id}
-                      order={order}
-                      onPrint={printOrder}
-                      onCancel={(order) => setOrderToCancel(order)}
-                      onMarkAsReady={markOrderAsReady}
-                    />
+                  <OrderView
+                    key={order.id}
+                    order={{
+                      ...order,
+                      items: Array.isArray(order.items) ? order.items : [] // Correção definitiva
+                    }}
+                    onPrint={printOrder}
+                    onCancel={(order) => setOrderToCancel(order)}
+                    onMarkAsReady={markOrderAsReady}
+                  />
                   ))}
                 </div>
               ) : (
@@ -866,7 +870,10 @@ const formatOrderForPrint = (order) => {
                   filteredOrders.map(order => (
                     <OrderView
                       key={order.id}
-                      order={order}
+                      order={{
+                        ...order,
+                        items: Array.isArray(order.items) ? order.items : [] // Correção definitiva
+                      }}
                       onPrint={printOrder}
                       onCancel={(order) => setOrderToCancel(order)}
                       onMarkAsReady={markOrderAsReady}
